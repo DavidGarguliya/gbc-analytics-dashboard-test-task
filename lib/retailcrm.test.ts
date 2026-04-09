@@ -1,12 +1,14 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  buildRetailCrmOrder,
   buildRetailCrmUploadBody,
-  parseMockOrdersFixture,
   selectRetailCrmSiteCode,
-  type MockOrderRecord,
 } from "@/lib/retailcrm";
+import {
+  buildRetailCrmOrder,
+  parseMockOrdersFixture,
+  type MockOrderRecord,
+} from "@/lib/retailcrm-import";
 
 const sampleOrder: MockOrderRecord = {
   firstName: "Айгуль",

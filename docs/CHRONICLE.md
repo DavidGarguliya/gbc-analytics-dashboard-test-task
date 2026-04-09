@@ -53,6 +53,24 @@
 ## 2026-04-09 — M2 data model and security foundation
 - Branch: `task/data-model` from `feat/next-stage-baseline`
 - Scope: added the baseline Supabase schema and explicit client helpers that separate public read access from service-role access.
+- Planned scope:
+  - add baseline schema for `orders`, `sync_state`, and `alerts_sent`
+  - add public/service-role Supabase helpers
+  - refine security and data-model docs to match the actual schema
+- Implemented scope:
+  - added [schema.sql](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/supabase/schema.sql)
+  - added [supabase.ts](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/lib/supabase.ts) and [supabase.test.ts](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/lib/supabase.test.ts)
+  - refined [SECURITY_MODEL.md](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/docs/SECURITY_MODEL.md) and [DATA_MODEL.md](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/docs/DATA_MODEL.md)
+- Intentionally deferred scope:
+  - live Supabase connection checks
+  - any sync implementation
+- Verified invariants:
+  - anon/authenticated roles only receive read access to `orders`
+  - service-role helpers reject browser-like runtime
+  - schema keeps sync cursor and alert dedupe state explicit
+- Remaining unknowns:
+  - real Supabase project/RLS behavior remains unverified
+  - schema fitness against actual RetailCRM payloads remains untested until sync
 - Key artifacts:
   - `supabase/schema.sql`
   - `lib/supabase.ts`
@@ -75,7 +93,28 @@
 ## 2026-04-09 — M3 RetailCRM import foundation
 - Branch: `task/retailcrm-import` from `feat/next-stage-baseline`
 - Scope: implemented deterministic fixture-to-RetailCRM mapping, official batch upload request construction, site resolution, and the import CLI entrypoint.
+- Planned scope:
+  - inspect `mock_orders.json`
+  - add import-side RetailCRM adapter helpers
+  - implement CLI import path with clear logs and failure behavior
+  - document operator assumptions before live import
+- Implemented scope:
+  - inspected fixture shape and confirmed 50 records
+  - added deterministic mapping and fixture parsing
+  - added generic RetailCRM transport and site-resolution helpers
+  - added the CLI import entrypoint and operator documentation
+- Intentionally deferred scope:
+  - live RetailCRM import execution
+  - sync implementation and any M4 work
+- Verified invariants:
+  - import path remains server-side only
+  - import-specific mapping is isolated from generic RetailCRM transport
+  - app code does not import RetailCRM helpers or server-side env readers
+- Remaining unknowns:
+  - live RetailCRM upload semantics for repeated `externalId`
+  - actual site availability and response payload shape per account
 - Key artifacts:
+  - `lib/retailcrm-import.ts`
   - `lib/retailcrm.ts`
   - `lib/retailcrm.test.ts`
   - `scripts/import-retailcrm.ts`
@@ -88,3 +127,24 @@
 - Risks / next:
   - import path still needs live verification against a real RetailCRM account
   - M4 sync should start only after the import path is confirmed
+
+## 2026-04-09 — M2 and M3 checkpoint-review
+- Branch: `task/checkpoint-review` from `feat/next-stage-baseline`
+- Scope: audited M2 and M3 before live import, tightened the RetailCRM boundary split, and documented the live-run checklist and assumptions.
+- Key artifacts:
+  - `docs/CHECKPOINT_REVIEW_M2_M3.md`
+  - `docs/STATE.md`
+  - `docs/CHRONICLE.md`
+  - `lib/retailcrm-import.ts`
+  - `lib/retailcrm.ts`
+  - `scripts/import-retailcrm.ts`
+- Verification:
+  - `npm run docs:golden`
+  - `npm run lint`
+  - `npm run typecheck`
+  - `npm run test`
+  - `npm run build`
+  - `npm run import:retailcrm` without env fails loudly on missing `RETAILCRM_BASE_URL`
+- Risks / next:
+  - live RetailCRM import remains the only allowed next step
+  - M4 stays blocked until the live import checkpoint passes

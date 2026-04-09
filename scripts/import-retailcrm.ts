@@ -2,13 +2,15 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 
 import {
-  buildRetailCrmOrder,
   listRetailCrmSites,
-  parseMockOrdersFixture,
   selectRetailCrmSiteCode,
   uploadRetailCrmOrders,
-  type MockOrderRecord,
 } from "@/lib/retailcrm";
+import {
+  buildRetailCrmOrder,
+  parseMockOrdersFixture,
+  type MockOrderRecord,
+} from "@/lib/retailcrm-import";
 
 async function readMockOrders(filePath: string): Promise<MockOrderRecord[]> {
   const raw = await readFile(filePath, "utf8");
