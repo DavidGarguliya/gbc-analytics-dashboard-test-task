@@ -1,10 +1,10 @@
 # STATE
 
 ## Current state
-Status: M1 scaffold implemented on task branch
+Status: M1 scaffold integrated into local baseline
 
 ## Active branch
-Current working branch: `task/scaffold`
+Current working branch: `feat/next-stage-baseline`
 Canonical local integration branch: `feat/next-stage-baseline`
 
 ## Completed
@@ -19,7 +19,7 @@ Canonical local integration branch: `feat/next-stage-baseline`
 - Initial environment helper and unit test added
 
 ## In progress
-- M1 closeout on `task/scaffold`
+- No active implementation slice
 
 ## Next recommended step
 M2 — Data model and security foundation
