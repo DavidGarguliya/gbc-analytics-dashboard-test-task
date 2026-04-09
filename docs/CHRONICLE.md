@@ -252,13 +252,12 @@
   - added [retailcrm-sync.ts](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/lib/retailcrm-sync.ts) for deterministic timestamp normalization, live-order mapping, and explicit full-scan sync-state construction
   - extended [supabase.ts](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/lib/supabase.ts) with `upsertOrders`, `readSyncState`, and `writeSyncState`
   - added [sync-retailcrm.ts](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/scripts/sync-retailcrm.ts) and the `npm run sync:retailcrm` operator command
-  - added tests for live-order mapping, RetailCRM order-page fetching, Supabase upsert semantics, and sync-state persistence
-  - applied the baseline [schema.sql](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/supabase/schema.sql) to the configured Supabase project during live verification because the project was missing at least `sync_state`
+  - applied the baseline [schema.sql](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/supabase/schema.sql) to the configured Supabase project during live verification because the project was not ready for sync without schema bootstrap
   - fixed `writeSyncState` so hosted reruns refresh both `value.completedAt` and the table-level `updated_at` timestamp
   - completed a live sync and immediate rerun against site `garguliyadavid`, leaving 50 unique rows in `orders` and one updated `retailcrm_orders_sync` row in `sync_state`
 - Intentionally deferred scope:
   - no Telegram implementation
-  - no dashboard changes beyond the existing scaffold
+  - no dashboard changes during M4
   - no currency conversion logic
   - no reinterpretation of live RetailCRM fields
 - Verified invariants:
@@ -272,28 +271,65 @@
 - Key artifacts:
   - `lib/retailcrm.ts`
   - `lib/retailcrm-sync.ts`
-  - `lib/retailcrm.test.ts`
   - `lib/retailcrm-sync.test.ts`
   - `lib/supabase.ts`
   - `lib/supabase.test.ts`
   - `scripts/sync-retailcrm.ts`
-  - `package.json`
-  - `README.md`
-  - `scripts/README.md`
   - `docs/STATE.md`
   - `docs/CHRONICLE.md`
 - Verification:
-  - `npm test -- --run lib/supabase.test.ts`
-  - `npm test -- --run lib/retailcrm-sync.test.ts`
-  - `npm run typecheck`
   - `npm run docs:golden`
   - `npm run lint`
+  - `npm run typecheck`
   - `npm test`
   - `npm run build`
   - live `npm run sync:retailcrm`
   - immediate live rerun `npm run sync:retailcrm`
   - live Supabase verification of `orders` count `= 50`, unique `retailcrm_id` count `= 50`, and refreshed `sync_state.updated_at`
-  - `rg -n "createServiceRoleSupabaseClient|getSupabaseServiceRoleConfig|RETAILCRM_API_KEY|SUPABASE_SERVICE_ROLE_KEY|TELEGRAM_BOT_TOKEN" app lib scripts`
 - Risks / next:
   - M5 can now start safely
   - future incremental sync work, if ever needed, should evolve the explicit cursor contract rather than replacing it with implicit heuristics
+
+## 2026-04-10 — M5 dashboard read model and UI
+- Branch: `task/dashboard` from `task/sync-engine`
+- Scope: replaced the placeholder landing page with a real Supabase-backed dashboard that renders live synced order metrics and recent orders without introducing any new integration layer.
+- Planned scope:
+  - build the dashboard from Supabase as the only read source
+  - show total orders, total revenue, average order value, orders by day, and latest orders
+  - keep UI semantics honest with the stored live contract
+- Implemented scope:
+  - added [dashboard.ts](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/lib/dashboard.ts) for pure read-model aggregation
+  - added [dashboard-data.ts](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/lib/dashboard-data.ts) as a server-only Supabase loader
+  - replaced the scaffold page in [page.tsx](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/app/page.tsx) and [page.module.css](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/app/page.module.css) with a deployable dashboard UI
+  - added tests covering dashboard aggregation semantics, latest-order limits, and mixed-currency honesty
+- Intentionally deferred scope:
+  - no Telegram implementation
+  - no dashboard-side currency conversion
+  - no direct RetailCRM reads in the browser
+- Verified invariants:
+  - dashboard data path is Supabase only
+  - live currency semantics are preserved as stored
+  - the source column is labeled conservatively as `Source / Method`
+  - no client-side service-role or RetailCRM write path leakage was introduced
+- Remaining unknowns:
+  - no unresolved M5 blocker remains before M6
+- Key artifacts:
+  - `lib/dashboard.ts`
+  - `lib/dashboard.test.ts`
+  - `lib/dashboard-data.ts`
+  - `app/page.tsx`
+  - `app/page.module.css`
+  - `docs/STATE.md`
+  - `docs/CHRONICLE.md`
+- Verification:
+  - `npm run docs:golden`
+  - `npm run lint`
+  - `npm run typecheck`
+  - `npm test`
+  - `npm run build`
+  - direct live Supabase metric check: `50` orders, `2,451,000 RUB` revenue, `49,020 RUB` average
+  - production runtime render check via `npm run start -- --hostname 127.0.0.1 --port 3101` and `curl http://127.0.0.1:3101`
+  - confirmed rendered HTML contains `Supabase only read path`, `50`, `2,451,000 RUB`, `49,020 RUB`, `MOCK-0050`, and `Source / Method`
+- Risks / next:
+  - M6 can now start safely on top of the current Supabase read model
+  - if the upstream contract later introduces mixed currencies, the dashboard already degrades to honest non-converted revenue/average labels rather than fabricating a converted total

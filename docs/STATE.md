@@ -1,10 +1,10 @@
 # STATE
 
 ## Current state
-Status: M2 is closed. M3 is sufficiently validated for the test assignment after M3.1 live contract reconciliation. M4 sync foundation is now live-verified against the reconciled RetailCRM contract and the configured Supabase project: the sync path reads live RetailCRM orders, maps the returned upstream fields directly into Supabase rows, upserts by `retailcrm_id`, persists explicit full-scan sync state, and survives an immediate rerun without creating duplicate `orders` rows.
+Status: M2 is closed. M3 is sufficiently validated for the test assignment after M3.1 live contract reconciliation. M4 is closed and live-verified. M5 dashboard read model and UI are now implemented against Supabase as the only read source. The dashboard renders core metrics, a daily orders chart, and a latest-orders table from synced Supabase rows without any direct RetailCRM browser access, currency conversion, or reinterpretation of live upstream semantics.
 
 ## Active branch
-Checkpoint-review branch: `task/sync-engine`
+Checkpoint-review branch: `task/dashboard`
 Canonical local integration branch: `feat/next-stage-baseline`
 
 ## Completed
@@ -28,18 +28,20 @@ Canonical local integration branch: `feat/next-stage-baseline`
 - Import path aligned to use the selected live site currency when available
 - ADR-004 added to capture the live RetailCRM contract of record
 - M4 sync foundation added with live-order mapping, Supabase upsert helpers, explicit sync-state persistence, and a server-side sync CLI
+- M4 live verification completed against the configured Supabase project
+- M5 dashboard read model and UI added with Supabase-only server-side reads and honest source labeling
 
 ## In progress
-- No active implementation slice beyond M4 closeout
-- M5 dashboard work has not started yet
+- No active implementation slice beyond M5 closeout
+- M6 Telegram work has not started yet
 
 ## Next recommended step
-Start M5 against the Supabase data now populated by M4
+Start M6 against the current Supabase-backed contract of record when approved
 
 Specific next action:
-- read dashboard metrics from Supabase `orders`
-- keep the dashboard bound to the current live contract of record (`RUB`, `main`, live statuses)
-- leave Telegram logic deferred until M5 is closed
+- keep Telegram threshold logic bound to the stored Supabase order values populated from live RetailCRM records
+- use the existing `alerts_sent` table for durable dedupe
+- avoid reinterpreting `source` or currency semantics beyond the values already stored in Supabase
 
 ## Known blockers
 - Final deployment settings depend on the chosen runtime implementation details
@@ -49,15 +51,17 @@ Specific next action:
 - accidental client exposure of secrets,
 - schema drift between docs and implementation,
 - sync design becoming ambiguous if cursor strategy is not kept explicit,
-- the current sync remains a full-scan pull of one site; if a later phase needs incremental behavior, the explicit cursor contract must be evolved carefully rather than inferred.
+- the current sync remains a full-scan pull of one site; if a later phase needs incremental behavior, the explicit cursor contract must be evolved carefully rather than inferred,
+- the dashboard currently computes metrics from stored rows in one server-side read path; if order volume grows later, read-model aggregation should evolve explicitly rather than drift into hidden client computation.
 
 ## Definition of health at this stage
 Healthy if:
 - docs are internally consistent,
-- import and sync adapter code pass local quality gates,
+- import, sync, and dashboard code pass local quality gates,
 - the live account contract of record is documented factually,
 - the sync path stays server-side only and preserves live RetailCRM values without reinterpretation,
-- the configured Supabase project contains 50 synced orders and one explicit `retailcrm_orders_sync` state row after a rerun-safe live verification.
+- the configured Supabase project contains 50 synced orders and one explicit `retailcrm_orders_sync` state row after a rerun-safe live verification,
+- the dashboard renders those Supabase rows with metrics matching the current synced data set: 50 orders, `2,451,000 RUB` total revenue, `49,020 RUB` average order value.
 
 ## Milestone checkpoint status
 
@@ -145,18 +149,38 @@ Healthy if:
   - added Supabase `orders` upsert helper keyed by `retailcrm_id`
   - added Supabase `sync_state` read/write helpers keyed by `retailcrm_orders_sync`
   - added server-side CLI entrypoint `npm run sync:retailcrm`
-  - kept the sync cursor explicit as a durable full-scan state payload containing site, page size, latest seen upstream identifiers, and per-run stats
   - live-verified the configured Supabase project by applying the baseline schema, running the sync, rerunning it immediately, and confirming that `orders` remains at 50 unique rows while `sync_state` advances
+  - the configured Supabase project required baseline schema bootstrap before the first live sync; no fresh project should be assumed ready without applying `supabase/schema.sql`
 - Intentionally deferred scope:
   - no Telegram implementation
-  - no dashboard expansion
+  - no dashboard expansion during M4
   - no currency conversion or reinterpretation of live RetailCRM semantics
-  - no live Supabase-backed end-to-end sync execution without credentials
 - Verified invariants:
   - sync path remains server-side only
   - repeated sync is safe by construction because persistence upserts on unique `retailcrm_id`
   - live RetailCRM fields such as `currency`, `status`, `site`, `orderType`, and `totalSumm` are consumed from the returned upstream record, not from fixture intent
   - sync state is explicit and durable
-  - hosted rerun does not create duplicate Supabase order rows
 - Remaining unknowns:
   - none that block M5 under the current single-site, full-scan contract
+
+### M5 — Dashboard read model and UI
+- Planned scope:
+  - render the dashboard from Supabase as the only read source
+  - show core metrics, a daily orders chart, and a latest-orders table
+  - keep UI semantics honest with the stored live contract
+- Implemented scope:
+  - added a pure dashboard read-model builder for totals, average order value, daily counts, and latest orders
+  - added a server-only Supabase loader that reads the `orders` table and feeds the dashboard page
+  - replaced the scaffold placeholder page with a live dashboard UI
+  - labeled the attribution column as `Source / Method` to avoid overstating source precision where the stored field mixes upstream source and order-method fallback
+- Intentionally deferred scope:
+  - no Telegram implementation
+  - no dashboard-side currency conversion
+  - no business inference beyond stored Supabase fields
+- Verified invariants:
+  - dashboard reads Supabase only
+  - browser code does not call RetailCRM directly
+  - displayed monetary values use stored live currency as-is
+  - current metrics match the live synced Supabase data set
+- Remaining unknowns:
+  - none that block M6 under the current dashboard contract

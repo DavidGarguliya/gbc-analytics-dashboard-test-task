@@ -1,136 +1,237 @@
 .page {
   min-height: 100vh;
-  display: grid;
-  gap: 1.5rem;
   padding: 2rem;
   background:
-    radial-gradient(circle at top left, rgba(39, 97, 255, 0.2), transparent 28%),
-    radial-gradient(circle at top right, rgba(22, 163, 74, 0.16), transparent 24%),
-    linear-gradient(180deg, #f5f7fb 0%, #edf2ff 100%);
+    radial-gradient(circle at top left, rgba(201, 88, 30, 0.14), transparent 28%),
+    radial-gradient(circle at top right, rgba(23, 113, 122, 0.14), transparent 24%),
+    linear-gradient(180deg, #f7f4ed 0%, #efe9dd 100%);
 }
 
 .hero,
+.metricCard,
 .panel {
-  width: min(100%, 72rem);
-  margin: 0 auto;
-  border: 1px solid rgba(15, 23, 42, 0.08);
-  border-radius: 1.5rem;
-  background: rgba(255, 255, 255, 0.88);
-  box-shadow: 0 24px 80px rgba(15, 23, 42, 0.08);
-  backdrop-filter: blur(14px);
+  border: 1px solid rgba(34, 30, 24, 0.08);
+  background: rgba(255, 251, 245, 0.9);
+  box-shadow: 0 24px 80px rgba(63, 43, 24, 0.08);
 }
 
 .hero {
-  padding: clamp(2rem, 6vw, 4rem);
+  width: min(100%, 76rem);
+  margin: 0 auto 1.5rem;
+  padding: clamp(2rem, 5vw, 3.25rem);
+  border-radius: 2rem;
+}
+
+.heroMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
 }
 
 .eyebrow {
-  margin-bottom: 1rem;
-  color: #2563eb;
-  font-size: 0.875rem;
+  color: #99511f;
+  font-size: 0.8rem;
   font-weight: 700;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
+}
+
+.readModelBadge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2rem;
+  padding: 0 0.85rem;
+  border-radius: 999px;
+  background: rgba(23, 113, 122, 0.1);
+  color: #0d5961;
+  font-size: 0.85rem;
+  font-weight: 600;
 }
 
 .title {
   max-width: 14ch;
-  color: #0f172a;
-  font-size: clamp(2.75rem, 6vw, 5.5rem);
+  margin-top: 1rem;
+  color: #1f1914;
+  font-size: clamp(2.6rem, 6vw, 4.85rem);
   line-height: 0.95;
 }
 
 .description {
-  max-width: 54rem;
-  margin-top: 1.5rem;
-  color: #334155;
+  max-width: 56rem;
+  margin-top: 1.25rem;
+  color: #4f4337;
   font-size: 1.05rem;
-  line-height: 1.7;
+  line-height: 1.75;
 }
 
-.actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.875rem;
-  margin-top: 2rem;
+.supportingNote {
+  max-width: 50rem;
+  margin-top: 1rem;
+  color: #6b5f54;
+  font-size: 0.94rem;
+  line-height: 1.65;
 }
 
-.primaryAction,
-.secondaryAction {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 3rem;
-  padding: 0 1.25rem;
-  border-radius: 999px;
+.metricsGrid,
+.dashboardGrid {
+  width: min(100%, 76rem);
+  margin: 0 auto;
+}
+
+.metricsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.metricCard {
+  padding: 1.4rem 1.5rem;
+  border-radius: 1.5rem;
+}
+
+.metricLabel {
+  color: #6b5f54;
+  font-size: 0.88rem;
   font-weight: 600;
-  transition:
-    transform 160ms ease,
-    box-shadow 160ms ease,
-    background-color 160ms ease,
-    color 160ms ease;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
-.primaryAction {
-  color: #eff6ff;
-  background: linear-gradient(135deg, #2563eb 0%, #0f172a 100%);
+.metricValue {
+  margin-top: 0.9rem;
+  color: #1f1914;
+  font-size: clamp(1.7rem, 3vw, 2.4rem);
+  font-weight: 700;
+  line-height: 1.1;
 }
 
-.secondaryAction {
-  color: #0f172a;
-  background: rgba(226, 232, 240, 0.9);
-}
-
-.primaryAction:hover,
-.secondaryAction:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.12);
+.dashboardGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1rem;
+  margin-top: 1rem;
 }
 
 .panel {
-  display: grid;
-  gap: 1.25rem;
-  padding: clamp(1.5rem, 4vw, 2rem);
+  border-radius: 1.75rem;
+  padding: 1.5rem;
+}
+
+.panelHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: flex-start;
 }
 
 .panelLabel {
-  color: #475569;
-  font-size: 0.875rem;
+  color: #6b5f54;
+  font-size: 0.84rem;
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
 .panelTitle {
-  margin-top: 0.5rem;
-  color: #0f172a;
-  font-size: clamp(1.5rem, 3vw, 2rem);
+  margin-top: 0.45rem;
+  color: #1f1914;
+  font-size: clamp(1.35rem, 2.5vw, 1.8rem);
 }
 
-.stageList {
+.chart {
   display: grid;
-  gap: 0.875rem;
-  list-style: none;
+  grid-template-columns: repeat(auto-fit, minmax(5rem, 1fr));
+  gap: 0.9rem;
+  align-items: end;
+  margin-top: 1.5rem;
 }
 
-.stageItem {
+.chartColumn {
+  display: grid;
+  gap: 0.5rem;
+  align-items: end;
+  justify-items: center;
+}
+
+.chartValue {
+  color: #7c4722;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.chartTrack {
+  width: 100%;
+  height: 12rem;
   display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 1rem 1.125rem;
-  border: 1px solid rgba(37, 99, 235, 0.08);
-  border-radius: 1rem;
-  background: rgba(248, 250, 252, 0.9);
-  color: #1e293b;
-  font-weight: 500;
+  align-items: end;
+  padding: 0.5rem;
+  border-radius: 1.25rem;
+  background: linear-gradient(180deg, rgba(222, 213, 200, 0.32), rgba(222, 213, 200, 0.75));
 }
 
-.stageMarker {
-  width: 0.75rem;
-  height: 0.75rem;
-  flex: 0 0 0.75rem;
-  border-radius: 999px;
-  background: linear-gradient(135deg, #2563eb 0%, #22c55e 100%);
+.chartBar {
+  width: 100%;
+  min-height: 1rem;
+  border-radius: 0.95rem;
+  background: linear-gradient(180deg, #17717a 0%, #99511f 100%);
+}
+
+.chartLabel {
+  color: #5c534b;
+  font-size: 0.82rem;
+  text-align: center;
+}
+
+.tableWrap {
+  overflow-x: auto;
+  margin-top: 1.5rem;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th,
+.table td {
+  padding: 0.95rem 0.8rem;
+  border-bottom: 1px solid rgba(34, 30, 24, 0.08);
+  text-align: left;
+  vertical-align: top;
+}
+
+.table th {
+  color: #6b5f54;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.table td {
+  color: #2d241c;
+  font-size: 0.95rem;
+}
+
+.orderIdentity {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.orderNumber {
+  font-weight: 700;
+}
+
+.orderExternalId {
+  color: #7a6e63;
+  font-size: 0.82rem;
+}
+
+@media (max-width: 900px) {
+  .metricsGrid {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 640px) {
@@ -139,16 +240,22 @@
   }
 
   .hero,
-  .panel {
-    border-radius: 1.25rem;
+  .panel,
+  .metricCard {
+    border-radius: 1.35rem;
   }
 
-  .actions {
-    flex-direction: column;
+  .panel,
+  .metricCard {
+    padding: 1.2rem;
   }
 
-  .primaryAction,
-  .secondaryAction {
-    width: 100%;
+  .table th,
+  .table td {
+    padding: 0.8rem 0.55rem;
+  }
+
+  .chartTrack {
+    height: 9rem;
   }
 }
