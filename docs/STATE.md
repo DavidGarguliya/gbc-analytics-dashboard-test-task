@@ -1,7 +1,7 @@
 # STATE
 
 ## Current state
-Status: M2 is closed. M3 is sufficiently validated for the test assignment after M3.1 live contract reconciliation. M4 sync foundation is now implemented against the reconciled live RetailCRM contract: the sync path reads live RetailCRM orders, maps the returned upstream fields directly into Supabase rows, upserts by `retailcrm_id`, and persists explicit full-scan sync state. Local quality gates are green. A live end-to-end Supabase run is still pending because no Supabase credentials are currently available in local env files.
+Status: M2 is closed. M3 is sufficiently validated for the test assignment after M3.1 live contract reconciliation. M4 sync foundation is now live-verified against the reconciled RetailCRM contract and the configured Supabase project: the sync path reads live RetailCRM orders, maps the returned upstream fields directly into Supabase rows, upserts by `retailcrm_id`, persists explicit full-scan sync state, and survives an immediate rerun without creating duplicate `orders` rows.
 
 ## Active branch
 Checkpoint-review branch: `task/sync-engine`
@@ -30,19 +30,18 @@ Canonical local integration branch: `feat/next-stage-baseline`
 - M4 sync foundation added with live-order mapping, Supabase upsert helpers, explicit sync-state persistence, and a server-side sync CLI
 
 ## In progress
-- No active implementation slice beyond M4 foundation delivery
-- Live end-to-end Supabase sync execution is still pending local credentials
+- No active implementation slice beyond M4 closeout
+- M5 dashboard work has not started yet
 
 ## Next recommended step
-Provide valid Supabase env for one live M4 verification pass before starting M5
+Start M5 against the Supabase data now populated by M4
 
 Specific next action:
-- run `npm run sync:retailcrm` with valid `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY`
-- rerun `npm run sync:retailcrm` immediately to confirm the same live orders upsert cleanly without duplicate rows
-- inspect Supabase `orders` and `sync_state` contents before beginning M5 dashboard work
+- read dashboard metrics from Supabase `orders`
+- keep the dashboard bound to the current live contract of record (`RUB`, `main`, live statuses)
+- leave Telegram logic deferred until M5 is closed
 
 ## Known blockers
-- local env does not currently contain live Supabase credentials
 - Final deployment settings depend on the chosen runtime implementation details
 
 ## Risks to watch
@@ -50,14 +49,15 @@ Specific next action:
 - accidental client exposure of secrets,
 - schema drift between docs and implementation,
 - sync design becoming ambiguous if cursor strategy is not kept explicit,
-- treating the M4 code path as fully live-validated before one real Supabase-backed rerun.
+- the current sync remains a full-scan pull of one site; if a later phase needs incremental behavior, the explicit cursor contract must be evolved carefully rather than inferred.
 
 ## Definition of health at this stage
 Healthy if:
 - docs are internally consistent,
 - import and sync adapter code pass local quality gates,
 - the live account contract of record is documented factually,
-- the sync path stays server-side only and preserves live RetailCRM values without reinterpretation.
+- the sync path stays server-side only and preserves live RetailCRM values without reinterpretation,
+- the configured Supabase project contains 50 synced orders and one explicit `retailcrm_orders_sync` state row after a rerun-safe live verification.
 
 ## Milestone checkpoint status
 
@@ -146,6 +146,7 @@ Healthy if:
   - added Supabase `sync_state` read/write helpers keyed by `retailcrm_orders_sync`
   - added server-side CLI entrypoint `npm run sync:retailcrm`
   - kept the sync cursor explicit as a durable full-scan state payload containing site, page size, latest seen upstream identifiers, and per-run stats
+  - live-verified the configured Supabase project by applying the baseline schema, running the sync, rerunning it immediately, and confirming that `orders` remains at 50 unique rows while `sync_state` advances
 - Intentionally deferred scope:
   - no Telegram implementation
   - no dashboard expansion
@@ -156,5 +157,6 @@ Healthy if:
   - repeated sync is safe by construction because persistence upserts on unique `retailcrm_id`
   - live RetailCRM fields such as `currency`, `status`, `site`, `orderType`, and `totalSumm` are consumed from the returned upstream record, not from fixture intent
   - sync state is explicit and durable
+  - hosted rerun does not create duplicate Supabase order rows
 - Remaining unknowns:
-  - one live Supabase run and immediate rerun are still required to validate the actual hosted project configuration end-to-end
+  - none that block M5 under the current single-site, full-scan contract

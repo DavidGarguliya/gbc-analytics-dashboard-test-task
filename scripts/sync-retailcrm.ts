@@ -72,6 +72,7 @@ async function main() {
 
   await writeSyncState(supabase, {
     key: RETAILCRM_ORDERS_SYNC_STATE_KEY,
+    updatedAt: completedAt,
     value: syncState,
   });
 

@@ -119,6 +119,7 @@ describe("writeSyncState", () => {
     await expect(
       writeSyncState({ from } as never, {
         key: "retailcrm_orders_sync",
+        updatedAt: "2026-04-10T12:00:00.000Z",
         value: {
           completedAt: "2026-04-10T12:00:00.000Z",
         },
@@ -129,6 +130,7 @@ describe("writeSyncState", () => {
     expect(upsert).toHaveBeenCalledWith(
       {
         key: "retailcrm_orders_sync",
+        updated_at: "2026-04-10T12:00:00.000Z",
         value: {
           completedAt: "2026-04-10T12:00:00.000Z",
         },

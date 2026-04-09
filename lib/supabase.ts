@@ -126,10 +126,15 @@ export async function writeSyncState(
   client: SupabaseClient,
   input: {
     key: string;
+    updatedAt: string;
     value: Record<string, unknown>;
   },
 ): Promise<void> {
-  const result = (await client.from("sync_state").upsert(input, {
+  const result = (await client.from("sync_state").upsert({
+    key: input.key,
+    updated_at: input.updatedAt,
+    value: input.value,
+  }, {
     onConflict: "key",
   })) as SupabaseErrorResult;
 
