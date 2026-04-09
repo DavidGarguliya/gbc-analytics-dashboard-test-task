@@ -32,7 +32,9 @@ This repository now contains:
 - initial server-safe environment helper and test coverage,
 - baseline Supabase schema and client helpers with explicit public/service-role boundaries,
 - RetailCRM import adapter and script foundation,
-- RetailCRM -> Supabase sync foundation with explicit state handling.
+- RetailCRM -> Supabase sync foundation with explicit state handling,
+- Supabase-backed dashboard read model and UI,
+- server-side Telegram alert foundation with explicit dedupe in `alerts_sent`.
 
 ## Suggested branch model
 - `main`
@@ -59,6 +61,11 @@ npm run import:retailcrm
 npm run sync:retailcrm
 ```
 
+```bash
+# Requires valid Supabase service-role credentials plus TELEGRAM_BOT_TOKEN and a non-empty TELEGRAM_CHAT_ID
+npm run alerts:telegram
+```
+
 ## Suggested execution sequence
 1. Spec foundation review
 2. Implement schema
@@ -79,5 +86,6 @@ npm run sync:retailcrm
 - Dashboard reads from Supabase only
 - Sync must be idempotent
 - Alerts must be deduplicated
+- Telegram execution stays server-side and fails loudly if `TELEGRAM_CHAT_ID` is not configured
 - No overengineering
 - Docs must match implementation

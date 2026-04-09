@@ -27,6 +27,15 @@ export type SupabaseOrderRow = {
   total_sum: number;
 };
 
+export type SupabaseHighValueOrderRow = {
+  created_at: string;
+  currency: string;
+  number: string | null;
+  retailcrm_id: number;
+  status: string | null;
+  total_sum: number;
+};
+
 type SupabaseErrorResult = {
   error: {
     message?: string;
@@ -37,6 +46,13 @@ type SupabaseSyncStateSelectResult<T> = {
   data: {
     value: T;
   } | null;
+  error: {
+    message?: string;
+  } | null;
+};
+
+type SupabaseSelectRowsResult<T> = {
+  data: T[] | null;
   error: {
     message?: string;
   } | null;
@@ -139,4 +155,65 @@ export async function writeSyncState(
   })) as SupabaseErrorResult;
 
   assertSupabaseSuccess("sync_state upsert", result);
+}
+
+export async function getUnalertedHighValueOrders(
+  client: SupabaseClient,
+  threshold: number,
+): Promise<SupabaseHighValueOrderRow[]> {
+  const ordersResult = (await client
+    .from("orders")
+    .select("retailcrm_id, number, created_at, status, total_sum, currency")
+    .eq("currency", "KZT")
+    .gt("total_sum", threshold)
+    .order("created_at", {
+      ascending: true,
+    })
+    .order("retailcrm_id", {
+      ascending: true,
+    })) as SupabaseSelectRowsResult<SupabaseHighValueOrderRow>;
+
+  assertSupabaseSuccess("high-value orders read", ordersResult);
+
+  const qualifyingOrders = ordersResult.data ?? [];
+
+  if (qualifyingOrders.length === 0) {
+    return [];
+  }
+
+  const alertsResult = (await client
+    .from("alerts_sent")
+    .select("retailcrm_id")
+    .in(
+      "retailcrm_id",
+      qualifyingOrders.map((order) => order.retailcrm_id),
+    )) as SupabaseSelectRowsResult<Pick<SupabaseHighValueOrderRow, "retailcrm_id">>;
+
+  assertSupabaseSuccess("alerts_sent read", alertsResult);
+
+  const alertedIds = new Set(
+    (alertsResult.data ?? []).map((record) => record.retailcrm_id),
+  );
+
+  return qualifyingOrders.filter((order) => !alertedIds.has(order.retailcrm_id));
+}
+
+export async function markAlertSent(
+  client: SupabaseClient,
+  input: {
+    retailcrmId: number;
+    sentAt: string;
+  },
+): Promise<void> {
+  const result = (await client.from("alerts_sent").upsert(
+    {
+      retailcrm_id: input.retailcrmId,
+      sent_at: input.sentAt,
+    },
+    {
+      onConflict: "retailcrm_id",
+    },
+  )) as SupabaseErrorResult;
+
+  assertSupabaseSuccess("alerts_sent upsert", result);
 }

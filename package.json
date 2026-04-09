@@ -13,6 +13,7 @@
     "docs:golden": "bash ./scripts/check-docs.sh",
     "import:retailcrm": "tsx scripts/import-retailcrm.ts",
     "sync:retailcrm": "tsx scripts/sync-retailcrm.ts",
+    "alerts:telegram": "tsx scripts/send-telegram-alerts.ts",
     "lint": "eslint . --max-warnings=0",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",

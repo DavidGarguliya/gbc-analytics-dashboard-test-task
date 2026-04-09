@@ -1,8 +1,10 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
+  getUnalertedHighValueOrders,
   getSupabaseBrowserConfig,
   getSupabaseServiceRoleConfig,
+  markAlertSent,
   readSyncState,
   upsertOrders,
   writeSyncState,
@@ -136,6 +138,133 @@ describe("writeSyncState", () => {
         },
       },
       { onConflict: "key" },
+    );
+  });
+});
+
+describe("getUnalertedHighValueOrders", () => {
+  it("returns only stored KZT orders above the threshold that are not already alerted", async () => {
+    const alertsIn = vi.fn().mockResolvedValue({
+      data: [{ retailcrm_id: 90 }],
+      error: null,
+    });
+    const alertsSelect = vi.fn().mockReturnValue({ in: alertsIn });
+    const ordersOrderByRetailCrmId = vi.fn().mockResolvedValue({
+      data: [
+        {
+          retailcrm_id: 90,
+          number: "MOCK-0050",
+          created_at: "2026-02-19T09:00:00.000Z",
+          status: "offer-analog",
+          total_sum: 81000,
+          currency: "KZT",
+        },
+        {
+          retailcrm_id: 91,
+          number: "MOCK-0051",
+          created_at: "2026-02-20T10:30:00.000Z",
+          status: "new",
+          total_sum: 91000,
+          currency: "KZT",
+        },
+      ],
+      error: null,
+    });
+    const ordersOrderByCreatedAt = vi.fn().mockReturnValue({
+      order: ordersOrderByRetailCrmId,
+    });
+    const ordersGt = vi.fn().mockReturnValue({
+      order: ordersOrderByCreatedAt,
+    });
+    const ordersEq = vi.fn().mockReturnValue({ gt: ordersGt });
+    const ordersSelect = vi.fn().mockReturnValue({ eq: ordersEq });
+    const from = vi.fn((table: string) => {
+      if (table === "orders") {
+        return { select: ordersSelect };
+      }
+
+      if (table === "alerts_sent") {
+        return { select: alertsSelect };
+      }
+
+      throw new Error(`Unexpected table: ${table}`);
+    });
+
+    await expect(getUnalertedHighValueOrders({ from } as never, 50000)).resolves.toEqual([
+      {
+        retailcrm_id: 91,
+        number: "MOCK-0051",
+        created_at: "2026-02-20T10:30:00.000Z",
+        status: "new",
+        total_sum: 91000,
+        currency: "KZT",
+      },
+    ]);
+
+    expect(from).toHaveBeenCalledWith("orders");
+    expect(ordersSelect).toHaveBeenCalledWith(
+      "retailcrm_id, number, created_at, status, total_sum, currency",
+    );
+    expect(ordersEq).toHaveBeenCalledWith("currency", "KZT");
+    expect(ordersGt).toHaveBeenCalledWith("total_sum", 50000);
+    expect(ordersOrderByCreatedAt).toHaveBeenCalledWith("created_at", {
+      ascending: true,
+    });
+    expect(ordersOrderByRetailCrmId).toHaveBeenCalledWith("retailcrm_id", {
+      ascending: true,
+    });
+    expect(from).toHaveBeenCalledWith("alerts_sent");
+    expect(alertsSelect).toHaveBeenCalledWith("retailcrm_id");
+    expect(alertsIn).toHaveBeenCalledWith("retailcrm_id", [90, 91]);
+  });
+
+  it("does not query alerts_sent when no qualifying orders exist", async () => {
+    const ordersOrderByRetailCrmId = vi.fn().mockResolvedValue({
+      data: [],
+      error: null,
+    });
+    const ordersOrderByCreatedAt = vi.fn().mockReturnValue({
+      order: ordersOrderByRetailCrmId,
+    });
+    const ordersGt = vi.fn().mockReturnValue({
+      order: ordersOrderByCreatedAt,
+    });
+    const ordersEq = vi.fn().mockReturnValue({ gt: ordersGt });
+    const ordersSelect = vi.fn().mockReturnValue({ eq: ordersEq });
+    const from = vi.fn((table: string) => {
+      if (table === "orders") {
+        return { select: ordersSelect };
+      }
+
+      throw new Error(`Unexpected table: ${table}`);
+    });
+
+    await expect(getUnalertedHighValueOrders({ from } as never, 50000)).resolves.toEqual([]);
+
+    expect(from).toHaveBeenCalledTimes(1);
+    expect(from).toHaveBeenCalledWith("orders");
+  });
+});
+
+describe("markAlertSent", () => {
+  it("upserts the alert dedupe record by retailcrm_id", async () => {
+    const upsert = vi.fn().mockResolvedValue({ error: null });
+    const from = vi.fn().mockReturnValue({ upsert });
+
+    await expect(
+      markAlertSent({ from } as never, {
+        retailcrmId: 90,
+        sentAt: "2026-04-10T16:00:00.000Z",
+      }),
+    ).resolves.toBeUndefined();
+
+    expect(from).toHaveBeenCalledWith("alerts_sent");
+    expect(upsert).toHaveBeenCalledWith(
+      {
+        retailcrm_id: 90,
+        sent_at: "2026-04-10T16:00:00.000Z",
+      },
+      { onConflict: "retailcrm_id" },
     );
   });
 });

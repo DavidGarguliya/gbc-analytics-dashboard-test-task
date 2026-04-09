@@ -192,6 +192,26 @@
   - M3 is only partially validated because the live account persists `RUB` instead of `KZT` and repeated imports fail hard instead of behaving as update/no-op
   - M4 should remain blocked until those behaviors are explicitly accepted or corrected
 
+## 2026-04-10 — M6 Telegram alert foundation
+- Branch: `task/telegram-alerts` from `feat/next-stage-baseline`
+- Scope: implemented the compact server-side Telegram alert path against the corrected live `KZT` contract, with explicit dedupe state in Supabase and a manual operator command.
+- Implemented scope:
+  - added [telegram.ts](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/lib/telegram.ts) for readable message formatting and fail-loud Bot API sends
+  - added [telegram-alerts.ts](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/lib/telegram-alerts.ts) for sequential send-then-mark orchestration
+  - extended [supabase.ts](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/lib/supabase.ts) with explicit high-value `KZT` reads and `alerts_sent` upserts
+  - added [send-telegram-alerts.ts](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/scripts/send-telegram-alerts.ts) and the `npm run alerts:telegram` operator path
+  - updated repository docs to advertise the implemented alert workflow honestly
+- Verification:
+  - `npm run lint`
+  - `npm run typecheck`
+  - `npm test`
+  - `npm run build`
+  - live Supabase query confirmed `24` stored `KZT` orders currently exceed `50,000`
+  - live Telegram send is still blocked because local `.env.local` currently contains an empty `TELEGRAM_CHAT_ID`
+- Remaining risks / next:
+  - once `TELEGRAM_CHAT_ID` is populated, rerun `npm run alerts:telegram` twice and confirm the second run sends zero new messages
+  - the current transactional posture is send-then-mark, so a crash between those two steps could resend on a later rerun
+
 ## 2026-04-09 — M3.1 live contract reconciliation
 - Branch: `task/m3-contract-reconciliation` from `task/m3-live-checkpoint`
 - Scope: reconciled the planned import contract with the observed live RetailCRM behavior and chose the smallest safe adaptation before any sync work.
