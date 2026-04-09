@@ -1,0 +1,171 @@
+# ARCHITECTURE
+
+## 1. System overview
+The system has one upstream source, one persistence/read layer, one presentation layer, and one notification capability.
+
+```text
+mock_orders.json
+    |
+    v
+Import Script
+    |
+    v
+RetailCRM
+    |
+    v
+Sync Script / Server-side Sync Flow
+    |
+    v
+Supabase (orders, sync_state, alerts_sent)
+    |                \
+    |                 \
+    v                  v
+Dashboard UI         Alert Checker
+    |                  |
+    v                  v
+Vercel               Telegram Bot API
+```
+
+## 2. Components
+
+### 2.1 Import flow
+Responsibility:
+- load the provided JSON fixture,
+- normalize records as needed,
+- upload them into RetailCRM.
+
+Boundary:
+- operational script only,
+- not user-facing,
+- can use server-side environment variables.
+
+### 2.2 RetailCRM adapter
+Responsibility:
+- encapsulate RetailCRM HTTP requests,
+- provide typed helpers,
+- centralize error handling and pagination concerns.
+
+Boundary:
+- thin adapter,
+- no speculative domain layer.
+
+### 2.3 Sync engine
+Responsibility:
+- fetch orders or order history from RetailCRM,
+- map data into project schema,
+- upsert into Supabase,
+- update sync cursor/state.
+
+Boundary:
+- deterministic and idempotent,
+- operational script or server-side trigger.
+
+### 2.4 Supabase persistence and read model
+Responsibility:
+- store normalized order data,
+- preserve raw payload for traceability,
+- store synchronization state,
+- store alert dedupe state,
+- serve as the only dashboard read source.
+
+### 2.5 Dashboard
+Responsibility:
+- render metrics and recent orders,
+- read only from Supabase,
+- remain small and reviewable.
+
+Boundary:
+- no direct upstream CRM access,
+- no secrets in client-side paths.
+
+### 2.6 Telegram notifier
+Responsibility:
+- send readable alert messages for high-value orders,
+- record that the notification was sent,
+- prevent duplicates.
+
+Boundary:
+- server-side only.
+
+---
+
+## 3. Invariants
+
+### Data and source invariants
+- RetailCRM is upstream for orders.
+- Supabase is source of truth for dashboard reads.
+- Sync state is explicit and persisted.
+- Alert dedupe state is explicit and persisted.
+
+### Boundary invariants
+- Browser cannot call RetailCRM.
+- Browser cannot call Telegram.
+- Secrets exist only server-side.
+
+### Complexity invariants
+- One deployable web app repository.
+- No background infrastructure beyond what the platform already provides unless justified.
+- No speculative modularization.
+
+---
+
+## 4. Data flow detail
+
+### 4.1 Import flow
+1. Read `mock_orders.json`.
+2. Validate/normalize fields.
+3. Upload to RetailCRM batch endpoint.
+4. Log counts and failures.
+
+### 4.2 Sync flow
+1. Read current sync cursor/state from Supabase.
+2. Fetch orders or history from RetailCRM.
+3. Transform records into storage shape.
+4. Upsert into `orders`.
+5. Update sync cursor/state.
+6. Exit with clear logs.
+
+### 4.3 Dashboard flow
+1. Query aggregated and recent order data from Supabase.
+2. Render summary metrics.
+3. Render time-series chart.
+4. Render latest orders list.
+
+### 4.4 Alert flow
+1. Find orders above threshold that have not been alerted.
+2. Send Telegram messages.
+3. Persist sent alerts in `alerts_sent`.
+4. Exit with success/failure logs.
+
+---
+
+## 5. Scale posture
+The architecture is intentionally small, but the following design choices support moderate growth without redesign:
+- durable storage for sync cursor,
+- durable dedupe table for alerts,
+- dashboard backed by persisted data instead of live CRM reads,
+- explicit thin adapters instead of inlined integration code everywhere.
+
+Not included because unjustified at this scale:
+- queueing,
+- worker pool,
+- event stream,
+- generalized sync framework,
+- advanced caching.
+
+---
+
+## 6. Failure handling posture
+- Fail loudly on integration failures.
+- Prefer explicit logs over silent retries.
+- Preserve raw payload when useful for debugging.
+- Keep recovery simple: fix env/data issue, rerun import/sync/check.
+
+---
+
+## 7. Repository alignment
+Implementation is expected to align with:
+- `docs/DATA_MODEL.md` for schema semantics,
+- `docs/SECURITY_MODEL.md` for boundaries,
+- ADR-002 for sync strategy,
+- ADR-003 for alert strategy.

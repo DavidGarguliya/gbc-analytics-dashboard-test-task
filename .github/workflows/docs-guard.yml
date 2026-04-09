@@ -1,0 +1,32 @@
+name: docs-guard
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  docs-guard:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Ensure governing docs exist
+        run: |
+          test -f AGENTS.md
+          test -f docs/PROJECT_CONTEXT.md
+          test -f docs/SPEC.md
+          test -f docs/ARCHITECTURE.md
+          test -f docs/PLAN.md
+          test -f docs/STATE.md
+          test -f docs/CHRONICLE.md
+          test -f docs/DATA_MODEL.md
+          test -f docs/SECURITY_MODEL.md
+          test -f docs/DEPLOYMENT.md
+          test -f docs/TEST_STRATEGY.md
+
+      - name: Ensure ADR directory is populated
+        run: |
+          test -f docs/ADR/ADR-001-system-shape.md
+          test -f docs/ADR/ADR-002-sync-strategy.md
+          test -f docs/ADR/ADR-003-alerting-strategy.md
