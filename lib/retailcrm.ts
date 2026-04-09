@@ -9,6 +9,30 @@ export type RetailCrmSite = {
   defaultForCrm?: boolean;
 };
 
+export type RetailCrmOrderRecord = Record<string, unknown> & {
+  createdAt: string;
+  currency?: string;
+  customFields?: Record<string, unknown>;
+  externalId?: string;
+  firstName?: string;
+  id: number;
+  lastName?: string;
+  number?: string;
+  orderMethod?: string;
+  orderType?: string;
+  phone?: string;
+  site?: string;
+  status?: string;
+  totalSumm: number | string;
+};
+
+export type RetailCrmOrdersPagination = {
+  currentPage: number;
+  limit: number;
+  totalCount: number;
+  totalPageCount: number;
+};
+
 type RetailCrmSitePayload = RetailCrmSite & Record<string, unknown>;
 
 type RetailCrmSitesResponse = {
@@ -36,6 +60,14 @@ type RetailCrmUploadResponse = {
     externalId?: string;
     id?: number;
   }>;
+};
+
+type RetailCrmOrdersResponse = {
+  errorMsg?: string;
+  errors?: Record<string, unknown> | string[];
+  orders?: RetailCrmOrderRecord[];
+  pagination?: RetailCrmOrdersPagination;
+  success: boolean;
 };
 
 export class RetailCrmApiError extends Error {
@@ -234,4 +266,39 @@ export async function uploadRetailCrmOrders(input: {
   }
 
   return payload;
+}
+
+export async function listRetailCrmOrdersPage(input: {
+  limit: 20 | 50 | 100;
+  page: number;
+  site?: string;
+}): Promise<{
+  orders: RetailCrmOrderRecord[];
+  pagination: RetailCrmOrdersPagination;
+}> {
+  if (input.page < 1) {
+    throw new Error("RetailCRM orders page must be >= 1.");
+  }
+
+  const response = await fetch(
+    buildRetailCrmApiUrl("/orders", {
+      limit: String(input.limit),
+      page: String(input.page),
+      ...(input.site ? { "filter[sites][]": input.site } : {}),
+    }),
+  );
+  const payload = await parseRetailCrmResponse<RetailCrmOrdersResponse>(response);
+
+  if (!payload.success || !payload.orders || !payload.pagination) {
+    throw new RetailCrmApiError(
+      payload.errorMsg ?? "RetailCRM did not return the orders page.",
+      response.status,
+      payload,
+    );
+  }
+
+  return {
+    orders: payload.orders,
+    pagination: payload.pagination,
+  };
 }

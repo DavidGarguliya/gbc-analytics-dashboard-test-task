@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
   buildRetailCrmUploadBody,
+  listRetailCrmOrdersPage,
   listRetailCrmSites,
   selectRetailCrmSiteCode,
 } from "@/lib/retailcrm";
@@ -178,6 +179,90 @@ describe("listRetailCrmSites", () => {
         defaultForCrm: true,
       },
     ]);
+  });
+});
+
+describe("listRetailCrmOrdersPage", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+    delete process.env.RETAILCRM_BASE_URL;
+    delete process.env.RETAILCRM_API_KEY;
+  });
+
+  it("requests a paginated site-filtered orders page from RetailCRM", async () => {
+    process.env.RETAILCRM_BASE_URL = "https://example.retailcrm.ru";
+    process.env.RETAILCRM_API_KEY = "test-key";
+
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          success: true,
+          orders: [
+            {
+              id: 90,
+              externalId: "mock-order-0050",
+              number: "MOCK-0050",
+              createdAt: "2026-02-19 09:00:00",
+              status: "offer-analog",
+              totalSumm: 81000,
+              currency: "RUB",
+              orderType: "main",
+              orderMethod: "shopping-cart",
+              site: "garguliyadavid",
+              firstName: "Феруза",
+              lastName: "Юсупова",
+              phone: "+77090123450",
+            },
+          ],
+          pagination: {
+            limit: 50,
+            totalCount: 1,
+            currentPage: 1,
+            totalPageCount: 1,
+          },
+        }),
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+          status: 200,
+        },
+      ),
+    );
+
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(
+      listRetailCrmOrdersPage({
+        limit: 50,
+        page: 1,
+        site: "garguliyadavid",
+      }),
+    ).resolves.toEqual({
+      orders: [
+        expect.objectContaining({
+          id: 90,
+          currency: "RUB",
+          externalId: "mock-order-0050",
+          orderType: "main",
+          site: "garguliyadavid",
+          totalSumm: 81000,
+        }),
+      ],
+      pagination: {
+        currentPage: 1,
+        limit: 50,
+        totalCount: 1,
+        totalPageCount: 1,
+      },
+    });
+
+    const requestUrl = new URL(fetchMock.mock.calls[0][0] as string);
+
+    expect(requestUrl.pathname).toBe("/api/v5/orders");
+    expect(requestUrl.searchParams.get("limit")).toBe("50");
+    expect(requestUrl.searchParams.get("page")).toBe("1");
+    expect(requestUrl.searchParams.get("filter[sites][]")).toBe("garguliyadavid");
   });
 });
 

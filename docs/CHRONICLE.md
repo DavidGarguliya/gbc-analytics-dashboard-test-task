@@ -238,3 +238,53 @@
 - Risks / next:
   - the operational contract is now explicitly tied to the observed live demo account behavior
   - M4 can start safely only against that reconciled contract and only when approved
+
+## 2026-04-10 — M4 sync foundation
+- Branch: `task/sync-engine` from `feat/next-stage-baseline`
+- Scope: implemented the compact RetailCRM -> Supabase synchronization foundation against the reconciled live contract, without touching dashboard or Telegram behavior.
+- Planned scope:
+  - fetch live RetailCRM orders for synchronization
+  - map live upstream records into the existing Supabase `orders` table
+  - persist explicit sync state
+  - keep reruns safe and reviewable
+- Implemented scope:
+  - added [listRetailCrmOrdersPage](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/lib/retailcrm.ts) with explicit page/limit/site filtering
+  - added [retailcrm-sync.ts](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/lib/retailcrm-sync.ts) for deterministic timestamp normalization, live-order mapping, and explicit full-scan sync-state construction
+  - extended [supabase.ts](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/lib/supabase.ts) with `upsertOrders`, `readSyncState`, and `writeSyncState`
+  - added [sync-retailcrm.ts](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/scripts/sync-retailcrm.ts) and the `npm run sync:retailcrm` operator command
+  - added tests for live-order mapping, RetailCRM order-page fetching, Supabase upsert semantics, and sync-state persistence
+- Intentionally deferred scope:
+  - no Telegram implementation
+  - no dashboard changes beyond the existing scaffold
+  - no currency conversion logic
+  - no reinterpretation of live RetailCRM fields
+- Verified invariants:
+  - sync remains server-side only
+  - Supabase writes are explicit and keyed by `retailcrm_id`
+  - sync state is durable and updated only after a completed scan
+  - no client-side code imports service-role or RetailCRM write paths
+- Remaining unknowns:
+  - live Supabase credentials are still absent from local env files, so the hosted project configuration has not yet been exercised with a real sync run and immediate rerun
+- Key artifacts:
+  - `lib/retailcrm.ts`
+  - `lib/retailcrm-sync.ts`
+  - `lib/retailcrm.test.ts`
+  - `lib/retailcrm-sync.test.ts`
+  - `lib/supabase.ts`
+  - `lib/supabase.test.ts`
+  - `scripts/sync-retailcrm.ts`
+  - `package.json`
+  - `README.md`
+  - `scripts/README.md`
+  - `docs/STATE.md`
+  - `docs/CHRONICLE.md`
+- Verification:
+  - `npm run docs:golden`
+  - `npm run lint`
+  - `npm run typecheck`
+  - `npm test`
+  - `npm run build`
+  - `rg -n "createServiceRoleSupabaseClient|getSupabaseServiceRoleConfig|RETAILCRM_API_KEY|SUPABASE_SERVICE_ROLE_KEY|TELEGRAM_BOT_TOKEN" app lib scripts`
+- Risks / next:
+  - run `npm run sync:retailcrm` twice with valid Supabase service-role env before opening M5
+  - confirm the real Supabase project stores the same live RetailCRM values and does not accumulate duplicate rows on rerun
