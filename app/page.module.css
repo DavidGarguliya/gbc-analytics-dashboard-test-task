@@ -1,0 +1,154 @@
+.page {
+  min-height: 100vh;
+  display: grid;
+  gap: 1.5rem;
+  padding: 2rem;
+  background:
+    radial-gradient(circle at top left, rgba(39, 97, 255, 0.2), transparent 28%),
+    radial-gradient(circle at top right, rgba(22, 163, 74, 0.16), transparent 24%),
+    linear-gradient(180deg, #f5f7fb 0%, #edf2ff 100%);
+}
+
+.hero,
+.panel {
+  width: min(100%, 72rem);
+  margin: 0 auto;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 1.5rem;
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: 0 24px 80px rgba(15, 23, 42, 0.08);
+  backdrop-filter: blur(14px);
+}
+
+.hero {
+  padding: clamp(2rem, 6vw, 4rem);
+}
+
+.eyebrow {
+  margin-bottom: 1rem;
+  color: #2563eb;
+  font-size: 0.875rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.title {
+  max-width: 14ch;
+  color: #0f172a;
+  font-size: clamp(2.75rem, 6vw, 5.5rem);
+  line-height: 0.95;
+}
+
+.description {
+  max-width: 54rem;
+  margin-top: 1.5rem;
+  color: #334155;
+  font-size: 1.05rem;
+  line-height: 1.7;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.875rem;
+  margin-top: 2rem;
+}
+
+.primaryAction,
+.secondaryAction {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 3rem;
+  padding: 0 1.25rem;
+  border-radius: 999px;
+  font-weight: 600;
+  transition:
+    transform 160ms ease,
+    box-shadow 160ms ease,
+    background-color 160ms ease,
+    color 160ms ease;
+}
+
+.primaryAction {
+  color: #eff6ff;
+  background: linear-gradient(135deg, #2563eb 0%, #0f172a 100%);
+}
+
+.secondaryAction {
+  color: #0f172a;
+  background: rgba(226, 232, 240, 0.9);
+}
+
+.primaryAction:hover,
+.secondaryAction:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.12);
+}
+
+.panel {
+  display: grid;
+  gap: 1.25rem;
+  padding: clamp(1.5rem, 4vw, 2rem);
+}
+
+.panelLabel {
+  color: #475569;
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.panelTitle {
+  margin-top: 0.5rem;
+  color: #0f172a;
+  font-size: clamp(1.5rem, 3vw, 2rem);
+}
+
+.stageList {
+  display: grid;
+  gap: 0.875rem;
+  list-style: none;
+}
+
+.stageItem {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1.125rem;
+  border: 1px solid rgba(37, 99, 235, 0.08);
+  border-radius: 1rem;
+  background: rgba(248, 250, 252, 0.9);
+  color: #1e293b;
+  font-weight: 500;
+}
+
+.stageMarker {
+  width: 0.75rem;
+  height: 0.75rem;
+  flex: 0 0 0.75rem;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #2563eb 0%, #22c55e 100%);
+}
+
+@media (max-width: 640px) {
+  .page {
+    padding: 1rem;
+  }
+
+  .hero,
+  .panel {
+    border-radius: 1.25rem;
+  }
+
+  .actions {
+    flex-direction: column;
+  }
+
+  .primaryAction,
+  .secondaryAction {
+    width: 100%;
+  }
+}

@@ -21,3 +21,31 @@
 - Rationale: establish a spec-first execution pack so Codex works under explicit constraints instead of generating ad hoc architecture.
 - Verification: manual consistency review of document set and repository structure.
 - Next: scaffold the actual application and repository tooling.
+
+## 2026-04-09 — M1 scaffold implemented
+- Branch: `task/scaffold` from `feat/next-stage-baseline`
+- Scope: initialized git, committed the baseline snapshot, and implemented the Next.js + TypeScript repository scaffold for the first delivery milestone.
+- Key artifacts:
+  - `package.json`
+  - `package-lock.json`
+  - `next.config.ts`
+  - `tsconfig.json`
+  - `eslint.config.mjs`
+  - `vitest.config.ts`
+  - `app/layout.tsx`
+  - `app/page.tsx`
+  - `app/globals.css`
+  - `app/page.module.css`
+  - `lib/env.ts`
+  - `lib/env.test.ts`
+  - `.github/workflows/ci.yml`
+  - `scripts/check-docs.sh`
+- Verification:
+  - `npm run docs:golden`
+  - `npm run lint`
+  - `npm run typecheck`
+  - `npm run test`
+  - `npm run build`
+- Risks / next:
+  - Supabase schema and clients are not implemented yet
+  - External service credentials and API specifics remain pending for M2/M3

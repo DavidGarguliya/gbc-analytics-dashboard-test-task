@@ -1,6 +1,6 @@
 # RetailCRM Mini Dashboard — Codex Delivery Pack
 
-This repository is prepared as a **spec-first, implementation-ready baseline** for the AI Tools Specialist test assignment.
+This repository is prepared as a **spec-first, production-shaped implementation** for the AI Tools Specialist test assignment.
 
 Target delivery:
 - import test orders from `mock_orders.json` into RetailCRM,
@@ -24,30 +24,37 @@ Before any implementation work:
 8. Read relevant ADRs
 
 ## Current repository status
-This pack contains:
+This repository now contains:
 - governance documents,
-- architecture and data model,
-- execution plan,
-- deployment and test strategy,
-- repository conventions,
-- placeholders for `app/`, `lib/`, `scripts/`, `supabase/`.
-
-It does **not** yet contain the final application code. It is intended to be dropped into a clean repository and used as the authoritative baseline for Codex execution.
+- Next.js App Router + TypeScript scaffold,
+- baseline quality scripts for `docs:golden`, `lint`, `typecheck`, `test`, and `build`,
+- CI workflow for repository quality gates,
+- initial server-safe environment helper and test coverage,
+- placeholders for the later integration slices in `scripts/` and `supabase/`.
 
 ## Suggested branch model
 - `main`
-- `integration/test-assignment-retailcrm-dashboard`
+- `feat/next-stage-baseline`
 - `task/*` branches per milestone
+
+## Local setup
+```bash
+npm install
+npm run docs:golden
+npm run lint
+npm run typecheck
+npm run test
+npm run build
+```
 
 ## Suggested execution sequence
 1. Spec foundation review
-2. Scaffold app
-3. Implement schema
-4. Implement RetailCRM import
-5. Implement sync engine
-6. Implement dashboard
-7. Implement Telegram alerts
-8. Add CI, hardening, and final README evidence
+2. Implement schema
+3. Implement RetailCRM import
+4. Implement sync engine
+5. Implement dashboard
+6. Implement Telegram alerts
+7. Add deployment evidence and final README
 
 ## Deliverables expected at the end
 - Vercel URL

@@ -114,8 +114,8 @@ These are non-negotiable unless a new ADR explicitly changes them.
 Default branch layout:
 
 - `main` — stable, reviewable delivery branch.
-- `integration/test-assignment-retailcrm-dashboard` — integration branch.
-- Task branches created from integration:
+- `feat/next-stage-baseline` — local integration baseline branch.
+- Task branches created from the local integration baseline:
   - `task/spec-foundation`
   - `task/scaffold`
   - `task/data-model`
@@ -128,9 +128,9 @@ Default branch layout:
 
 ### Branch rules
 - Never implement substantial changes directly on `main`.
-- Work from task branch -> merge into integration -> merge integration into main.
+- Work from task branch -> merge into `feat/next-stage-baseline` -> merge to `main` when ready.
 - Keep task branches focused on one slice.
-- Rebase or merge from integration as needed; keep conflicts minimal.
+- Rebase or merge from `feat/next-stage-baseline` as needed; keep conflicts minimal.
 
 ---
 

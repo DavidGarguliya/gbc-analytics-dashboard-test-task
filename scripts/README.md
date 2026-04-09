@@ -1,6 +1,9 @@
 # scripts/
 
-Implementation placeholder for operational scripts.
+Operational scripts and local repository guards.
+
+Current contents:
+- `check-docs.sh` — local golden check that mirrors required governing docs presence
 
 Expected future contents:
 - `import-retailcrm.ts`

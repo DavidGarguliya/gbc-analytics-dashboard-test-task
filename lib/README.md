@@ -1,6 +1,9 @@
 # lib/
 
-Implementation placeholder for shared helpers and thin integration adapters.
+Shared helpers and thin integration adapters.
+
+Current contents:
+- `env.ts` — explicit required environment lookup helper used by server-side code
 
 Expected future contents:
 - `retailcrm.ts`
