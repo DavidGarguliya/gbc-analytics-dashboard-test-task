@@ -1,10 +1,10 @@
 # STATE
 
 ## Current state
-Status: M3 import slice implemented on task branch, awaiting live RetailCRM verification
+Status: M3 import foundation integrated into local baseline, awaiting live RetailCRM verification
 
 ## Active branch
-Current working branch: `task/retailcrm-import`
+Current working branch: `feat/next-stage-baseline`
 Canonical local integration branch: `feat/next-stage-baseline`
 
 ## Completed
@@ -22,7 +22,7 @@ Canonical local integration branch: `feat/next-stage-baseline`
 - Security posture refined for anon read access to `orders` only
 
 ## In progress
-- M3 RetailCRM import implementation on `task/retailcrm-import`
+- M3 live RetailCRM import verification
 
 ## Next recommended step
 Complete M3 — RetailCRM import
