@@ -207,9 +207,12 @@
   - `npm test`
   - `npm run build`
   - live Supabase query confirmed `24` stored `KZT` orders currently exceed `50,000`
-  - live Telegram send is still blocked because local `.env.local` currently contains an empty `TELEGRAM_CHAT_ID`
+  - derived Telegram chat target `74076638` from the bot `getUpdates` flow after receiving a direct user message
+  - first live `npm run alerts:telegram` execution sent `24` alerts for RetailCRM ids `43, 45, 49, 51, 53, 55, 57, 60, 61, 65, 67, 68, 70, 71, 74, 76, 78, 80, 81, 83, 85, 87, 88, 90`
+  - `alerts_sent` now contains all `24` qualifying ids with a shared `sent_at` timestamp of `2026-04-09T22:51:42.174+00:00`
+  - immediate rerun sent `0` alerts and reported `Pending alerts found: 0`
 - Remaining risks / next:
-  - once `TELEGRAM_CHAT_ID` is populated, rerun `npm run alerts:telegram` twice and confirm the second run sends zero new messages
+  - deployment and operator environments should store a real `TELEGRAM_CHAT_ID` instead of depending on chat-id derivation from `getUpdates`
   - the current transactional posture is send-then-mark, so a crash between those two steps could resend on a later rerun
 
 ## 2026-04-09 — M3.1 live contract reconciliation

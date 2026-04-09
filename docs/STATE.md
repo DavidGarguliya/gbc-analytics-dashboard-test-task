@@ -1,7 +1,7 @@
 # STATE
 
 ## Current state
-Status: M2 is closed. M3 is sufficiently validated for the test assignment after M3.1 live contract reconciliation. M4 is closed and live-verified. M5 dashboard read model and UI are implemented against Supabase as the only read source. After a post-M5 upstream currency realignment, the live RetailCRM contract of record now returns `KZT`, Supabase has been resynced, and the dashboard renders the current synced data set in `KZT` without any client-side relabeling or currency conversion. M6 server-side Telegram alert foundation is now implemented locally against that KZT contract, with explicit dedupe in `alerts_sent`, but final live message verification is blocked until `TELEGRAM_CHAT_ID` is populated with a real target chat.
+Status: M2 is closed. M3 is sufficiently validated for the test assignment after M3.1 live contract reconciliation. M4 is closed and live-verified. M5 dashboard read model and UI are implemented against Supabase as the only read source. After a post-M5 upstream currency realignment, the live RetailCRM contract of record now returns `KZT`, Supabase has been resynced, and the dashboard renders the current synced data set in `KZT` without any client-side relabeling or currency conversion. M6 Telegram alert foundation is now closed and live-verified against that KZT contract, with explicit dedupe in `alerts_sent`.
 
 ## Active branch
 Checkpoint-review branch: `task/telegram-alerts`
@@ -33,20 +33,20 @@ Canonical local integration branch: `feat/next-stage-baseline`
 - ADR-005 added to capture the upstream realignment of the live currency contract to `KZT`
 - Supabase resynced after the upstream KZT realignment
 - M6 alert foundation added with a Telegram Bot API adapter, explicit high-value KZT Supabase reads, durable dedupe writes to `alerts_sent`, and a server-side CLI entrypoint
+- M6 live verification completed by deriving the Telegram chat target from bot updates, sending all current qualifying alerts once, and confirming a zero-send rerun
 
 ## In progress
-- M6 live Telegram send verification is waiting on a non-empty `TELEGRAM_CHAT_ID`
+- No active implementation slice beyond M6 closeout
 
 ## Next recommended step
-Populate `TELEGRAM_CHAT_ID` with a real bot target, run `npm run alerts:telegram`, and rerun it immediately to confirm zero duplicate sends
+Open the final delivery milestone only when ready to focus on deployment evidence, README finalization, and release hardening
 
 Specific next action:
-- keep Telegram threshold logic bound to stored Supabase `KZT` order values populated from live RetailCRM records
-- use the existing `alerts_sent` table for durable dedupe
+- keep production/deployment Telegram configuration explicit so the alert script can run without manual chat-id derivation
+- preserve the stored Supabase `KZT` contract for any later alert or deployment work
 - avoid reinterpreting currency semantics or introducing non-KZT fallback behavior
 
 ## Known blockers
-- `TELEGRAM_CHAT_ID` is currently blank in local `.env.local`, so the live alert path cannot target a real chat yet
 - Final deployment settings depend on the chosen runtime implementation details
 
 ## Risks to watch
@@ -56,6 +56,7 @@ Specific next action:
 - sync design becoming ambiguous if cursor strategy is not kept explicit,
 - the current sync remains a full-scan pull of one site; if a later phase needs incremental behavior, the explicit cursor contract must be evolved carefully rather than inferred,
 - the dashboard currently computes metrics from stored rows in one server-side read path; if order volume grows later, read-model aggregation should evolve explicitly rather than drift into hidden client computation,
+- deployment and operator environments still need a configured `TELEGRAM_CHAT_ID` instead of relying on chat-id discovery during ad hoc live verification,
 - the alert runner currently uses send-then-mark semantics; if a process exits after a successful Telegram send but before the dedupe write, a rerun could resend that specific order.
 
 ## Definition of health at this stage
@@ -66,7 +67,7 @@ Healthy if:
 - the sync path stays server-side only and preserves live RetailCRM values without reinterpretation,
 - the configured Supabase project contains 50 synced orders and one explicit `retailcrm_orders_sync` state row after a rerun-safe live verification,
 - the dashboard renders those Supabase rows with metrics matching the current synced data set: 50 orders, `2,451,000 KZT` total revenue, `49,020 KZT` average order value,
-- the alert path can read pending high-value `KZT` orders from Supabase and fail loudly if Telegram target configuration is incomplete.
+- the alert path has been live-verified to send all current qualifying `KZT` orders once and to send zero duplicates on immediate rerun.
 
 ## Milestone checkpoint status
 
@@ -228,6 +229,6 @@ Healthy if:
   - Telegram secrets remain server-side only
   - alert evaluation uses stored Supabase rows rather than direct RetailCRM reads
   - dedupe state stays explicit and durable in `alerts_sent`
-  - rerun behavior is locally verified by tests
+  - rerun behavior is verified both by tests and by live rerun against the configured Supabase project
 - Remaining unknowns:
-  - final live Telegram delivery remains blocked until `TELEGRAM_CHAT_ID` is configured with a real target chat
+  - deployment/runtime environments still need an explicit `TELEGRAM_CHAT_ID` configuration
