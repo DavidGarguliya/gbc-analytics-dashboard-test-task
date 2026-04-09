@@ -1,3 +1,5 @@
+import { pathToFileURL } from "node:url";
+
 import {
   listRetailCrmOrdersPage,
   listRetailCrmSites,
@@ -17,7 +19,19 @@ import {
   writeSyncState,
 } from "@/lib/supabase";
 
-async function main() {
+export type RetailCrmSyncRunResult = {
+  latestCreatedAt: string | null;
+  latestRetailCrmId: number | null;
+  ordersFetched: number;
+  ordersUpserted: number;
+  pageSize: number;
+  pagesProcessed: number;
+  previousCompletedAt: string | null;
+  resolvedSite: string;
+  syncStateKey: typeof RETAILCRM_ORDERS_SYNC_STATE_KEY;
+};
+
+export async function runRetailCrmSync(): Promise<RetailCrmSyncRunResult> {
   const supabase = createServiceRoleSupabaseClient();
   const sites = await listRetailCrmSites();
   const siteCode = selectRetailCrmSiteCode(sites, process.env.RETAILCRM_SITE_CODE);
@@ -76,26 +90,55 @@ async function main() {
     value: syncState,
   });
 
-  console.log("RetailCRM sync completed.");
-  console.log(`Resolved site: ${siteCode}`);
-  console.log(`Page size: ${RETAILCRM_SYNC_PAGE_SIZE}`);
-  console.log(`Pages processed: ${totalPages}`);
-  console.log(`Orders fetched: ${fetchedOrders}`);
-  console.log(`Orders upserted: ${upsertedOrders}`);
-  console.log(`Latest RetailCRM id: ${latestRetailCrmId ?? "n/a"}`);
-  console.log(`Latest createdAt: ${latestCreatedAt ?? "n/a"}`);
-  console.log(`Sync state key: ${RETAILCRM_ORDERS_SYNC_STATE_KEY}`);
+  return {
+    latestCreatedAt,
+    latestRetailCrmId,
+    ordersFetched: fetchedOrders,
+    ordersUpserted: upsertedOrders,
+    pageSize: RETAILCRM_SYNC_PAGE_SIZE,
+    pagesProcessed: totalPages,
+    previousCompletedAt: previousState?.completedAt ?? null,
+    resolvedSite: siteCode,
+    syncStateKey: RETAILCRM_ORDERS_SYNC_STATE_KEY,
+  };
+}
 
-  if (previousState) {
-    console.log(`Previous sync completed at: ${previousState.completedAt}`);
+export function logRetailCrmSyncResult(
+  result: RetailCrmSyncRunResult,
+  logger: Pick<Console, "log"> = console,
+) {
+  logger.log("RetailCRM sync completed.");
+  logger.log(`Resolved site: ${result.resolvedSite}`);
+  logger.log(`Page size: ${result.pageSize}`);
+  logger.log(`Pages processed: ${result.pagesProcessed}`);
+  logger.log(`Orders fetched: ${result.ordersFetched}`);
+  logger.log(`Orders upserted: ${result.ordersUpserted}`);
+  logger.log(`Latest RetailCRM id: ${result.latestRetailCrmId ?? "n/a"}`);
+  logger.log(`Latest createdAt: ${result.latestCreatedAt ?? "n/a"}`);
+  logger.log(`Sync state key: ${result.syncStateKey}`);
+
+  if (result.previousCompletedAt) {
+    logger.log(`Previous sync completed at: ${result.previousCompletedAt}`);
   }
 }
 
-main().catch((error: unknown) => {
-  const message = error instanceof Error ? error.message : "Unknown sync failure.";
+async function main() {
+  const result = await runRetailCrmSync();
 
-  console.error("RetailCRM sync failed.");
-  console.error(message);
+  logRetailCrmSyncResult(result);
+}
 
-  process.exitCode = 1;
-});
+const isDirectExecution =
+  typeof process.argv[1] === "string" &&
+  import.meta.url === pathToFileURL(process.argv[1]).href;
+
+if (isDirectExecution) {
+  main().catch((error: unknown) => {
+    const message = error instanceof Error ? error.message : "Unknown sync failure.";
+
+    console.error("RetailCRM sync failed.");
+    console.error(message);
+
+    process.exitCode = 1;
+  });
+}

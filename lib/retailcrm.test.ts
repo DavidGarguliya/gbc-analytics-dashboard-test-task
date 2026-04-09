@@ -2,8 +2,10 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
   buildRetailCrmUploadBody,
+  isRetailCrmDuplicateExternalIdError,
   listRetailCrmOrdersPage,
   listRetailCrmSites,
+  RetailCrmApiError,
   selectRetailCrmSiteCode,
 } from "@/lib/retailcrm";
 import {
@@ -263,6 +265,31 @@ describe("listRetailCrmOrdersPage", () => {
     expect(requestUrl.searchParams.get("limit")).toBe("50");
     expect(requestUrl.searchParams.get("page")).toBe("1");
     expect(requestUrl.searchParams.get("filter[sites][]")).toBe("garguliyadavid");
+  });
+});
+
+describe("isRetailCrmDuplicateExternalIdError", () => {
+  it("recognizes the accepted duplicate-safe RetailCRM seed import rejection", () => {
+    expect(
+      isRetailCrmDuplicateExternalIdError(
+        new RetailCrmApiError("RetailCRM request failed.", 460, {
+          errorMsg: "Validation failed",
+          errors: ["Order with externalId=mock-order-0001 already exists"],
+          success: false,
+        }),
+      ),
+    ).toBe(true);
+  });
+
+  it("rejects unrelated API failures", () => {
+    expect(
+      isRetailCrmDuplicateExternalIdError(
+        new RetailCrmApiError("RetailCRM request failed.", 500, {
+          errorMsg: "Internal error",
+          success: false,
+        }),
+      ),
+    ).toBe(false);
   });
 });
 

@@ -1,7 +1,9 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
+import { pathToFileURL } from "node:url";
 
 import {
+  isRetailCrmDuplicateExternalIdError,
   listRetailCrmOrderTypes,
   listRetailCrmSites,
   selectRetailCrmSiteCode,
@@ -21,7 +23,16 @@ async function readMockOrders(filePath: string): Promise<MockOrderRecord[]> {
   return parseMockOrdersFixture(parsed);
 }
 
-async function main() {
+export type RetailCrmImportRunResult = {
+  fixturePath: string;
+  outcome: "duplicate-safe-rejected" | "uploaded";
+  preparedOrders: number;
+  resolvedCurrency: string;
+  resolvedSite: string;
+  uploadedOrders: number;
+};
+
+export async function runRetailCrmImport(): Promise<RetailCrmImportRunResult> {
   const filePath = path.join(process.cwd(), "mock_orders.json");
   const fixtureOrders = await readMockOrders(filePath);
   const sites = await listRetailCrmSites();
@@ -34,24 +45,70 @@ async function main() {
       orderType: resolveRetailCrmOrderTypeCode(orderTypes, order.orderType),
     }),
   );
-  const result = await uploadRetailCrmOrders({
-    orders,
-    site: siteCode,
-  });
 
-  console.log("RetailCRM import completed.");
-  console.log(`Fixture path: ${filePath}`);
-  console.log(`Resolved site: ${siteCode}`);
-  console.log(`Resolved currency: ${selectedSite?.currency ?? "KZT"}`);
-  console.log(`Prepared orders: ${orders.length}`);
-  console.log(`Uploaded orders: ${result.uploadedOrders?.length ?? orders.length}`);
+  try {
+    const result = await uploadRetailCrmOrders({
+      orders,
+      site: siteCode,
+    });
+
+    return {
+      fixturePath: filePath,
+      outcome: "uploaded",
+      preparedOrders: orders.length,
+      resolvedCurrency: selectedSite?.currency ?? "KZT",
+      resolvedSite: siteCode,
+      uploadedOrders: result.uploadedOrders?.length ?? orders.length,
+    };
+  } catch (error) {
+    if (!isRetailCrmDuplicateExternalIdError(error)) {
+      throw error;
+    }
+
+    return {
+      fixturePath: filePath,
+      outcome: "duplicate-safe-rejected",
+      preparedOrders: orders.length,
+      resolvedCurrency: selectedSite?.currency ?? "KZT",
+      resolvedSite: siteCode,
+      uploadedOrders: 0,
+    };
+  }
 }
 
-main().catch((error: unknown) => {
-  const message = error instanceof Error ? error.message : "Unknown import failure.";
+export function logRetailCrmImportResult(
+  result: RetailCrmImportRunResult,
+  logger: Pick<Console, "log"> = console,
+) {
+  logger.log("RetailCRM import completed.");
+  logger.log(`Fixture path: ${result.fixturePath}`);
+  logger.log(`Resolved site: ${result.resolvedSite}`);
+  logger.log(`Resolved currency: ${result.resolvedCurrency}`);
+  logger.log(`Prepared orders: ${result.preparedOrders}`);
+  logger.log(`Uploaded orders: ${result.uploadedOrders}`);
 
-  console.error("RetailCRM import failed.");
-  console.error(message);
+  if (result.outcome === "duplicate-safe-rejected") {
+    logger.log("Upload outcome: duplicate-safe externalId rejection.");
+  }
+}
 
-  process.exitCode = 1;
-});
+async function main() {
+  const result = await runRetailCrmImport();
+
+  logRetailCrmImportResult(result);
+}
+
+const isDirectExecution =
+  typeof process.argv[1] === "string" &&
+  import.meta.url === pathToFileURL(process.argv[1]).href;
+
+if (isDirectExecution) {
+  main().catch((error: unknown) => {
+    const message = error instanceof Error ? error.message : "Unknown import failure.";
+
+    console.error("RetailCRM import failed.");
+    console.error(message);
+
+    process.exitCode = 1;
+  });
+}

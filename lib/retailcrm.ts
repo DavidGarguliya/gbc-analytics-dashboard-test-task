@@ -81,6 +81,25 @@ export class RetailCrmApiError extends Error {
   }
 }
 
+export function isRetailCrmDuplicateExternalIdError(error: unknown): boolean {
+  if (!(error instanceof RetailCrmApiError)) {
+    return false;
+  }
+
+  if (error.status !== 460) {
+    return false;
+  }
+
+  const combinedText = [
+    error.message,
+    JSON.stringify(error.details ?? null),
+  ]
+    .join(" ")
+    .toLowerCase();
+
+  return combinedText.includes("externalid") && combinedText.includes("already exists");
+}
+
 function sanitizeRetailCrmBaseUrl(baseUrl: string): string {
   return baseUrl.replace(/\/+$/, "");
 }

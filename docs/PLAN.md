@@ -127,20 +127,22 @@ Done when:
 - order above threshold produces one readable notification,
 - repeat runs do not create duplicates.
 
-### M7 — Deployment and evidence
+### M7 — End-to-end pipeline runner
 Goal:
-- deploy and produce assignment outputs.
+- provide one executable local runner that drives the already-validated chain in order.
 
 Outputs:
-- Vercel deployment
-- README finalization
-- screenshots/evidence checklist
-- prompt log for Codex usage
+- one-command pipeline entrypoint
+- macOS launcher wrapper
+- Windows launcher wrapper
+- final execution summary output
+- README/operator instructions for end-to-end local execution
 
 Done when:
-- deployed URL works,
-- README is complete,
-- evidence requirements are satisfied.
+- one launch runs import, sync, dashboard read, and alerts in order,
+- rerun behavior is operationally safe,
+- summary output is honest,
+- wrappers are present and documented.
 
 ### M8 — Final hardening
 Goal:

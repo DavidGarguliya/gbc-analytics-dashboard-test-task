@@ -14,6 +14,7 @@
     "import:retailcrm": "tsx scripts/import-retailcrm.ts",
     "sync:retailcrm": "tsx scripts/sync-retailcrm.ts",
     "alerts:telegram": "tsx scripts/send-telegram-alerts.ts",
+    "pipeline": "node --env-file=.env.local ./node_modules/tsx/dist/cli.mjs scripts/run-pipeline.ts",
     "lint": "eslint . --max-warnings=0",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",

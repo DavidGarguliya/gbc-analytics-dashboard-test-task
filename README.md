@@ -66,6 +66,22 @@ npm run sync:retailcrm
 npm run alerts:telegram
 ```
 
+```bash
+# Runs the full local chain in order: import -> sync -> dashboard read -> Telegram alerts -> final summary
+# This local command auto-loads .env.local via Node's --env-file support.
+npm run pipeline
+```
+
+Wrapper launchers:
+- macOS: `./scripts/run-pipeline.command`
+- Windows: `scripts\\run-pipeline.cmd`
+
+Observed rerun behavior:
+- the seed import may return `Uploaded orders: 0` with a `duplicate-safe externalId rejection`
+- sync still upserts the live RetailCRM rows into Supabase safely
+- dashboard read still reports the current Supabase-backed metrics
+- Telegram alerts remain deduplicated and may legitimately report `Pending alerts found: 0`
+
 ## Suggested execution sequence
 1. Spec foundation review
 2. Implement schema
@@ -73,7 +89,8 @@ npm run alerts:telegram
 4. Implement sync engine
 5. Implement dashboard
 6. Implement Telegram alerts
-7. Add deployment evidence and final README
+7. Add the end-to-end pipeline runner
+8. Add deployment evidence and final README
 
 ## Deliverables expected at the end
 - Vercel URL
@@ -87,5 +104,6 @@ npm run alerts:telegram
 - Sync must be idempotent
 - Alerts must be deduplicated
 - Telegram execution stays server-side and fails loudly if `TELEGRAM_CHAT_ID` is not configured
+- `npm run pipeline` treats the known RetailCRM duplicate-`externalId` seed-import rejection as an operationally safe rerun outcome and continues honestly with `uploaded=0`
 - No overengineering
 - Docs must match implementation
