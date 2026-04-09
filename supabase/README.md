@@ -1,9 +1,11 @@
 # supabase/
 
-Implementation placeholder for schema and future migrations.
+Supabase schema baseline and future migrations.
+
+Current contents:
+- `schema.sql` — baseline Postgres schema for `orders`, `sync_state`, and `alerts_sent`
 
 Expected future contents:
-- `schema.sql`
 - optional migrations if introduced later
 
 Constraints:

@@ -58,6 +58,8 @@ Guidance:
 ### Supabase
 - browser may use anon/public client only if needed for read-safe paths.
 - all privileged writes and sync operations use server-side/service-role context.
+- baseline schema keeps `orders` readable for anon/authenticated roles via explicit read-only policy.
+- `sync_state` and `alerts_sent` remain inaccessible to anon/authenticated roles.
 
 ### Telegram
 - server-side only.
@@ -77,6 +79,7 @@ Guidance:
 ## Security checks before closing a task
 - verify imported server-only code is not referenced from client components,
 - verify env variables are split into public and private correctly,
+- verify service-role helpers reject browser-like execution paths,
 - verify logs do not print tokens,
 - verify README uses placeholders, not live credentials,
 - verify no dangerous debug endpoints are left open unintentionally.

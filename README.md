@@ -30,6 +30,7 @@ This repository now contains:
 - baseline quality scripts for `docs:golden`, `lint`, `typecheck`, `test`, and `build`,
 - CI workflow for repository quality gates,
 - initial server-safe environment helper and test coverage,
+- baseline Supabase schema and client helpers with explicit public/service-role boundaries,
 - placeholders for the later integration slices in `scripts/` and `supabase/`.
 
 ## Suggested branch model

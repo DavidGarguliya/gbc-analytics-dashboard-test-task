@@ -39,7 +39,7 @@ Purpose:
 
 Recommended fields:
 - `key` — primary key; examples: `orders_sync_cursor`
-- `value` — cursor/state payload serialized as text or JSON
+- `value` — cursor/state payload stored as `jsonb`
 - `updated_at` — timestamp of last update
 
 Required semantics:
@@ -69,6 +69,7 @@ Recommended relational posture:
 - unique constraint on `retailcrm_id`
 - primary key on `sync_state.key`
 - primary or unique key on `alerts_sent.retailcrm_id`
+- read-only public policy only on `orders`; no public policy on `sync_state` or `alerts_sent`
 
 Avoid speculative extra tables until required by implementation.
 

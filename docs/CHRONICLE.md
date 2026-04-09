@@ -49,3 +49,25 @@
 - Risks / next:
   - Supabase schema and clients are not implemented yet
   - External service credentials and API specifics remain pending for M2/M3
+
+## 2026-04-09 — M2 data model and security foundation
+- Branch: `task/data-model` from `feat/next-stage-baseline`
+- Scope: added the baseline Supabase schema and explicit client helpers that separate public read access from service-role access.
+- Key artifacts:
+  - `supabase/schema.sql`
+  - `lib/supabase.ts`
+  - `lib/supabase.test.ts`
+  - `package.json`
+  - `package-lock.json`
+  - `docs/STATE.md`
+  - `docs/SECURITY_MODEL.md`
+  - `docs/DATA_MODEL.md`
+- Verification:
+  - `npm run docs:golden`
+  - `npm run lint`
+  - `npm run typecheck`
+  - `npm run test`
+  - `npm run build`
+- Risks / next:
+  - RetailCRM import adapter and payload mapping are still pending
+  - External credentials remain required for end-to-end integration checks
