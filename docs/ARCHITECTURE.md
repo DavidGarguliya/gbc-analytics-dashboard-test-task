@@ -170,4 +170,5 @@ Implementation is expected to align with:
 - `docs/SECURITY_MODEL.md` for boundaries,
 - ADR-002 for sync strategy,
 - ADR-003 for alert strategy,
-- ADR-004 for the live RetailCRM contract of record.
+- ADR-004 for the original live RetailCRM checkpoint,
+- ADR-005 for the current KZT live contract of record.

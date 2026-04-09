@@ -59,7 +59,7 @@ System behavior:
 - keep alerting logic server-side.
 
 Operational note:
-- the current live RetailCRM account stores the imported demo orders with `currency = RUB`,
+- the current live RetailCRM account now returns the imported demo orders with `currency = KZT`,
 - later alert logic must therefore compare the numeric amount field as stored by RetailCRM and include the stored currency in the message,
 - no implicit currency conversion is part of this assignment unless a later decision introduces it explicitly.
 

@@ -65,7 +65,7 @@ describe("upsertOrders", () => {
             customer_name: "Феруза Юсупова",
             phone: "+77090123450",
             total_sum: 81000,
-            currency: "RUB",
+            currency: "KZT",
             source: "referral",
             raw_json: { id: 90 },
             synced_at: "2026-04-10T12:00:00.000Z",
@@ -79,7 +79,7 @@ describe("upsertOrders", () => {
       [
         expect.objectContaining({
           retailcrm_id: 90,
-          currency: "RUB",
+          currency: "KZT",
         }),
       ],
       { onConflict: "retailcrm_id" },

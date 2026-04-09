@@ -1,10 +1,10 @@
 # STATE
 
 ## Current state
-Status: M2 is closed. M3 is sufficiently validated for the test assignment after M3.1 live contract reconciliation. M4 is closed and live-verified. M5 dashboard read model and UI are now implemented against Supabase as the only read source. The dashboard renders core metrics, a daily orders chart, and a latest-orders table from synced Supabase rows without any direct RetailCRM browser access, currency conversion, or reinterpretation of live upstream semantics.
+Status: M2 is closed. M3 is sufficiently validated for the test assignment after M3.1 live contract reconciliation. M4 is closed and live-verified. M5 dashboard read model and UI are implemented against Supabase as the only read source. After a post-M5 upstream currency realignment, the live RetailCRM contract of record now returns `KZT`, Supabase has been resynced, and the dashboard renders the current synced data set in `KZT` without any client-side relabeling or currency conversion.
 
 ## Active branch
-Checkpoint-review branch: `task/dashboard`
+Checkpoint-review branch: `task/kzt-contract-realignment`
 Canonical local integration branch: `feat/next-stage-baseline`
 
 ## Completed
@@ -30,6 +30,8 @@ Canonical local integration branch: `feat/next-stage-baseline`
 - M4 sync foundation added with live-order mapping, Supabase upsert helpers, explicit sync-state persistence, and a server-side sync CLI
 - M4 live verification completed against the configured Supabase project
 - M5 dashboard read model and UI added with Supabase-only server-side reads and honest source labeling
+- ADR-005 added to capture the upstream realignment of the live currency contract to `KZT`
+- Supabase resynced after the upstream KZT realignment
 
 ## In progress
 - No active implementation slice beyond M5 closeout
@@ -61,7 +63,7 @@ Healthy if:
 - the live account contract of record is documented factually,
 - the sync path stays server-side only and preserves live RetailCRM values without reinterpretation,
 - the configured Supabase project contains 50 synced orders and one explicit `retailcrm_orders_sync` state row after a rerun-safe live verification,
-- the dashboard renders those Supabase rows with metrics matching the current synced data set: 50 orders, `2,451,000 RUB` total revenue, `49,020 RUB` average order value.
+- the dashboard renders those Supabase rows with metrics matching the current synced data set: 50 orders, `2,451,000 KZT` total revenue, `49,020 KZT` average order value.
 
 ## Milestone checkpoint status
 
@@ -122,7 +124,7 @@ Healthy if:
 - Implemented scope:
   - recorded that the first live import succeeded with 50 uploaded orders
   - recorded that repeated import returns HTTP `460` with duplicate `externalId` errors and zero uploaded orders
-  - recorded that imported live orders are stored with `currency = RUB`
+  - recorded that the original live checkpoint stored imported orders with `currency = RUB`
   - recorded that fixture `orderType=eshop-individual` is unsupported in the live account and is currently reconciled to `main`
   - chose strategy **B**: align the import payload with live account defaults where metadata is available, while treating the stored RetailCRM order as the downstream contract of record
   - added [ADR-004 — Live RetailCRM contract of record](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/docs/ADR/ADR-004-live-retailcrm-contract.md)
@@ -184,3 +186,22 @@ Healthy if:
   - current metrics match the live synced Supabase data set
 - Remaining unknowns:
   - none that block M6 under the current dashboard contract
+
+### Post-M5 — Currency contract realignment
+- Planned scope:
+  - realign the live RetailCRM account to `KZT` upstream first
+  - propagate the corrected upstream currency through Supabase and the dashboard
+  - update contract docs so current repository truth stops claiming `RUB`
+- Implemented scope:
+  - edited the live RetailCRM base currency from `RUB` to `KZT`
+  - verified that the accessible site and the existing imported demo orders now return `KZT`
+  - reran RetailCRM -> Supabase sync so persisted rows reflect the corrected live contract
+  - verified that the dashboard now renders `KZT` values from Supabase without any UI-side patching
+  - added ADR-005 to supersede ADR-004 specifically for current currency semantics
+- Verified invariants:
+  - upstream source remained authoritative
+  - no client-side currency override was introduced
+  - the dashboard still reads Supabase only
+  - sync remained the only propagation path from RetailCRM to Supabase
+- Remaining unknowns:
+  - none that block M6 under the corrected KZT contract

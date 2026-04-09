@@ -77,7 +77,7 @@ describe("buildRetailCrmOrder", () => {
   });
 
   it("allows import-time currency overrides from the live RetailCRM site contract", () => {
-    expect(buildRetailCrmOrder(sampleOrder, 0, { currency: "RUB" }).currency).toBe("RUB");
+    expect(buildRetailCrmOrder(sampleOrder, 0, { currency: "KZT" }).currency).toBe("KZT");
   });
 });
 
@@ -155,7 +155,7 @@ describe("listRetailCrmSites", () => {
             sites: {
               garguliyadavid: {
                 code: "garguliyadavid",
-                currency: "RUB",
+                currency: "KZT",
                 defaultForCrm: true,
                 id: 1,
                 name: "Main store",
@@ -175,7 +175,7 @@ describe("listRetailCrmSites", () => {
     await expect(listRetailCrmSites()).resolves.toEqual([
       {
         code: "garguliyadavid",
-        currency: "RUB",
+        currency: "KZT",
         defaultForCrm: true,
       },
     ]);
@@ -205,7 +205,7 @@ describe("listRetailCrmOrdersPage", () => {
               createdAt: "2026-02-19 09:00:00",
               status: "offer-analog",
               totalSumm: 81000,
-              currency: "RUB",
+              currency: "KZT",
               orderType: "main",
               orderMethod: "shopping-cart",
               site: "garguliyadavid",
@@ -242,7 +242,7 @@ describe("listRetailCrmOrdersPage", () => {
       orders: [
         expect.objectContaining({
           id: 90,
-          currency: "RUB",
+          currency: "KZT",
           externalId: "mock-order-0050",
           orderType: "main",
           site: "garguliyadavid",

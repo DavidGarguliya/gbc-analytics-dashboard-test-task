@@ -1,9 +1,13 @@
 # ADR-004 — Live RetailCRM contract of record
 
 ## Status
-Accepted
+Accepted, later superseded in currency semantics by ADR-005
 
 ## Context
+Note:
+- this ADR remains historically accurate for the first live checkpoint,
+- current currency semantics are superseded by [ADR-005](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/docs/ADR/ADR-005-kzt-currency-realignment.md).
+
 The M3 live import checkpoint exposed behavior in the real RetailCRM demo account that differs from the original fixture-oriented assumptions:
 - the first live import succeeds and creates 50 orders,
 - repeating the same import with the same `externalId` values returns HTTP `460` and duplicate-`externalId` errors,

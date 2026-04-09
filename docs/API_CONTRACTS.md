@@ -141,10 +141,10 @@ No additional internal API is required unless it meaningfully simplifies deploym
 ---
 
 ## 6. Live RetailCRM contract of record
-Observed on 2026-04-09 against the current live demo account:
+Observed first on 2026-04-09 and realigned upstream on 2026-04-10 against the current live demo account:
 - first live import succeeds with 50 uploaded orders,
 - repeated import of the same `externalId` values is rejected with HTTP `460` and duplicate-`externalId` errors,
-- imported live orders are stored with `currency = RUB`,
+- the current live account now returns the imported demo orders with `currency = KZT`,
 - fixture `orderType=eshop-individual` is unsupported in the live account and is currently reconciled to `main`.
 
 Operational consequence:

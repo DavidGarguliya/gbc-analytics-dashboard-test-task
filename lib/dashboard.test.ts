@@ -13,7 +13,7 @@ const sampleOrders = [
     created_at: "2026-02-17T09:00:00+00:00",
     status: "offer-analog",
     total_sum: 105000,
-    currency: "RUB",
+    currency: "KZT",
     source: "shopping-cart",
     synced_at: "2026-04-10T10:00:00+00:00",
   },
@@ -24,7 +24,7 @@ const sampleOrders = [
     created_at: "2026-02-19T09:00:00+00:00",
     status: "offer-analog",
     total_sum: 81000,
-    currency: "RUB",
+    currency: "KZT",
     source: "shopping-cart",
     synced_at: "2026-04-10T10:00:00+00:00",
   },
@@ -35,7 +35,7 @@ const sampleOrders = [
     created_at: "2026-02-18T09:00:00+00:00",
     status: "offer-analog",
     total_sum: 37000,
-    currency: "RUB",
+    currency: "KZT",
     source: "instagram",
     synced_at: "2026-04-10T10:00:00+00:00",
   },
@@ -46,7 +46,7 @@ const sampleOrders = [
     created_at: "2026-02-17T12:00:00+00:00",
     status: "new",
     total_sum: 12000,
-    currency: "RUB",
+    currency: "KZT",
     source: null,
     synced_at: "2026-04-10T10:00:00+00:00",
   },
@@ -57,7 +57,7 @@ describe("buildDashboardReadModel", () => {
     expect(buildDashboardReadModel(sampleOrders)).toEqual({
       averageOrderValue: {
         amount: 58750,
-        currencyCode: "RUB",
+        currencyCode: "KZT",
         label: "Average order value",
       },
       latestOrders: [
@@ -85,7 +85,7 @@ describe("buildDashboardReadModel", () => {
       ],
       revenueMetric: {
         amount: 235000,
-        currencyCode: "RUB",
+        currencyCode: "KZT",
         label: "Total revenue",
       },
       sourceColumnLabel: "Source / Method",
@@ -99,7 +99,7 @@ describe("buildDashboardReadModel", () => {
         sampleOrders[0],
         {
           ...sampleOrders[1],
-          currency: "KZT",
+          currency: "USD",
         },
       ]),
     ).toEqual(
@@ -126,7 +126,7 @@ describe("buildDashboardReadModel", () => {
       created_at: new Date(Date.UTC(2026, 1, index + 1, 9, 0, 0)).toISOString(),
       status: "new",
       total_sum: 1000 + index,
-      currency: "RUB",
+      currency: "KZT",
       source: "shopping-cart",
       synced_at: "2026-04-10T10:00:00+00:00",
     }));

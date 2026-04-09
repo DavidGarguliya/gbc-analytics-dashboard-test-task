@@ -333,3 +333,48 @@
 - Risks / next:
   - M6 can now start safely on top of the current Supabase read model
   - if the upstream contract later introduces mixed currencies, the dashboard already degrades to honest non-converted revenue/average labels rather than fabricating a converted total
+
+## 2026-04-10 — Post-M5 currency contract realignment to KZT
+- Branch: `task/kzt-contract-realignment` from `feat/next-stage-baseline`
+- Scope: realigned the live RetailCRM account back to the assignment currency upstream-first, propagated that change through sync, and updated the repository contract docs to match the new live truth.
+- Planned scope:
+  - verify whether the live RetailCRM account can be switched cleanly from `RUB` to `KZT`
+  - avoid patching Supabase or the dashboard before the upstream contract changes
+  - propagate the corrected upstream currency through sync and dashboard verification
+- Implemented scope:
+  - confirmed via `/api/credentials` that the live API key has `reference_write`, including `/api/v5/reference/currencies/{id}/edit` and `/api/v5/reference/sites/{code}/edit`
+  - confirmed the live account had one base currency `RUB`, one accessible site `garguliyadavid`, and 50 existing imported demo orders returned by RetailCRM with `currency = RUB`
+  - changed the live base currency from `RUB` to `KZT` through `/api/v5/reference/currencies/2/edit`
+  - verified that the live site and the existing imported demo orders now return `currency = KZT`
+  - reran `RetailCRM -> Supabase` sync so the persisted `orders` table reflects the new upstream currency contract
+  - updated current contract docs and added ADR-005 to supersede ADR-004 specifically for current currency semantics
+- Intentionally deferred scope:
+  - no Telegram implementation
+  - no dashboard-side currency conversion logic
+  - no ad hoc Supabase patching outside the normal sync path
+- Verified invariants:
+  - upstream source remained authoritative
+  - sync remained the only propagation path into Supabase
+  - dashboard kept reading Supabase only
+  - no client-side secret or currency override was introduced
+- Key artifacts:
+  - `docs/ADR/ADR-004-live-retailcrm-contract.md`
+  - `docs/ADR/ADR-005-kzt-currency-realignment.md`
+  - `docs/API_CONTRACTS.md`
+  - `docs/ARCHITECTURE.md`
+  - `docs/SPEC.md`
+  - `docs/STATE.md`
+  - `docs/CHRONICLE.md`
+  - `README.md`
+  - `lib/dashboard.test.ts`
+  - `lib/retailcrm-sync.test.ts`
+  - `lib/retailcrm.test.ts`
+  - `lib/supabase.test.ts`
+- Verification:
+  - live RetailCRM verification after `/api/v5/reference/currencies/2/edit`: base currency `KZT`, site `garguliyadavid` currency `KZT`, existing orders now return `currency = KZT`
+  - live sync rerun with `.env.local` loaded explicitly
+  - live Supabase verification of `currencySet = ["KZT"]`, `totalOrders = 50`, `totalRevenue = 2451000`, `average = 49020`
+  - production runtime dashboard render check confirmed `2,451,000 KZT`, `49,020 KZT`, `MOCK-0050`, and `Source / Method`
+- Risks / next:
+  - M6 can now be implemented against the corrected live `KZT` contract
+  - historical M3/M3.1 notes that recorded `RUB` remain valid as historical evidence, but not as current contract truth
