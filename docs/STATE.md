@@ -1,10 +1,10 @@
 # STATE
 
 ## Current state
-Status: M2 data model slice implemented on task branch
+Status: M3 import slice implemented on task branch, awaiting live RetailCRM verification
 
 ## Active branch
-Current working branch: `task/data-model`
+Current working branch: `task/retailcrm-import`
 Canonical local integration branch: `feat/next-stage-baseline`
 
 ## Completed
@@ -22,21 +22,20 @@ Canonical local integration branch: `feat/next-stage-baseline`
 - Security posture refined for anon read access to `orders` only
 
 ## In progress
-- M2 closeout on `task/data-model`
+- M3 RetailCRM import implementation on `task/retailcrm-import`
 
 ## Next recommended step
-M3 — RetailCRM import
+Complete M3 — RetailCRM import
 
 Specific next action:
-- inspect `mock_orders.json`
-- add `lib/retailcrm.ts`
-- implement the import script for RetailCRM batch upload
-- document operator steps and error reporting for the import flow
+- provide valid RetailCRM credentials
+- run `npm run import:retailcrm`
+- verify all 50 orders import successfully into RetailCRM
+- if import passes, proceed to M4 sync implementation
 
 ## Known blockers
 - External accounts and credentials are not yet provisioned in the repository
-- Actual RetailCRM API endpoint specifics are not yet verified
-- `mock_orders.json` has not yet been mapped into RetailCRM payload semantics
+- Live RetailCRM import has not been executed yet because credentials are unavailable
 - Final deployment settings depend on the chosen runtime implementation details
 
 ## Risks to watch
@@ -48,5 +47,5 @@ Specific next action:
 ## Definition of health at this stage
 Healthy if:
 - docs are internally consistent,
-- schema and Supabase helpers pass local quality gates,
-- the next milestone is unambiguous.
+- import adapter code passes local quality gates,
+- the remaining external verification step is explicit.

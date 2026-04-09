@@ -4,10 +4,10 @@ Shared helpers and thin integration adapters.
 
 Current contents:
 - `env.ts` — explicit required environment lookup helper used by server-side code
+- `retailcrm.ts` — fixture mapping and RetailCRM import adapter helpers
 - `supabase.ts` — explicit browser-safe and service-role Supabase client factories
 
 Expected future contents:
-- `retailcrm.ts`
 - `telegram.ts`
 - small pure utility modules if needed
 

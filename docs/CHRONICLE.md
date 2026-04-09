@@ -71,3 +71,20 @@
 - Risks / next:
   - RetailCRM import adapter and payload mapping are still pending
   - External credentials remain required for end-to-end integration checks
+
+## 2026-04-09 — M3 RetailCRM import foundation
+- Branch: `task/retailcrm-import` from `feat/next-stage-baseline`
+- Scope: implemented deterministic fixture-to-RetailCRM mapping, official batch upload request construction, site resolution, and the import CLI entrypoint.
+- Key artifacts:
+  - `lib/retailcrm.ts`
+  - `lib/retailcrm.test.ts`
+  - `scripts/import-retailcrm.ts`
+  - `.env.example`
+  - `docs/API_CONTRACTS.md`
+  - `docs/STATE.md`
+- Verification:
+  - `npm run test -- lib/retailcrm.test.ts`
+  - live RetailCRM import not executed yet because credentials are unavailable
+- Risks / next:
+  - import path still needs live verification against a real RetailCRM account
+  - M4 sync should start only after the import path is confirmed

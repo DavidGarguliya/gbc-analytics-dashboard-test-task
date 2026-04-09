@@ -31,7 +31,7 @@ This repository now contains:
 - CI workflow for repository quality gates,
 - initial server-safe environment helper and test coverage,
 - baseline Supabase schema and client helpers with explicit public/service-role boundaries,
-- placeholders for the later integration slices in `scripts/` and `supabase/`.
+- RetailCRM import adapter and script foundation.
 
 ## Suggested branch model
 - `main`
@@ -46,6 +46,11 @@ npm run lint
 npm run typecheck
 npm run test
 npm run build
+```
+
+```bash
+# Requires valid RetailCRM credentials in the environment
+npm run import:retailcrm
 ```
 
 ## Suggested execution sequence

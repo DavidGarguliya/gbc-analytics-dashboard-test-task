@@ -11,6 +11,7 @@ Primary deployment target: Vercel
 ## Required environment variables
 - `RETAILCRM_BASE_URL`
 - `RETAILCRM_API_KEY`
+- optional `RETAILCRM_SITE_CODE`
 - `SUPABASE_URL`
 - `SUPABASE_ANON_KEY`
 - `SUPABASE_SERVICE_ROLE_KEY`

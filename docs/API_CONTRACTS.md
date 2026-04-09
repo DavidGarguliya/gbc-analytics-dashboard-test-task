@@ -8,11 +8,17 @@ Document the expected integration boundaries and internal contract shape. Exact 
 ## 1. RetailCRM adapter contract
 The adapter should provide a compact typed interface such as:
 
+### `listSites()`
+Purpose:
+- fetch stores available to the current API key,
+- resolve the site code required by order upload operations.
+
 ### `uploadOrdersBatch(input)`
 Purpose:
 - upload a batch of parsed orders from `mock_orders.json` into RetailCRM.
 
 Inputs:
+- site code
 - array of normalized order payloads
 
 Outputs:
