@@ -24,7 +24,7 @@ export type MockOrderRecord = {
 
 export type RetailCrmSerializedOrder = {
   createdAt: string;
-  currency: "KZT";
+  currency: string;
   customFields?: Record<string, unknown>;
   delivery: MockOrderRecord["delivery"];
   email?: string;
@@ -88,6 +88,7 @@ export function buildRetailCrmOrder(
   order: MockOrderRecord,
   index: number,
   overrides?: {
+    currency?: string;
     orderType?: string;
   },
 ): RetailCrmSerializedOrder {
@@ -95,7 +96,7 @@ export function buildRetailCrmOrder(
 
   return {
     createdAt: formatImportTimestamp(index),
-    currency: "KZT",
+    currency: overrides?.currency ?? "KZT",
     customFields: order.customFields,
     delivery: order.delivery,
     email: order.email,

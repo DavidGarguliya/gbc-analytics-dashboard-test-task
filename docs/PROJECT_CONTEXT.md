@@ -19,7 +19,7 @@ Deliver a compact but production-shaped implementation that demonstrates the abi
 5. 50 test orders imported into RetailCRM from `mock_orders.json`
 6. RetailCRM orders synchronized into Supabase
 7. Dashboard rendered from Supabase data
-8. Telegram notification sent when order amount exceeds 50,000 KZT
+8. Telegram notification sent when order amount exceeds the assignment threshold of 50,000, interpreted against the amount/currency persisted by the live RetailCRM account
 9. Repository README explains prompts used with Codex, blockers, and resolutions
 
 ## Project framing

@@ -25,13 +25,15 @@ async function main() {
   const filePath = path.join(process.cwd(), "mock_orders.json");
   const fixtureOrders = await readMockOrders(filePath);
   const sites = await listRetailCrmSites();
+  const siteCode = selectRetailCrmSiteCode(sites, process.env.RETAILCRM_SITE_CODE);
+  const selectedSite = sites.find((site) => site.code === siteCode);
   const orderTypes = await listRetailCrmOrderTypes();
   const orders = fixtureOrders.map((order, index) =>
     buildRetailCrmOrder(order, index, {
+      currency: selectedSite?.currency,
       orderType: resolveRetailCrmOrderTypeCode(orderTypes, order.orderType),
     }),
   );
-  const siteCode = selectRetailCrmSiteCode(sites, process.env.RETAILCRM_SITE_CODE);
   const result = await uploadRetailCrmOrders({
     orders,
     site: siteCode,
@@ -40,6 +42,7 @@ async function main() {
   console.log("RetailCRM import completed.");
   console.log(`Fixture path: ${filePath}`);
   console.log(`Resolved site: ${siteCode}`);
+  console.log(`Resolved currency: ${selectedSite?.currency ?? "KZT"}`);
   console.log(`Prepared orders: ${orders.length}`);
   console.log(`Uploaded orders: ${result.uploadedOrders?.length ?? orders.length}`);
 }

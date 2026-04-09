@@ -74,6 +74,10 @@ describe("buildRetailCrmOrder", () => {
   it("allows import-time order type overrides without changing the fixture source", () => {
     expect(buildRetailCrmOrder(sampleOrder, 0, { orderType: "main" }).orderType).toBe("main");
   });
+
+  it("allows import-time currency overrides from the live RetailCRM site contract", () => {
+    expect(buildRetailCrmOrder(sampleOrder, 0, { currency: "RUB" }).currency).toBe("RUB");
+  });
 });
 
 describe("parseMockOrdersFixture", () => {
@@ -150,6 +154,7 @@ describe("listRetailCrmSites", () => {
             sites: {
               garguliyadavid: {
                 code: "garguliyadavid",
+                currency: "RUB",
                 defaultForCrm: true,
                 id: 1,
                 name: "Main store",
@@ -169,6 +174,7 @@ describe("listRetailCrmSites", () => {
     await expect(listRetailCrmSites()).resolves.toEqual([
       {
         code: "garguliyadavid",
+        currency: "RUB",
         defaultForCrm: true,
       },
     ]);

@@ -191,3 +191,50 @@
 - Risks / next:
   - M3 is only partially validated because the live account persists `RUB` instead of `KZT` and repeated imports fail hard instead of behaving as update/no-op
   - M4 should remain blocked until those behaviors are explicitly accepted or corrected
+
+## 2026-04-09 — M3.1 live contract reconciliation
+- Branch: `task/m3-contract-reconciliation` from `task/m3-live-checkpoint`
+- Scope: reconciled the planned import contract with the observed live RetailCRM behavior and chose the smallest safe adaptation before any sync work.
+- Planned scope:
+  - document the factual live-account behavior
+  - analyze mismatches against the planned import contract
+  - choose one explicit contract-of-record direction for downstream phases
+  - keep any technical change isolated to the import path only
+- Implemented scope:
+  - recorded that the first live import succeeded with 50 uploaded orders
+  - recorded that repeated import is rejected with HTTP `460` and duplicate-`externalId` errors
+  - recorded that the live account stores the imported orders with `currency = RUB`
+  - recorded that fixture `orderType=eshop-individual` is unsupported and currently reconciles to `main`
+  - chose strategy **B**: align the import payload with the live account defaults where metadata is available
+  - aligned import payload currency with the selected live site currency and documented the stored live RetailCRM order as the downstream contract of record
+  - added ADR-004 to capture the live RetailCRM contract explicitly
+- Intentionally deferred scope:
+  - no sync implementation
+  - no dashboard work
+  - no Telegram implementation changes
+- Verified invariants:
+  - all code changes remained inside the import path
+  - no M4 behavior was implemented proactively
+  - downstream phases now have one explicit upstream contract to target
+- Key artifacts:
+  - `docs/PLAN.md`
+  - `docs/PROJECT_CONTEXT.md`
+  - `docs/STATE.md`
+  - `docs/CHRONICLE.md`
+  - `docs/API_CONTRACTS.md`
+  - `docs/SPEC.md`
+  - `docs/ARCHITECTURE.md`
+  - `docs/ADR/ADR-004-live-retailcrm-contract.md`
+  - `README.md`
+  - `lib/retailcrm.ts`
+  - `lib/retailcrm-import.ts`
+  - `lib/retailcrm.test.ts`
+  - `scripts/import-retailcrm.ts`
+- Verification:
+  - `npm test -- --run lib/retailcrm.test.ts`
+  - `npm run typecheck`
+  - `npm run docs:golden`
+  - `npm run lint`
+- Risks / next:
+  - the operational contract is now explicitly tied to the observed live demo account behavior
+  - M4 can start safely only against that reconciled contract and only when approved

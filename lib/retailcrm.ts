@@ -5,6 +5,7 @@ const RETAIL_CRM_API_VERSION = "v5";
 
 export type RetailCrmSite = {
   code: string;
+  currency?: string;
   defaultForCrm?: boolean;
 };
 
@@ -124,12 +125,14 @@ function normalizeRetailCrmSites(
   if (Array.isArray(sites)) {
     return sites.map((site) => ({
       code: site.code,
+      currency: site.currency,
       defaultForCrm: site.defaultForCrm,
     }));
   }
 
   return Object.values(sites).map((site) => ({
     code: site.code,
+    currency: site.currency,
     defaultForCrm: site.defaultForCrm,
   }));
 }

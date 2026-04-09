@@ -31,7 +31,7 @@ Vercel               Telegram Bot API
 ### 2.1 Import flow
 Responsibility:
 - load the provided JSON fixture,
-- normalize records as needed,
+- normalize records against the supported live-account contract as needed,
 - upload them into RetailCRM.
 
 Boundary:
@@ -96,6 +96,7 @@ Boundary:
 - Supabase is source of truth for dashboard reads.
 - Sync state is explicit and persisted.
 - Alert dedupe state is explicit and persisted.
+- once an order exists in RetailCRM, downstream phases treat the live RetailCRM record as authoritative even if it differs from the original import fixture intent.
 
 ### Boundary invariants
 - Browser cannot call RetailCRM.
@@ -113,14 +114,14 @@ Boundary:
 
 ### 4.1 Import flow
 1. Read `mock_orders.json`.
-2. Validate/normalize fields.
+2. Validate/normalize fields against the live RetailCRM account contract where needed.
 3. Upload to RetailCRM batch endpoint.
 4. Log counts and failures.
 
 ### 4.2 Sync flow
 1. Read current sync cursor/state from Supabase.
 2. Fetch orders or history from RetailCRM.
-3. Transform records into storage shape.
+3. Transform the live RetailCRM records into storage shape without reconstructing intent from the import fixture.
 4. Upsert into `orders`.
 5. Update sync cursor/state.
 6. Exit with clear logs.
@@ -168,4 +169,5 @@ Implementation is expected to align with:
 - `docs/DATA_MODEL.md` for schema semantics,
 - `docs/SECURITY_MODEL.md` for boundaries,
 - ADR-002 for sync strategy,
-- ADR-003 for alert strategy.
+- ADR-003 for alert strategy,
+- ADR-004 for the live RetailCRM contract of record.

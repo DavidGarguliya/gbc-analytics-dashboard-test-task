@@ -13,6 +13,15 @@ Purpose:
 - fetch stores available to the current API key,
 - resolve the site code required by order upload operations.
 
+Current live-account expectation:
+- site metadata may arrive as an object keyed by site code rather than as an array,
+- site metadata may contain the site currency and should be preserved when available.
+
+### `listOrderTypes()`
+Purpose:
+- fetch order types available to the current API key,
+- reconcile fixture order types against the live account before upload.
+
 ### `uploadOrdersBatch(input)`
 Purpose:
 - upload a batch of parsed orders from `mock_orders.json` into RetailCRM.
@@ -24,6 +33,11 @@ Inputs:
 Outputs:
 - success/failure result with counts and error details where available
 
+Behavior:
+- reconcile unsupported fixture `orderType` values against the live account deterministically,
+- prefer the selected site's currency when the live site metadata exposes it,
+- treat repeated upload of the same `externalId` values as duplicate-safe rejection if the live account returns HTTP `460`.
+
 ### `listOrders(params)` or `listOrderHistory(params)`
 Purpose:
 - fetch orders or incremental history from RetailCRM for synchronization.
@@ -33,6 +47,10 @@ Inputs:
 
 Outputs:
 - upstream order payloads and next paging/cursor information if available
+
+Contract note:
+- once orders exist in RetailCRM, the returned upstream order payload is authoritative for downstream `currency`, `orderType`, `status`, `site`, and `totalSumm`,
+- downstream sync and alert logic must not infer those fields from the original fixture or upload intent.
 
 ### `getOrderById(id)` (optional)
 Purpose:
@@ -86,6 +104,9 @@ Expected message content:
 Behavior:
 - fail loudly on Telegram API errors,
 - never run client-side.
+- evaluate the high-value threshold against the numeric amount as stored by RetailCRM after import/sync,
+- include the stored currency in the message,
+- do not perform implicit currency conversion.
 
 ---
 
@@ -116,3 +137,16 @@ This may be produced by:
 - a small server-side mapping layer.
 
 No additional internal API is required unless it meaningfully simplifies deployment or server/client boundaries.
+
+---
+
+## 6. Live RetailCRM contract of record
+Observed on 2026-04-09 against the current live demo account:
+- first live import succeeds with 50 uploaded orders,
+- repeated import of the same `externalId` values is rejected with HTTP `460` and duplicate-`externalId` errors,
+- imported live orders are stored with `currency = RUB`,
+- fixture `orderType=eshop-individual` is unsupported in the live account and is currently reconciled to `main`.
+
+Operational consequence:
+- the import path is a seed-import path, not a general update path,
+- downstream M4 sync and later Telegram alert logic must operate against the live RetailCRM record, not the original fixture assumptions.

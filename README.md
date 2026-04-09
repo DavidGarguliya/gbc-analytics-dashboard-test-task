@@ -6,7 +6,7 @@ Target delivery:
 - import test orders from `mock_orders.json` into RetailCRM,
 - sync RetailCRM orders into Supabase,
 - render a dashboard from Supabase data,
-- send Telegram alerts for high-value orders (> 50,000 KZT),
+- send Telegram alerts for high-value orders (> 50,000 using the live RetailCRM currency of record; the current demo account stores imported orders in `RUB`),
 - deploy the dashboard to Vercel,
 - document the full process, prompts, blockers, and resolutions.
 

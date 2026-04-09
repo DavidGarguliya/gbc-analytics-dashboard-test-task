@@ -9,18 +9,22 @@ Input: `mock_orders.json` containing 50 test orders.
 System behavior:
 - read the JSON file,
 - validate or defensively parse the records,
+- reconcile fixture fields against the live RetailCRM account when required for a valid upload,
 - send them to RetailCRM using the appropriate batch import/upload API,
 - log import results clearly,
 - fail loudly on malformed data or API failure.
 
 Expected outcome:
-- RetailCRM demo account contains the imported orders.
+- a first live import can create the 50 fixture orders in the RetailCRM demo account,
+- repeated import of the same `externalId` values may be rejected by RetailCRM if the account treats them as duplicates,
+- repeated duplicate rejection is acceptable for the seed-import path as long as it does not create uncontrolled duplicates.
 
 ### 1.2 Synchronize RetailCRM orders into Supabase
 System behavior:
 - fetch orders from RetailCRM,
 - transform them into the project storage model,
 - upsert them into Supabase,
+- treat the live RetailCRM order record as authoritative for downstream fields such as `currency`, `orderType`, `status`, `site`, and `totalSumm`,
 - preserve enough raw upstream data for debugging and traceability,
 - maintain sync progress or cursor state,
 - support repeated runs without uncontrolled duplication.
@@ -49,10 +53,15 @@ Expected outcome:
 
 ### 1.4 Telegram high-value order alerts
 System behavior:
-- detect orders where amount > 50,000 KZT,
+- detect orders where the stored upstream order amount is > 50,000 using the live RetailCRM amount/currency contract of record,
 - send a Telegram message for such orders,
 - deduplicate notifications so the same order does not notify repeatedly,
 - keep alerting logic server-side.
+
+Operational note:
+- the current live RetailCRM account stores the imported demo orders with `currency = RUB`,
+- later alert logic must therefore compare the numeric amount field as stored by RetailCRM and include the stored currency in the message,
+- no implicit currency conversion is part of this assignment unless a later decision introduces it explicitly.
 
 Expected outcome:
 - screenshot of a successful Telegram notification.
@@ -83,6 +92,7 @@ The final deliverables required by the assignment are:
 - Sync must be idempotent.
 - Alerting must be deduplicated.
 - Import and sync scripts must emit useful logs.
+- Re-running the seed import may legitimately return duplicate-`externalId` rejection from RetailCRM; this is acceptable if it prevents uncontrolled duplicates and is documented clearly.
 
 ### 3.3 Scalability
 The system should scale in the limited sense appropriate to this assignment:
@@ -119,8 +129,9 @@ A reviewer should be able to recreate the project from README and environment va
 ## 5. Acceptance criteria
 
 ### Import acceptance
-- `mock_orders.json` is loaded into RetailCRM.
+- a first import of `mock_orders.json` is loaded into RetailCRM.
 - Import logs show success/failure counts.
+- if the same `externalId` values are imported again, duplicate rejection is an acceptable outcome for the seed-import path.
 
 ### Sync acceptance
 - Orders are present in Supabase after sync.

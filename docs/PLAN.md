@@ -70,6 +70,22 @@ Outputs:
 Done when:
 - script can upload input data to RetailCRM and report result clearly.
 
+### M3.1 — Live Contract Reconciliation
+Goal:
+- reconcile the documented import contract with the actual live RetailCRM account before any sync work.
+
+Outputs:
+- factual live-account behavior documented
+- contract mismatch analysis
+- contract-of-record note or ADR
+- minimal import-path alignment only if required to match live account defaults safely
+
+Done when:
+- downstream phases know which live RetailCRM values are authoritative,
+- repeated import behavior is documented explicitly,
+- alert threshold semantics are explicit,
+- M4 can start against one stable contract of record when approved.
+
 ### M4 — RetailCRM -> Supabase sync
 Goal:
 - move order data from RetailCRM into Supabase safely.
@@ -145,6 +161,7 @@ Done when:
 - `task/scaffold` -> M1
 - `task/data-model` -> M2
 - `task/retailcrm-import` -> M3
+- `task/m3-contract-reconciliation` -> M3.1
 - `task/sync-engine` -> M4
 - `task/dashboard` -> M5
 - `task/telegram-alerts` -> M6
