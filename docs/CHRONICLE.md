@@ -148,3 +148,46 @@
 - Risks / next:
   - live RetailCRM import remains the only allowed next step
   - M4 stays blocked until the live import checkpoint passes
+
+## 2026-04-09 — M3 live import checkpoint
+- Branch: `task/m3-live-checkpoint` from `feat/next-stage-baseline`
+- Scope: executed the real RetailCRM import, fixed the import-path mismatches exposed by the live account, and documented the factual outcome before any M4 work.
+- Planned scope:
+  - run the live M3 import against the real RetailCRM account
+  - stop after the factual M3 outcome is known
+  - keep all fixes, if required, strictly inside the import path
+- Implemented scope:
+  - moved the live secrets out of `.env.example` into local-only `.env.local` and restored `.env.example` to the safe template state
+  - corrected the malformed live `RETAILCRM_BASE_URL` locally so the transport layer could reach RetailCRM
+  - updated [lib/retailcrm.ts](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/lib/retailcrm.ts) to normalize object-shaped `reference/sites` and `reference/order-types` payloads returned by the real account
+  - updated [lib/retailcrm-import.ts](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/lib/retailcrm-import.ts) and [scripts/import-retailcrm.ts](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/scripts/import-retailcrm.ts) to resolve unavailable fixture `orderType` codes deterministically to the only live account type, `main`
+  - completed one successful live CLI import with `Prepared orders: 50` and `Uploaded orders: 50`
+  - verified through the RetailCRM orders API that 50 imported `mock-order-*` records exist on site `garguliyadavid`
+- Intentionally deferred scope:
+  - no M4 sync implementation
+  - no change to repeated-import duplicate rejection behavior
+  - no correction to the observed `RUB` currency persistence
+- Verified invariants:
+  - import logic remains server-side only
+  - fixture-specific mapping remains isolated from generic RetailCRM transport
+  - no client-reachable code imports RetailCRM helpers or server-only env readers
+  - repeat runs do not create uncontrolled duplicates; the live account rejects reused `externalId` values instead
+- Remaining unknowns:
+  - whether reject-on-duplicate repeated imports are acceptable for this project or must become update/no-op behavior
+  - why RetailCRM persisted the imported orders with `RUB` rather than the requested `KZT`
+- Key artifacts:
+  - [lib/retailcrm.ts](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/lib/retailcrm.ts)
+  - [lib/retailcrm-import.ts](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/lib/retailcrm-import.ts)
+  - [lib/retailcrm.test.ts](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/lib/retailcrm.test.ts)
+  - [scripts/import-retailcrm.ts](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/scripts/import-retailcrm.ts)
+  - [docs/STATE.md](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/docs/STATE.md)
+  - [docs/CHRONICLE.md](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/docs/CHRONICLE.md)
+- Verification:
+  - `npm test -- --run lib/retailcrm.test.ts`
+  - `npm run typecheck`
+  - first live `npm run import:retailcrm` succeeded with `Prepared orders: 50` and `Uploaded orders: 50`
+  - repeated live upload returned HTTP `460` with `Order with externalId=mock-order-0001 already exists`-style errors and zero uploaded orders
+  - RetailCRM orders API returned 50 `mock-order-*` records on site `garguliyadavid`
+- Risks / next:
+  - M3 is only partially validated because the live account persists `RUB` instead of `KZT` and repeated imports fail hard instead of behaving as update/no-op
+  - M4 should remain blocked until those behaviors are explicitly accepted or corrected

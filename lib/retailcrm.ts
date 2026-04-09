@@ -8,8 +8,22 @@ export type RetailCrmSite = {
   defaultForCrm?: boolean;
 };
 
+type RetailCrmSitePayload = RetailCrmSite & Record<string, unknown>;
+
 type RetailCrmSitesResponse = {
-  sites?: RetailCrmSite[];
+  sites?: RetailCrmSitePayload[] | Record<string, RetailCrmSitePayload>;
+  success: boolean;
+};
+
+type RetailCrmOrderType = {
+  code: string;
+  defaultForCrm?: boolean;
+};
+
+type RetailCrmOrderTypePayload = RetailCrmOrderType & Record<string, unknown>;
+
+type RetailCrmOrderTypesResponse = {
+  orderTypes?: RetailCrmOrderTypePayload[] | Record<string, RetailCrmOrderTypePayload>;
   success: boolean;
 };
 
@@ -100,6 +114,46 @@ async function parseRetailCrmResponse<T>(response: Response): Promise<T> {
   return payload;
 }
 
+function normalizeRetailCrmSites(
+  sites: RetailCrmSitesResponse["sites"],
+): RetailCrmSite[] {
+  if (!sites) {
+    return [];
+  }
+
+  if (Array.isArray(sites)) {
+    return sites.map((site) => ({
+      code: site.code,
+      defaultForCrm: site.defaultForCrm,
+    }));
+  }
+
+  return Object.values(sites).map((site) => ({
+    code: site.code,
+    defaultForCrm: site.defaultForCrm,
+  }));
+}
+
+function normalizeRetailCrmOrderTypes(
+  orderTypes: RetailCrmOrderTypesResponse["orderTypes"],
+): RetailCrmOrderType[] {
+  if (!orderTypes) {
+    return [];
+  }
+
+  if (Array.isArray(orderTypes)) {
+    return orderTypes.map((orderType) => ({
+      code: orderType.code,
+      defaultForCrm: orderType.defaultForCrm,
+    }));
+  }
+
+  return Object.values(orderTypes).map((orderType) => ({
+    code: orderType.code,
+    defaultForCrm: orderType.defaultForCrm,
+  }));
+}
+
 export async function listRetailCrmSites(): Promise<RetailCrmSite[]> {
   const response = await fetch(buildRetailCrmApiUrl("/reference/sites"));
   const payload = await parseRetailCrmResponse<RetailCrmSitesResponse>(response);
@@ -112,7 +166,42 @@ export async function listRetailCrmSites(): Promise<RetailCrmSite[]> {
     );
   }
 
-  return payload.sites;
+  const sites = normalizeRetailCrmSites(payload.sites);
+
+  if (sites.length === 0) {
+    throw new RetailCrmApiError(
+      "RetailCRM did not return the sites list.",
+      response.status,
+      payload,
+    );
+  }
+
+  return sites;
+}
+
+export async function listRetailCrmOrderTypes(): Promise<RetailCrmOrderType[]> {
+  const response = await fetch(buildRetailCrmApiUrl("/reference/order-types"));
+  const payload = await parseRetailCrmResponse<RetailCrmOrderTypesResponse>(response);
+
+  if (!payload.success || !payload.orderTypes) {
+    throw new RetailCrmApiError(
+      "RetailCRM did not return the order types list.",
+      response.status,
+      payload,
+    );
+  }
+
+  const orderTypes = normalizeRetailCrmOrderTypes(payload.orderTypes);
+
+  if (orderTypes.length === 0) {
+    throw new RetailCrmApiError(
+      "RetailCRM did not return the order types list.",
+      response.status,
+      payload,
+    );
+  }
+
+  return orderTypes;
 }
 
 export async function uploadRetailCrmOrders(input: {

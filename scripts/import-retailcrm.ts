@@ -2,6 +2,7 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 
 import {
+  listRetailCrmOrderTypes,
   listRetailCrmSites,
   selectRetailCrmSiteCode,
   uploadRetailCrmOrders,
@@ -9,6 +10,7 @@ import {
 import {
   buildRetailCrmOrder,
   parseMockOrdersFixture,
+  resolveRetailCrmOrderTypeCode,
   type MockOrderRecord,
 } from "@/lib/retailcrm-import";
 
@@ -22,8 +24,13 @@ async function readMockOrders(filePath: string): Promise<MockOrderRecord[]> {
 async function main() {
   const filePath = path.join(process.cwd(), "mock_orders.json");
   const fixtureOrders = await readMockOrders(filePath);
-  const orders = fixtureOrders.map((order, index) => buildRetailCrmOrder(order, index));
   const sites = await listRetailCrmSites();
+  const orderTypes = await listRetailCrmOrderTypes();
+  const orders = fixtureOrders.map((order, index) =>
+    buildRetailCrmOrder(order, index, {
+      orderType: resolveRetailCrmOrderTypeCode(orderTypes, order.orderType),
+    }),
+  );
   const siteCode = selectRetailCrmSiteCode(sites, process.env.RETAILCRM_SITE_CODE);
   const result = await uploadRetailCrmOrders({
     orders,

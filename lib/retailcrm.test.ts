@@ -1,12 +1,14 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
   buildRetailCrmUploadBody,
+  listRetailCrmSites,
   selectRetailCrmSiteCode,
 } from "@/lib/retailcrm";
 import {
   buildRetailCrmOrder,
   parseMockOrdersFixture,
+  resolveRetailCrmOrderTypeCode,
   type MockOrderRecord,
 } from "@/lib/retailcrm-import";
 
@@ -68,6 +70,10 @@ describe("buildRetailCrmOrder", () => {
       status: "new",
     });
   });
+
+  it("allows import-time order type overrides without changing the fixture source", () => {
+    expect(buildRetailCrmOrder(sampleOrder, 0, { orderType: "main" }).orderType).toBe("main");
+  });
 });
 
 describe("parseMockOrdersFixture", () => {
@@ -121,5 +127,70 @@ describe("selectRetailCrmSiteCode", () => {
         { code: "secondary-store", defaultForCrm: false },
       ]),
     ).toBe("primary-store");
+  });
+});
+
+describe("listRetailCrmSites", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+    delete process.env.RETAILCRM_BASE_URL;
+    delete process.env.RETAILCRM_API_KEY;
+  });
+
+  it("normalizes object-shaped sites payloads returned by RetailCRM", async () => {
+    process.env.RETAILCRM_BASE_URL = "https://example.retailcrm.ru";
+    process.env.RETAILCRM_API_KEY = "test-key";
+
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        new Response(
+          JSON.stringify({
+            success: true,
+            sites: {
+              garguliyadavid: {
+                code: "garguliyadavid",
+                defaultForCrm: true,
+                id: 1,
+                name: "Main store",
+              },
+            },
+          }),
+          {
+            headers: {
+              "Content-Type": "application/json",
+            },
+            status: 200,
+          },
+        ),
+      ),
+    );
+
+    await expect(listRetailCrmSites()).resolves.toEqual([
+      {
+        code: "garguliyadavid",
+        defaultForCrm: true,
+      },
+    ]);
+  });
+});
+
+describe("resolveRetailCrmOrderTypeCode", () => {
+  it("keeps the requested order type when it exists in the RetailCRM account", () => {
+    expect(
+      resolveRetailCrmOrderTypeCode(
+        [
+          { code: "main", defaultForCrm: true },
+          { code: "eshop-individual", defaultForCrm: false },
+        ],
+        "eshop-individual",
+      ),
+    ).toBe("eshop-individual");
+  });
+
+  it("falls back to the only available order type when the fixture code is missing", () => {
+    expect(
+      resolveRetailCrmOrderTypeCode([{ code: "main", defaultForCrm: true }], "eshop-individual"),
+    ).toBe("main");
   });
 });

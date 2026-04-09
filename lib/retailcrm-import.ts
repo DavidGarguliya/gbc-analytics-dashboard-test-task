@@ -87,6 +87,9 @@ function formatImportTimestamp(index: number): string {
 export function buildRetailCrmOrder(
   order: MockOrderRecord,
   index: number,
+  overrides?: {
+    orderType?: string;
+  },
 ): RetailCrmSerializedOrder {
   const serial = String(index + 1).padStart(4, "0");
 
@@ -106,10 +109,40 @@ export function buildRetailCrmOrder(
     lastName: order.lastName,
     number: `MOCK-${serial}`,
     orderMethod: order.orderMethod,
-    orderType: order.orderType,
+    orderType: overrides?.orderType ?? order.orderType,
     phone: order.phone,
     status: order.status,
   };
+}
+
+export function resolveRetailCrmOrderTypeCode(
+  availableOrderTypes: Array<{
+    code: string;
+    defaultForCrm?: boolean;
+  }>,
+  requestedOrderType: string,
+): string {
+  const directMatch = availableOrderTypes.find(
+    (orderType) => orderType.code === requestedOrderType,
+  );
+
+  if (directMatch) {
+    return directMatch.code;
+  }
+
+  if (availableOrderTypes.length === 1) {
+    return availableOrderTypes[0].code;
+  }
+
+  const defaultOrderType = availableOrderTypes.find((orderType) => orderType.defaultForCrm);
+
+  if (defaultOrderType) {
+    return defaultOrderType.code;
+  }
+
+  throw new Error(
+    `RetailCRM order type "${requestedOrderType}" is not available and no deterministic fallback exists.`,
+  );
 }
 
 export function parseMockOrdersFixture(input: unknown): MockOrderRecord[] {
