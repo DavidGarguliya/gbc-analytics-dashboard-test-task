@@ -215,6 +215,31 @@
   - deployment and operator environments should store a real `TELEGRAM_CHAT_ID` instead of depending on chat-id derivation from `getUpdates`
   - the current transactional posture is send-then-mark, so a crash between those two steps could resend on a later rerun
 
+## 2026-04-10 — M7 end-to-end pipeline runner
+- Branch: `task/deployment-readme` from `feat/next-stage-baseline`
+- Scope: added a thin one-command local pipeline runner that reuses the validated import, sync, dashboard-read, and alert foundations without introducing a new orchestration framework.
+- Implemented scope:
+  - added [pipeline-runner.ts](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/lib/pipeline-runner.ts) and [pipeline-runner.test.ts](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/lib/pipeline-runner.test.ts) for fail-fast orchestration and honest final summary reporting
+  - exported reusable run/log helpers from [import-retailcrm.ts](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/scripts/import-retailcrm.ts), [sync-retailcrm.ts](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/scripts/sync-retailcrm.ts), and [send-telegram-alerts.ts](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/scripts/send-telegram-alerts.ts)
+  - added [run-pipeline.ts](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/scripts/run-pipeline.ts), [run-pipeline.command](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/scripts/run-pipeline.command), and [run-pipeline.cmd](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/scripts/run-pipeline.cmd)
+  - split the dashboard read query into [dashboard-read.ts](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/lib/dashboard-read.ts) so the local script can reuse the Supabase read path outside Next's `server-only` marker
+  - updated [README.md](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/README.md), [PLAN.md](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/docs/PLAN.md), [STATE.md](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/docs/STATE.md), and script/lib readmes to document the new end-to-end runner
+- Verification:
+  - `npm run lint`
+  - `npm run typecheck`
+  - `npm test -- lib/pipeline-runner.test.ts lib/retailcrm.test.ts lib/dashboard.test.ts`
+  - `npm run build`
+  - first live `npm run pipeline` completed in order with:
+    - import `Prepared orders: 50`, `Uploaded orders: 0`, `Upload outcome: duplicate-safe externalId rejection`
+    - sync `Orders fetched: 50`, `Orders upserted: 50`
+    - dashboard read `Total orders: 50`, `Total revenue: 2,451,000 KZT`, `Average order value: 49,020 KZT`
+    - alerts `Pending alerts found: 0`, `Alerts sent: 0`
+  - second live run via `./scripts/run-pipeline.command` completed with the same honest rerun-safe outcome
+- Remaining risks / next:
+  - `npm run pipeline` now auto-loads `.env.local` for local use, but deployment/runtime environments still need explicit env management
+  - the Windows launcher is present and documented but was not executed in this macOS session
+  - the import stage remains a seed-import stage; it reports duplicate-safe rejection rather than pretending repeated uploads succeeded
+
 ## 2026-04-09 — M3.1 live contract reconciliation
 - Branch: `task/m3-contract-reconciliation` from `task/m3-live-checkpoint`
 - Scope: reconciled the planned import contract with the observed live RetailCRM behavior and chose the smallest safe adaptation before any sync work.

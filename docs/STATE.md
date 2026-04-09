@@ -1,10 +1,10 @@
 # STATE
 
 ## Current state
-Status: M2 is closed. M3 is sufficiently validated for the test assignment after M3.1 live contract reconciliation. M4 is closed and live-verified. M5 dashboard read model and UI are implemented against Supabase as the only read source. After a post-M5 upstream currency realignment, the live RetailCRM contract of record now returns `KZT`, Supabase has been resynced, and the dashboard renders the current synced data set in `KZT` without any client-side relabeling or currency conversion. M6 Telegram alert foundation is now closed and live-verified against that KZT contract, with explicit dedupe in `alerts_sent`.
+Status: M2 is closed. M3 is sufficiently validated for the test assignment after M3.1 live contract reconciliation. M4 is closed and live-verified. M5 dashboard read model and UI are implemented against Supabase as the only read source. After a post-M5 upstream currency realignment, the live RetailCRM contract of record now returns `KZT`, Supabase has been resynced, and the dashboard renders the current synced data set in `KZT` without any client-side relabeling or currency conversion. M6 Telegram alert foundation is closed and live-verified against that KZT contract, with explicit dedupe in `alerts_sent`. M7 end-to-end pipeline runner is now closed and live-verified as a one-command local chain over the existing foundations.
 
 ## Active branch
-Checkpoint-review branch: `task/telegram-alerts`
+Checkpoint-review branch: `task/deployment-readme`
 Canonical local integration branch: `feat/next-stage-baseline`
 
 ## Completed
@@ -34,16 +34,17 @@ Canonical local integration branch: `feat/next-stage-baseline`
 - Supabase resynced after the upstream KZT realignment
 - M6 alert foundation added with a Telegram Bot API adapter, explicit high-value KZT Supabase reads, durable dedupe writes to `alerts_sent`, and a server-side CLI entrypoint
 - M6 live verification completed by deriving the Telegram chat target from bot updates, sending all current qualifying alerts once, and confirming a zero-send rerun
+- M7 pipeline runner added with a single local command, macOS and Windows launchers, and live-verified end-to-end execution over import, sync, dashboard read, and alert stages
 
 ## In progress
-- No active implementation slice beyond M6 closeout
+- No active implementation slice beyond M7 closeout
 
 ## Next recommended step
-Open the final delivery milestone only when ready to focus on deployment evidence, README finalization, and release hardening
+Stop implementation work here unless a separate final-handoff or deployment-evidence slice is explicitly opened
 
 Specific next action:
-- keep production/deployment Telegram configuration explicit so the alert script can run without manual chat-id derivation
-- preserve the stored Supabase `KZT` contract for any later alert or deployment work
+- keep production/deployment Telegram configuration explicit so the pipeline does not depend on ad hoc local chat-id discovery
+- preserve the stored Supabase `KZT` contract for any later deployment or handoff work
 - avoid reinterpreting currency semantics or introducing non-KZT fallback behavior
 
 ## Known blockers
@@ -67,7 +68,8 @@ Healthy if:
 - the sync path stays server-side only and preserves live RetailCRM values without reinterpretation,
 - the configured Supabase project contains 50 synced orders and one explicit `retailcrm_orders_sync` state row after a rerun-safe live verification,
 - the dashboard renders those Supabase rows with metrics matching the current synced data set: 50 orders, `2,451,000 KZT` total revenue, `49,020 KZT` average order value,
-- the alert path has been live-verified to send all current qualifying `KZT` orders once and to send zero duplicates on immediate rerun.
+- the alert path has been live-verified to send all current qualifying `KZT` orders once and to send zero duplicates on immediate rerun,
+- the pipeline runner has been live-verified through both `npm run pipeline` and the macOS launcher, with an honest rerun summary of import `uploaded=0`, sync `50/50`, dashboard `50` orders, and alerts `0/0`.
 
 ## Milestone checkpoint status
 
@@ -232,3 +234,23 @@ Healthy if:
   - rerun behavior is verified both by tests and by live rerun against the configured Supabase project
 - Remaining unknowns:
   - deployment/runtime environments still need an explicit `TELEGRAM_CHAT_ID` configuration
+
+### M7 — End-to-end pipeline runner
+- Planned scope:
+  - create one executable local entrypoint that runs import, sync, dashboard read, and alert stages in order
+  - add macOS and Windows launchers
+  - keep orchestration thin and reuse the validated foundations
+- Implemented scope:
+  - added a pure pipeline orchestration module with fail-fast behavior and final summary reporting
+  - exported reusable run/log helpers from the import, sync, and alert scripts
+  - added `npm run pipeline`, `scripts/run-pipeline.ts`, `scripts/run-pipeline.command`, and `scripts/run-pipeline.cmd`
+  - split the dashboard read query into a plain server module so the pipeline can reuse it outside Next's `server-only` boundary
+  - updated README and script docs with exact launch steps and rerun expectations
+- Verified invariants:
+  - orchestration introduced no new business logic beyond sequencing and summary reporting
+  - secrets remain server-side only
+  - the pipeline reads dashboard data from Supabase only
+  - the pipeline treats the accepted duplicate seed-import rejection as an operationally safe rerun outcome and reports it honestly
+  - the macOS launcher executes the same pipeline command successfully
+- Remaining unknowns:
+  - Windows launcher presence is documented, but not executed in this macOS environment
