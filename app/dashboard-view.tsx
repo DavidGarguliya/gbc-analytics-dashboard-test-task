@@ -968,6 +968,7 @@ export function DashboardView({ dashboard, renderedAt }: DashboardViewProps) {
                       />
                     </th>
                     <th>Клиент</th>
+                    <th>Товаров</th>
                     <th>Статус</th>
                     <th>
                       <SortButton
@@ -997,6 +998,7 @@ export function DashboardView({ dashboard, renderedAt }: DashboardViewProps) {
                       </td>
                       <td>{formatDateLabel(order.createdAt)}</td>
                       <td>{order.customerName ?? "Не указан"}</td>
+                      <td>{formatNumberValue(order.itemCount)}</td>
                       <td>{order.status ?? "Не указан"}</td>
                       <td>
                         <div className={styles.amountWrap}>
