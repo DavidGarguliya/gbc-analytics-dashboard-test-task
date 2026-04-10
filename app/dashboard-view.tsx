@@ -260,6 +260,7 @@ function RevenueTrendChart(props: {
   const linePath = coordinates
     .map((point, index) => `${index === 0 ? "M" : "L"} ${point.x} ${point.y}`)
     .join(" ");
+  const areaPath = `${linePath} L ${coordinates[coordinates.length - 1].x} 88 L ${coordinates[0].x} 88 Z`;
   const totalRevenue = values.reduce((sum, value) => sum + value, 0);
 
   return (
@@ -284,7 +285,13 @@ function RevenueTrendChart(props: {
           preserveAspectRatio="none"
           viewBox="0 0 100 100"
         >
-          {[20, 40, 60, 80].map((line) => (
+          <defs>
+            <linearGradient id="revenueGradient" x1="0" x2="0" y1="0" y2="1">
+              <stop offset="0%" stopColor="var(--accent)" stopOpacity="0.25" />
+              <stop offset="100%" stopColor="var(--accent)" stopOpacity="0" />
+            </linearGradient>
+          </defs>
+          {[24, 56, 88].map((line) => (
             <line
               className={styles.chartGridLine}
               key={line}
@@ -294,17 +301,8 @@ function RevenueTrendChart(props: {
               y2={line}
             />
           ))}
-          <line className={styles.chartBaseline} x1="0" x2="100" y1="88" y2="88" />
+          <path className={styles.lineChartArea} d={areaPath} fill="url(#revenueGradient)" />
           <path className={styles.lineChartStroke} d={linePath} />
-          {coordinates.map((point) => (
-            <circle
-              className={styles.lineChartPoint}
-              cx={point.x}
-              cy={point.y}
-              key={point.key}
-              r="1.5"
-            />
-          ))}
         </svg>
 
         <div className={styles.chartAxis}>
@@ -359,18 +357,18 @@ function OrdersTrendChart(props: {
         <div className={styles.barChart}>
           {props.points.map((point, index) => (
             <div className={styles.barChartColumnWrap} key={point.key}>
-              <span className={styles.barChartValue}>{point.ordersCount}</span>
-              <div className={styles.barChartRail}>
-                <div
-                  className={styles.barChartColumn}
-                  style={{
-                    height: `${Math.max(
-                      (point.ordersCount / maxValue) * 100,
-                      point.ordersCount > 0 ? 10 : 0,
-                    )}%`,
-                  }}
-                />
-              </div>
+              <span className={styles.barChartValue}>
+                {point.ordersCount > 0 ? point.ordersCount : ""}
+              </span>
+              <div
+                className={styles.barChartColumn}
+                style={{
+                  height: `${Math.max(
+                    (point.ordersCount / maxValue) * 100,
+                    point.ordersCount > 0 ? 4 : 0,
+                  )}%`,
+                }}
+              />
               <span className={styles.barChartLabel}>
                 {shouldRenderAxisLabel(index, props.points.length) ? point.label : ""}
               </span>
@@ -580,8 +578,7 @@ function OrderDetailsPanel(props: {
 
       <div className={styles.orderTechnicalBlock}>
         <div className={styles.sectionHeader}>
-          <h4 className={styles.sectionTitle}>Технический блок</h4>
-          <span className={styles.sectionMeta}>вторичная информация</span>
+          <h4 className={styles.sectionTitle}>Технические идентификаторы</h4>
         </div>
         <div className={styles.orderTechnicalGrid}>
           <DetailField
@@ -977,7 +974,6 @@ export function DashboardView({ dashboard, renderedAt }: DashboardViewProps) {
                     </th>
                     <th>{dashboard.sourceColumnLabel}</th>
                     <th>Позиций</th>
-                    <th>Крупный</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -992,30 +988,27 @@ export function DashboardView({ dashboard, renderedAt }: DashboardViewProps) {
                           <span className={styles.orderNumber}>
                             {formatOperationalOrderLabel(order)}
                           </span>
-                          <span className={styles.orderExternalId}>
-                            {order.externalId ?? `retailcrm:${order.retailcrmId}`}
-                          </span>
                         </div>
                       </td>
                       <td>{formatDateLabel(order.createdAt)}</td>
                       <td>{order.status ?? "Не указан"}</td>
                       <td>
-                        {formatMoneyValue({
-                          amount: order.totalSum,
-                          currencyCode: order.currency,
-                        })}
+                        <div className={styles.amountWrap}>
+                          <span>
+                            {formatMoneyValue({
+                              amount: order.totalSum,
+                              currencyCode: order.currency,
+                            })}
+                          </span>
+                          {order.isLargeOrder ? (
+                            <span className={styles.largeIcon} title="Крупный заказ">
+                              ★
+                            </span>
+                          ) : null}
+                        </div>
                       </td>
                       <td>{order.sourceLabel}</td>
                       <td>{formatNumberValue(order.itemCount)}</td>
-                      <td>
-                        <span
-                          className={`${styles.badge} ${
-                            order.isLargeOrder ? styles.badgeStrong : styles.badgeMuted
-                          }`}
-                        >
-                          {order.isLargeOrder ? "Да" : "Нет"}
-                        </span>
-                      </td>
                     </tr>
                   ))}
                 </tbody>

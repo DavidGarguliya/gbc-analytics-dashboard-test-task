@@ -566,3 +566,28 @@
   - `curl https://gbc-analytics-dashboard-test-task.vercel.app` confirmed live alias markers including `Дашборд заказов`, `Выручка по дням`, `Источник / метод заказа`, `Распределение по сумме заказа`, `2 451 000 KZT`, `49 020 KZT`, and `MOCK-0050`
 - Risks / next:
   - the large-order threshold and amount buckets remain intentionally tied to the current stored `KZT` contract
+
+## 2026-04-10 — Orders Overview visual and UX redesign
+- Branch: `task/overview-visual-redesign`
+- Scope: completed a professional visual, logic, and UX redesign of the Orders Dashboard to achieve a premium, modern, and mature SaaS look and feel without changing data architectures.
+- Implemented scope:
+  - refactored the Revenue Trend chart from a simple line to an Area Chart with SVG linear gradients for improved analytical weight
+  - refactored the Orders Trend chart from a track-based bar chart to a clean, minimalist Bar Chart without heavy visual rails
+  - polished table structure by moving the Large Order column into a compact, inline text indicator attached to the amount string
+  - restructured the Order Details panel to selectively show only primary operational fields (Number, Client, Amount, Source, etc.) while hiding external IDs at the bottom
+  - explicitly aligned the detailed panel display logic with the operational fields used for Telegram alerting logic
+  - overhauled CSS (`page.module.css`) to adopt a high-contrast professional color palette, crisp borders, subtle shadows, modern typography, and segmented control tabs instead of rounded "candy" pill buttons
+- Preserved constraints:
+  - the dashboard maintains the Supabase-only read path paradigm
+  - no client-side API/DB calls
+  - maintained all KZT localization requirements
+- Key artifacts:
+  - `app/dashboard-view.tsx`
+  - `app/page.module.css`
+  - `docs/STATE.md`
+  - `docs/CHRONICLE.md`
+- Verification:
+  - `npm run lint` and `npm run typecheck`
+  - `npm run build` completed successfully without warnings
+- Risks / next:
+  - wait for review before merging `task/overview-visual-redesign` into `feat/next-stage-baseline`

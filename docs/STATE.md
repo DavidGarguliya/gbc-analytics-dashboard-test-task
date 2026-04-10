@@ -44,12 +44,10 @@ Canonical local integration branch: `feat/next-stage-baseline`
 - README rewritten in Russian for reviewer-facing delivery quality
 
 ## In progress
-- Final submission packaging only
+- No active tasks. Final submission packaging.
 
 ## Next recommended step
-Review and integrate the controlled overview redesign, then attach the remaining external evidence and submit M8
-
-Specific next action:
+- attach the accepted Telegram screenshot artifact to the submission package
 - merge the `task/overview-visual-redesign` slice into `feat/next-stage-baseline` after review
 - attach the accepted Telegram screenshot artifact to the submission package
 - keep production/deployment Telegram configuration explicit so the pipeline does not depend on ad hoc local chat-id discovery
