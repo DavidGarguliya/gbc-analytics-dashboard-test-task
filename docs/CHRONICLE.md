@@ -591,3 +591,25 @@
   - `npm run build` completed successfully without warnings
 - Risks / next:
   - wait for review before merging `task/overview-visual-redesign` into `feat/next-stage-baseline`
+
+## 2026-04-10 — M8 Recharts visual integration
+- Branch: `task/recharts-visuals`
+- Scope: completed the migration of analytical charts from pure SVG to `recharts` to achieve a more interactive and professional SaaS-grade visualization level.
+- Implemented scope:
+  - installed `recharts` as the single explicit exception for client UI components
+  - defined `docs/ADR/ADR-006-recharts-for-analytics.md` to cleanly document the rationale for the constraint exception
+  - replaced `RevenueTrendChart` with an interactive, animated `AreaChart` and custom gradients
+  - replaced `OrdersTrendChart` with a rounded `BarChart` using custom Tooltips and precise grid boundaries
+  - aligned tooltip and axis font-sizes/colors with the modernized local CSS theme elements
+- Preserved constraints:
+  - no server-side fetching mechanics were changed
+  - the dashboard component is still strict about reading its data purely from the Supabase readmodel via Next.js props
+- Key artifacts:
+  - `app/dashboard-view.tsx`
+  - `app/page.module.css`
+  - `docs/ADR/ADR-006-recharts-for-analytics.md`
+- Verification:
+  - `npm run lint` and `npm run typecheck`
+  - `npm run build` completed successfully without warnings
+- Risks / next:
+  - wait for final review, and then merge into `feat/next-stage-baseline` for compilation and production deployment.

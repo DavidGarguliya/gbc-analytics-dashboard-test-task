@@ -266,3 +266,21 @@ Healthy if:
   - the macOS launcher executes the same pipeline command successfully
 - Remaining unknowns:
   - Windows launcher presence is documented, but not executed in this macOS environment
+### M8 — Recharts visual redesign
+- Planned scope:
+  - Migrate dashboard charts from custom SVGs to a professional charting library (Recharts)
+  - Ensure animations, tooltips, and responsive scaling are present
+  - Elevate visual design to premium SaaS aesthetics
+  - Maintain the Supabase-only read path and data boundaries
+- Implemented scope:
+  - Installed `recharts` and created `ADR-006` to document its usage as the primary client-side library.
+  - Replaced `RevenueTrendChart` with `recharts` `AreaChart` and implemented custom UI tooltips and SVG gradient definitions.
+  - Replaced `OrdersTrendChart` with `recharts` `BarChart` and implemented precise rounded bars and interactive cursors.
+  - Aligned the visual system with the modernized order details panel, focusing on high-contrast colors and subtle typography.
+  - Dropped custom styling logic for lines and bars from `page.module.css` and moved them inline to Recharts configuration.
+- Verified invariants:
+  - `npm run dev` and `npm run build` confirm compatibility with Server/Client boundary (via `"use client"` proxy wrapper).
+  - No new data fetch requests were introduced.
+  - TypeScript types correctly aligned for `recharts` formatter payload.
+- Remaining unknowns:
+  - Ready for final Vercel deployment upon merge.
