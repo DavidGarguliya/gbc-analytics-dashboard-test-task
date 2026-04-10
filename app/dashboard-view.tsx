@@ -351,17 +351,19 @@ function OrdersTrendChart(props: {
               minTickGap={30} 
             />
             <Tooltip
-              cursor={{ fill: 'var(--surface-active)' }}
+              cursor={{ fill: 'var(--accent)', opacity: 0.1 }}
               contentStyle={{ borderRadius: '0.6rem', border: '1px solid var(--border)', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)' }}
-              itemStyle={{ color: 'var(--text-primary)', fontWeight: 500 }}
+              itemStyle={{ color: 'var(--accent)', fontWeight: 500 }}
               labelStyle={{ color: 'var(--text-muted)', marginBottom: 4 }}
               formatter={(value) => [formatNumberValue(Number(value)), "Заказы"]}
             />
             <Bar 
               dataKey="ordersCount" 
-              fill="var(--text-primary)" 
+              fill="var(--accent)"
+              fillOpacity={0.45}
               radius={[4, 4, 0, 0]} 
               maxBarSize={48} 
+              activeBar={{ fill: 'var(--accent)', fillOpacity: 0.7 }}
             />
           </BarChart>
         </ResponsiveContainer>
@@ -634,6 +636,8 @@ export function DashboardView({ dashboard, renderedAt }: DashboardViewProps) {
   const [sortKey, setSortKey] = useState<"createdAt" | "totalSum">("createdAt");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
   const [selectedOrderId, setSelectedOrderId] = useState<number | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(25);
   const deferredSearch = useDeferredValue(search);
 
   const analytics = useMemo(
@@ -688,6 +692,7 @@ export function DashboardView({ dashboard, renderedAt }: DashboardViewProps) {
     setCustomEnd("");
     setSortKey("createdAt");
     setSortDirection("desc");
+    setCurrentPage(1);
   }
 
   function toggleSort(nextKey: "createdAt" | "totalSum") {
@@ -698,6 +703,19 @@ export function DashboardView({ dashboard, renderedAt }: DashboardViewProps) {
 
     setSortKey(nextKey);
     setSortDirection(nextKey === "createdAt" ? "desc" : "asc");
+  }
+
+  const totalItems = analytics.filteredOrders.length;
+  const totalPages = Math.ceil(totalItems / rowsPerPage) || 1;
+  const safeCurrentPage = Math.min(Math.max(1, currentPage), totalPages);
+
+  const startIndex = (safeCurrentPage - 1) * rowsPerPage;
+  const paginatedOrders = analytics.filteredOrders.slice(startIndex, startIndex + rowsPerPage);
+
+  // Helper function to reset page to 1 when filter changes
+  function updateFilterAndResetPage<T>(updater: (val: T) => void, val: T) {
+    updater(val);
+    setCurrentPage(1);
   }
 
   return (
@@ -758,7 +776,7 @@ export function DashboardView({ dashboard, renderedAt }: DashboardViewProps) {
           <div className={styles.filtersGrid}>
             <label className={styles.filterField}>
               <span>Статус</span>
-              <select onChange={(event) => setStatus(event.target.value)} value={status}>
+              <select onChange={(event) => updateFilterAndResetPage(setStatus, event.target.value)} value={status}>
                 <option value="all">Все статусы</option>
                 {dashboard.availableStatuses.map((value) => (
                   <option key={value} value={value}>
@@ -770,7 +788,7 @@ export function DashboardView({ dashboard, renderedAt }: DashboardViewProps) {
 
             <label className={styles.filterField}>
               <span>Источник / метод</span>
-              <select onChange={(event) => setSource(event.target.value)} value={source}>
+              <select onChange={(event) => updateFilterAndResetPage(setSource, event.target.value)} value={source}>
                 <option value="all">Все значения</option>
                 {dashboard.availableSources.map((value) => (
                   <option key={value} value={value}>
@@ -785,7 +803,7 @@ export function DashboardView({ dashboard, renderedAt }: DashboardViewProps) {
               <label className={styles.fieldToggle}>
                 <input
                   checked={onlyLargeOrders}
-                  onChange={(event) => setOnlyLargeOrders(event.target.checked)}
+                  onChange={(event) => updateFilterAndResetPage(setOnlyLargeOrders, event.target.checked)}
                   type="checkbox"
                 />
                 <span>Только крупные</span>
@@ -795,7 +813,7 @@ export function DashboardView({ dashboard, renderedAt }: DashboardViewProps) {
             <label className={`${styles.filterField} ${styles.searchField}`}>
               <span>Поиск заказа</span>
               <input
-                onChange={(event) => setSearch(event.target.value)}
+                onChange={(event) => updateFilterAndResetPage(setSearch, event.target.value)}
                 placeholder="Номер заказа или external id"
                 type="search"
                 value={search}
@@ -923,7 +941,7 @@ export function DashboardView({ dashboard, renderedAt }: DashboardViewProps) {
             </div>
             <div className={styles.tableMeta}>
               <span>{formatDateRangeLabel({ end: analytics.range.end, start: analytics.range.start })}</span>
-              <span>Показано: {formatNumberValue(analytics.filteredOrders.length)}</span>
+              <span>Показано: {formatNumberValue(totalItems)}</span>
             </div>
           </div>
 
@@ -949,6 +967,7 @@ export function DashboardView({ dashboard, renderedAt }: DashboardViewProps) {
                         sortKey="createdAt"
                       />
                     </th>
+                    <th>Клиент</th>
                     <th>Статус</th>
                     <th>
                       <SortButton
@@ -960,11 +979,10 @@ export function DashboardView({ dashboard, renderedAt }: DashboardViewProps) {
                       />
                     </th>
                     <th>{dashboard.sourceColumnLabel}</th>
-                    <th>Позиций</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {analytics.filteredOrders.map((order) => (
+                  {paginatedOrders.map((order) => (
                     <tr
                       className={selectedOrderId === order.retailcrmId ? styles.selectedRow : ""}
                       key={order.retailcrmId}
@@ -978,6 +996,7 @@ export function DashboardView({ dashboard, renderedAt }: DashboardViewProps) {
                         </div>
                       </td>
                       <td>{formatDateLabel(order.createdAt)}</td>
+                      <td>{order.customerName ?? "Не указан"}</td>
                       <td>{order.status ?? "Не указан"}</td>
                       <td>
                         <div className={styles.amountWrap}>
@@ -995,11 +1014,56 @@ export function DashboardView({ dashboard, renderedAt }: DashboardViewProps) {
                         </div>
                       </td>
                       <td>{order.sourceLabel}</td>
-                      <td>{formatNumberValue(order.itemCount)}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
+
+              {totalPages > 1 || totalItems > 10 ? (
+                <div className={styles.paginationControls}>
+                  <p className={styles.paginationText}>
+                    Страница {safeCurrentPage} из {totalPages}
+                  </p>
+                  
+                  <div className={styles.paginationActions}>
+                    <label className={styles.rowsPerPageSelect}>
+                      Показывать по:
+                      <select 
+                        value={rowsPerPage} 
+                        onChange={(e) => {
+                          setRowsPerPage(Number(e.target.value));
+                          setCurrentPage(1);
+                        }}
+                      >
+                        <option value={10}>10</option>
+                        <option value={25}>25</option>
+                        <option value={50}>50</option>
+                        <option value={100}>100</option>
+                      </select>
+                    </label>
+                    <div className={styles.paginationButtons}>
+                      <button
+                        type="button"
+                        className={styles.paginationButton}
+                        disabled={safeCurrentPage === 1}
+                        onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                        aria-label="Предыдущая страница"
+                      >
+                        Назад
+                      </button>
+                      <button
+                        type="button"
+                        className={styles.paginationButton}
+                        disabled={safeCurrentPage === totalPages}
+                        onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                        aria-label="Следующая страница"
+                      >
+                        Вперед
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ) : null}
             </div>
           )}
         </div>

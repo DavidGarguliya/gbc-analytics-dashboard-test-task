@@ -742,6 +742,74 @@
   white-space: nowrap;
 }
 
+.paginationControls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.15rem;
+  border-top: 1px solid var(--line);
+  background: var(--surface);
+  border-bottom-left-radius: 0.75rem;
+  border-bottom-right-radius: 0.75rem;
+}
+
+.paginationText {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.paginationActions {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.rowsPerPageSelect {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--text-default);
+}
+
+.rowsPerPageSelect select {
+  font-size: 0.85rem;
+  padding: 0.2rem 0.4rem;
+  border-radius: 0.4rem;
+  border: 1px solid var(--line-strong);
+  background: var(--surface);
+  color: var(--text-strong);
+  outline: none;
+}
+
+.paginationButtons {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.paginationButton {
+  padding: 0.35rem 0.75rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  border-radius: 0.4rem;
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  color: var(--text-default);
+  cursor: pointer;
+  transition: all 140ms ease;
+}
+
+.paginationButton:hover:not(:disabled) {
+  background: var(--surface-soft);
+  color: var(--text-strong);
+}
+
+.paginationButton:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  border-color: var(--line);
+}
+
 @media (max-width: 1240px) {
   .metricsGrid {
     grid-template-columns: repeat(3, minmax(0, 1fr));

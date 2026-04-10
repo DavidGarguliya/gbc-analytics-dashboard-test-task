@@ -4,7 +4,7 @@
 Status: M2 is closed. M3 is sufficiently validated for the test assignment after M3.1 live contract reconciliation. M4 is closed and live-verified. M5 dashboard read model and UI are implemented against Supabase as the only read source. After a post-M5 upstream currency realignment, the live RetailCRM contract of record now returns `KZT`, Supabase has been resynced, and the dashboard renders the current synced data set in `KZT` without any client-side relabeling or currency conversion. M6 Telegram alert foundation is closed and live-verified against that KZT contract, with explicit dedupe in `alerts_sent`. M7 end-to-end pipeline runner is closed and live-verified as a one-command local chain over the existing foundations. M8 deployment and handoff is complete: the dashboard is deployed and reachable on Vercel at `https://gbc-analytics-dashboard-test-task.vercel.app`, the repository is published at `https://github.com/DavidGarguliya/gbc-analytics-dashboard-test-task`, and the Vercel project is linked to that GitHub repository with `main` as the production branch. After the initial handoff closeout, the dashboard was rebuilt into a denser Russian-language analytical overview. On the current local slice branch, that overview has now been redesigned again into a lighter, more product-grade visual system, and the order detail panel plus Telegram alert formatter were aligned to one operational field set derived from the stored Supabase read model and `raw_json` payload only. The latest follow-up patch tightened the shared projection so real item titles are read from live RetailCRM item payloads such as `items[*].offer.displayName` / `offer.name`, and Telegram alerts now include persisted `email` under `phone` when available. No new data source, client persistence, or schema migration was introduced. The only remaining external artifact is the accepted Telegram screenshot.
 
 ## Active branch
-Checkpoint-review branch: `task/overview-visual-redesign`
+Checkpoint-review branch: `task/ui-final-polish`
 Canonical local integration branch: `feat/next-stage-baseline`
 
 ## Completed
@@ -42,6 +42,7 @@ Canonical local integration branch: `feat/next-stage-baseline`
 - Shared operational projection updated to read real item names from live RetailCRM nested item payloads instead of falling back to generic placeholders
 - Telegram alerts extended to include persisted email under the phone line when available from `raw_json`
 - README rewritten in Russian for reviewer-facing delivery quality
+- Final UI polish pass completed: pagination added, table columns refined to include client names instead of item counts, and orders-by-day chart colors softened towards the overarching Recharts palette
 
 ## In progress
 - No active tasks. Final submission packaging.
