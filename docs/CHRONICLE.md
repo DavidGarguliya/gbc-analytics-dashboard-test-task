@@ -530,6 +530,7 @@
   - `npm run build`
   - `npm run start -- --hostname 127.0.0.1 --port 3101`
   - `curl http://127.0.0.1:3101` confirmed server-rendered markers including `Дашборд заказов`, `Выручка по дням`, `Источник / метод заказа`, `Распределение по сумме заказа`, `2 451 000 KZT`, `49 020 KZT`, and `MOCK-0050`
+  - Git-backed Vercel production deployment for commit `acbdb1a358734f4b1960abb93fc4fa201c4350d0` reached `READY/PROMOTED` at `https://gbc-analytics-dashboard-test-task-ghokcgoiq.vercel.app`
+  - `curl https://gbc-analytics-dashboard-test-task.vercel.app` confirmed live alias markers including `Дашборд заказов`, `Выручка по дням`, `Источник / метод заказа`, `Распределение по сумме заказа`, `2 451 000 KZT`, `49 020 KZT`, and `MOCK-0050`
 - Risks / next:
-  - production alias still needs one more Git-backed Vercel deployment/verification for this exact UI slice
   - the large-order threshold and amount buckets remain intentionally tied to the current stored `KZT` contract
