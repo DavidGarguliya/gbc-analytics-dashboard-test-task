@@ -1,10 +1,10 @@
 # STATE
 
 ## Current state
-Status: M2 is closed. M3 is sufficiently validated for the test assignment after M3.1 live contract reconciliation. M4 is closed and live-verified. M5 dashboard read model and UI are implemented against Supabase as the only read source. After a post-M5 upstream currency realignment, the live RetailCRM contract of record now returns `KZT`, Supabase has been resynced, and the dashboard renders the current synced data set in `KZT` without any client-side relabeling or currency conversion. M6 Telegram alert foundation is closed and live-verified against that KZT contract, with explicit dedupe in `alerts_sent`. M7 end-to-end pipeline runner is closed and live-verified as a one-command local chain over the existing foundations. M8 deployment and handoff is complete: the dashboard is deployed and reachable on Vercel at `https://gbc-analytics-dashboard-test-task.vercel.app`, the repository is published at `https://github.com/DavidGarguliya/gbc-analytics-dashboard-test-task`, and the Vercel project is linked to that GitHub repository with `main` as the production branch. On the current local slice branch, the analytics read/projection layer has now been refined without any schema change: `marketingSource` is derived only from persisted `raw_json.customFields.utm_source`, `orderMethod` is derived only from persisted `raw_json.orderMethod`, the overview splits `Источник заказа` from `Способ оформления`, the table shows marketing source explicitly, and Telegram alerts emit separate marketing-source and order-method lines. Local quality gates pass for this slice. The promoted Vercel alias still reflects the last merged version until this branch is integrated and redeployed. The only remaining external artifact is the accepted Telegram screenshot.
+Status: M2 is closed. M3 is sufficiently validated for the test assignment after M3.1 live contract reconciliation. M4 is closed and live-verified. M5 dashboard read model and UI are implemented against Supabase as the only read source. After a post-M5 upstream currency realignment, the live RetailCRM contract of record now returns `KZT`, Supabase has been resynced, and the dashboard renders the current synced data set in `KZT` without any client-side relabeling or currency conversion. M6 Telegram alert foundation is closed and live-verified against that KZT contract, with explicit dedupe in `alerts_sent`. M7 end-to-end pipeline runner is closed and live-verified as a one-command local chain over the existing foundations. M8 deployment and handoff is complete: the dashboard is deployed and reachable on Vercel at `https://gbc-analytics-dashboard-test-task.vercel.app`, the repository is published at `https://github.com/DavidGarguliya/gbc-analytics-dashboard-test-task`, and the Vercel project is linked to that GitHub repository with `main` as the production branch. On the current local slice branch, the source analytics refinement is now extended without any schema change or read-path expansion: `marketingSource` is still derived only from persisted `raw_json.customFields.utm_source`, `orderMethod` is still derived only from persisted `raw_json.orderMethod`, and the overview block `Источник заказа` now prioritizes per-channel revenue, average order value, high-value order count, revenue share, and comparison-period revenue context while keeping `Способ оформления`, the table, details panel, and Telegram alerts on the same honest split semantics. Local quality gates pass for this slice. Production remains on the last merged `main` commit until this branch is reviewed and integrated. The only remaining external artifact is the accepted Telegram screenshot.
 
 ## Active branch
-Checkpoint-review branch: `task/analytics-refinement`
+Checkpoint-review branch: `task/source-analytics-controlled-refinement`
 Canonical local integration branch: `feat/next-stage-baseline`
 
 ## Completed
@@ -44,14 +44,15 @@ Canonical local integration branch: `feat/next-stage-baseline`
 - README rewritten in Russian for reviewer-facing delivery quality
 - Final UI polish pass completed: pagination added, table columns refined to include client names instead of item counts, and orders-by-day chart colors softened towards the overarching Recharts palette
 - Analytics source/model refinement completed locally: dashboard and Telegram now separate marketing attribution (`utm_source`) from operational order method in the projection layer without changing the Supabase schema
+- Controlled source analytics refinement completed locally: the marketing-source overview block now surfaces revenue-first channel performance, high-value order counts, revenue share, and comparison-period context without redesigning the dashboard or changing the Supabase-only read path
 
 ## In progress
-- No active coding tasks. `task/analytics-refinement` is locally verified and pending merge into `feat/next-stage-baseline`.
+- No active coding tasks. `task/source-analytics-controlled-refinement` is locally verified and pending review before any merge into `feat/next-stage-baseline`.
 
 ## Next recommended step
 - attach the accepted Telegram screenshot artifact to the submission package
-- merge the `task/analytics-refinement` slice into `feat/next-stage-baseline` after review
-- redeploy the dashboard if the promoted Vercel alias must reflect the separated `Источник заказа` / `Способ оформления` overview immediately
+- review and merge `task/source-analytics-controlled-refinement` back into `feat/next-stage-baseline` if the source breakdown is accepted
+- redeploy the dashboard if production must reflect the richer `Источник заказа` metrics immediately after that merge
 - keep production/deployment Telegram configuration explicit so the pipeline does not depend on ad hoc local chat-id discovery
 - preserve the stored Supabase `KZT` contract for any later deployment or handoff work
 - avoid reinterpreting currency semantics or reintroducing the mixed `orders.source` field as the authoritative marketing dimension

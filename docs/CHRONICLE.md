@@ -1,4 +1,22 @@
 # CHRONICLE
+## 2026-04-11 — Controlled source analytics refinement
+- Branch: `task/source-analytics-controlled-refinement`
+- Scope: refined the existing marketing-source analytics presentation without changing the already separated projection semantics, Supabase-only read path, or overall dashboard layout.
+- Implemented scope:
+  - enriched [dashboard.ts](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/lib/dashboard.ts) so `marketingSourceBreakdown` now carries revenue share, high-value order count, and comparison-period revenue context in addition to order count, revenue, and average order value
+  - updated [dashboard-view.tsx](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/app/dashboard-view.tsx) and [page.module.css](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/app/page.module.css) so `Источник заказа` becomes revenue-first and explicitly shows per-channel high-value orders and revenue share while keeping `Способ оформления` secondary
+  - refreshed [dashboard.test.ts](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/lib/dashboard.test.ts) to lock the richer breakdown contract and comparison-period source metrics into tests
+  - synchronized [README.md](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/README.md), [STATE.md](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/docs/STATE.md), and [CHRONICLE.md](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/docs/CHRONICLE.md) with the refined source-block behavior
+- Verification:
+  - `npm run docs:golden`
+  - `npm run lint`
+  - `npm run typecheck`
+  - `npm test`
+  - `npm run build`
+- Remaining risks / next:
+  - source dynamics are currently exposed as comparison-period revenue context on the overview block, not as a separate per-channel time-series chart
+  - the persisted `orders.source` column remains historically mixed, so any future analytics expansion must keep relying on the raw-json-derived projection instead of reusing that legacy field directly
+
 ## 2026-04-11 — Analytics source/model refinement
 - Branch: `task/analytics-refinement`
 - Scope: completed the read-model refinement that separates marketing attribution from operational order method in the dashboard and Telegram surfaces without changing the Supabase schema.

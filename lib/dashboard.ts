@@ -109,7 +109,10 @@ export type DashboardBreakdownRow = {
   count: number;
   key: string;
   label: string;
+  largeOrdersCount: number | null;
+  previousRevenueAmount: number | null;
   revenueAmount: number | null;
+  revenueShare: number | null;
   share: number;
 };
 
@@ -354,7 +357,10 @@ function buildStatusBreakdown(orders: readonly DashboardOrder[]): DashboardBreak
       count,
       key: label,
       label,
+      largeOrdersCount: null,
+      previousRevenueAmount: null,
       revenueAmount: null,
+      revenueShare: null,
       share: roundValue(count / orders.length),
     }));
 }
@@ -362,31 +368,72 @@ function buildStatusBreakdown(orders: readonly DashboardOrder[]): DashboardBreak
 function buildMarketingSourceBreakdown(input: {
   currencyHint: string | null;
   orders: readonly DashboardOrder[];
+  previousOrders?: readonly DashboardOrder[];
 }): DashboardBreakdownRow[] {
-  const { currencyHint, orders } = input;
+  const { currencyHint, orders, previousOrders } = input;
 
   if (orders.length === 0) {
     return [];
   }
 
-  const singleCurrency = readSingleCurrency(orders) ?? currencyHint;
-  const allowRevenue = readSingleCurrency(orders) !== null || orders.length === 0;
-  const buckets = new Map<string, { count: number; revenue: number }>();
+  const currentCurrency = readSingleCurrency(orders);
+  const singleCurrency = currentCurrency ?? currencyHint;
+  const allowRevenue = currentCurrency !== null || orders.length === 0;
+  const totalRevenueAmount =
+    allowRevenue && singleCurrency !== null
+      ? roundValue(orders.reduce((sum, order) => sum + order.totalSum, 0))
+      : null;
+  const comparisonCurrency =
+    previousOrders === undefined
+      ? null
+      : previousOrders.length === 0
+        ? singleCurrency
+        : readSingleCurrency(previousOrders) ?? currencyHint;
+  const allowComparisonRevenue =
+    previousOrders !== undefined &&
+    allowRevenue &&
+    singleCurrency !== null &&
+    comparisonCurrency === singleCurrency;
+  const previousRevenueByLabel = new Map<string, number>();
+  const buckets = new Map<
+    string,
+    { count: number; largeOrdersCount: number; revenue: number }
+  >();
+
+  if (allowComparisonRevenue && previousOrders !== undefined) {
+    for (const order of previousOrders) {
+      const label = order.marketingSource || "Не указан";
+      previousRevenueByLabel.set(
+        label,
+        (previousRevenueByLabel.get(label) ?? 0) + order.totalSum,
+      );
+    }
+  }
 
   for (const order of orders) {
     const label = order.marketingSource || "Не указан";
     const existingBucket = buckets.get(label) ?? {
       count: 0,
+      largeOrdersCount: 0,
       revenue: 0,
     };
 
     existingBucket.count += 1;
+    existingBucket.largeOrdersCount += order.isLargeOrder ? 1 : 0;
     existingBucket.revenue += order.totalSum;
     buckets.set(label, existingBucket);
   }
 
   return [...buckets.entries()]
     .sort((left, right) => {
+      if (allowRevenue && singleCurrency !== null) {
+        const revenueDiff = right[1].revenue - left[1].revenue;
+
+        if (revenueDiff !== 0) {
+          return revenueDiff;
+        }
+      }
+
       const countDiff = right[1].count - left[1].count;
 
       if (countDiff !== 0) {
@@ -403,8 +450,19 @@ function buildMarketingSourceBreakdown(input: {
       count: bucket.count,
       key: label,
       label,
+      largeOrdersCount: bucket.largeOrdersCount,
+      previousRevenueAmount:
+        allowComparisonRevenue
+          ? roundValue(previousRevenueByLabel.get(label) ?? 0)
+          : null,
       revenueAmount:
         allowRevenue && singleCurrency !== null ? roundValue(bucket.revenue) : null,
+      revenueShare:
+        totalRevenueAmount === null
+          ? null
+          : totalRevenueAmount === 0
+            ? 0
+            : roundValue(bucket.revenue / totalRevenueAmount),
       share: roundValue(bucket.count / orders.length),
     }));
 }
@@ -453,8 +511,11 @@ function buildOrderMethodBreakdown(input: {
       count: bucket.count,
       key: label,
       label,
+      largeOrdersCount: null,
+      previousRevenueAmount: null,
       revenueAmount:
         allowRevenue && singleCurrency !== null ? roundValue(bucket.revenue) : null,
+      revenueShare: null,
       share: roundValue(bucket.count / orders.length),
     }));
 }
@@ -486,7 +547,10 @@ function buildAmountBreakdown(orders: readonly DashboardOrder[]): DashboardBreak
       count,
       key: bucket.key,
       label: bucket.label,
+      largeOrdersCount: null,
+      previousRevenueAmount: null,
       revenueAmount: count > 0 ? roundValue(revenue) : null,
+      revenueShare: null,
       share: totalOrders === 0 ? 0 : roundValue(count / totalOrders),
     };
   });
@@ -978,6 +1042,10 @@ export function buildDashboardAnalytics(input: {
     marketingSourceBreakdown: buildMarketingSourceBreakdown({
       currencyHint: dashboard.currencyCode,
       orders: currentOrders,
+      previousOrders:
+        filters.showComparison && range.comparisonStart !== null && range.comparisonEnd !== null
+          ? previousOrders
+          : undefined,
     }),
     orderMethodBreakdown: buildOrderMethodBreakdown({
       currencyHint: dashboard.currencyCode,
