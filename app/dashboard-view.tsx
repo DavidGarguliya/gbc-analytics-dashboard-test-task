@@ -1,7 +1,16 @@
 "use client";
 
 import { useDeferredValue, useMemo, useState } from "react";
-
+import {
+  Area,
+  AreaChart,
+  Bar,
+  BarChart,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+} from "recharts";
 import {
   buildDashboardAnalytics,
   DASHBOARD_PERIOD_OPTIONS,
@@ -154,21 +163,6 @@ function isSelectedPeriod(value: DashboardPeriodKey, current: DashboardPeriodKey
   return value === current;
 }
 
-function shouldRenderAxisLabel(index: number, total: number): boolean {
-  if (total <= 7) {
-    return true;
-  }
-
-  if (total <= 14) {
-    return index % 2 === 0 || index === total - 1;
-  }
-
-  if (total <= 24) {
-    return index % 4 === 0 || index === total - 1;
-  }
-
-  return index % 6 === 0 || index === total - 1;
-}
 
 function SortButton(props: {
   activeKey: "createdAt" | "totalSum";
@@ -250,17 +244,6 @@ function RevenueTrendChart(props: {
   }
 
   const values = props.points.map((point) => point.revenueAmount ?? 0);
-  const maxValue = Math.max(...values, 1);
-  const coordinates = props.points.map((point, index) => {
-    const x = props.points.length === 1 ? 50 : (index / (props.points.length - 1)) * 100;
-    const y = 88 - ((point.revenueAmount ?? 0) / maxValue) * 64;
-
-    return { ...point, x, y };
-  });
-  const linePath = coordinates
-    .map((point, index) => `${index === 0 ? "M" : "L"} ${point.x} ${point.y}`)
-    .join(" ");
-  const areaPath = `${linePath} L ${coordinates[coordinates.length - 1].x} 88 L ${coordinates[0].x} 88 Z`;
   const totalRevenue = values.reduce((sum, value) => sum + value, 0);
 
   return (
@@ -278,40 +261,43 @@ function RevenueTrendChart(props: {
         <p className={styles.chartHint}>Динамика выручки за выбранный период</p>
       </div>
 
-      <div className={styles.lineChartWrap}>
-        <svg
-          aria-hidden="true"
-          className={styles.lineChart}
-          preserveAspectRatio="none"
-          viewBox="0 0 100 100"
-        >
-          <defs>
-            <linearGradient id="revenueGradient" x1="0" x2="0" y1="0" y2="1">
-              <stop offset="0%" stopColor="var(--accent)" stopOpacity="0.25" />
-              <stop offset="100%" stopColor="var(--accent)" stopOpacity="0" />
-            </linearGradient>
-          </defs>
-          {[24, 56, 88].map((line) => (
-            <line
-              className={styles.chartGridLine}
-              key={line}
-              x1="0"
-              x2="100"
-              y1={line}
-              y2={line}
+      <div className={styles.lineChartWrap} style={{ height: 280, marginTop: 16 }}>
+        <ResponsiveContainer width="100%" height="100%">
+          <AreaChart data={props.points} margin={{ top: 10, right: 0, left: 0, bottom: 0 }}>
+            <defs>
+              <linearGradient id="revenueGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="var(--accent)" stopOpacity={0.25} />
+                <stop offset="95%" stopColor="var(--accent)" stopOpacity={0} />
+              </linearGradient>
+            </defs>
+            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
+            <XAxis 
+              dataKey="label" 
+              axisLine={false} 
+              tickLine={false} 
+              tick={{ fontSize: 12, fill: 'var(--text-muted)' }} 
+              tickMargin={12} 
+              minTickGap={30} 
             />
-          ))}
-          <path className={styles.lineChartArea} d={areaPath} fill="url(#revenueGradient)" />
-          <path className={styles.lineChartStroke} d={linePath} />
-        </svg>
-
-        <div className={styles.chartAxis}>
-          {props.points.map((point, index) => (
-            <span className={styles.chartAxisLabel} key={point.key}>
-              {shouldRenderAxisLabel(index, props.points.length) ? point.label : ""}
-            </span>
-          ))}
-        </div>
+            <Tooltip
+              contentStyle={{ borderRadius: '0.6rem', border: '1px solid var(--border)', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)' }}
+              itemStyle={{ color: 'var(--accent)', fontWeight: 500 }}
+              labelStyle={{ color: 'var(--text-muted)', marginBottom: 4 }}
+              formatter={(value) => [
+                formatMoneyValue({ amount: Number(value), currencyCode: props.currencyCode }),
+                "Выручка"
+              ]}
+            />
+            <Area 
+              type="monotone" 
+              dataKey="revenueAmount" 
+              stroke="var(--accent)" 
+              strokeWidth={2} 
+              fillOpacity={1} 
+              fill="url(#revenueGradient)" 
+            />
+          </AreaChart>
+        </ResponsiveContainer>
       </div>
     </div>
   );
@@ -339,7 +325,6 @@ function OrdersTrendChart(props: {
   }
 
   const values = props.points.map((point) => point.ordersCount);
-  const maxValue = Math.max(...values, 1);
 
   return (
     <div className={styles.chartCard}>
@@ -353,31 +338,33 @@ function OrdersTrendChart(props: {
         <p className={styles.chartHint}>Количество заказов за выбранный период</p>
       </div>
 
-      <div className={styles.barChartWrap}>
-        <div className={styles.barChart}>
-          {props.points.map((point, index) => (
-            <div className={styles.barChartColumnWrap} key={point.key}>
-              <span className={styles.barChartValue}>
-                {point.ordersCount > 0 ? point.ordersCount : ""}
-              </span>
-              <div
-                className={styles.barChartColumn}
-                style={{
-                  height: `${Math.max(
-                    (point.ordersCount / maxValue) * 100,
-                    point.ordersCount > 0 ? 4 : 0,
-                  )}%`,
-                }}
-              />
-              <span className={styles.barChartLabel}>
-                {shouldRenderAxisLabel(index, props.points.length) ? point.label : ""}
-              </span>
-            </div>
-          ))}
-        </div>
-        <p className={styles.barChartFootnote}>
-          При длинном периоде данные автоматически агрегируются по неделям или месяцам.
-        </p>
+      <div className={styles.barChartWrap} style={{ height: 280, marginTop: 16 }}>
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={props.points} margin={{ top: 10, right: 0, left: 0, bottom: 0 }}>
+            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
+            <XAxis 
+              dataKey="label" 
+              axisLine={false} 
+              tickLine={false} 
+              tick={{ fontSize: 12, fill: 'var(--text-muted)' }} 
+              tickMargin={12} 
+              minTickGap={30} 
+            />
+            <Tooltip
+              cursor={{ fill: 'var(--surface-active)' }}
+              contentStyle={{ borderRadius: '0.6rem', border: '1px solid var(--border)', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)' }}
+              itemStyle={{ color: 'var(--text-primary)', fontWeight: 500 }}
+              labelStyle={{ color: 'var(--text-muted)', marginBottom: 4 }}
+              formatter={(value) => [formatNumberValue(Number(value)), "Заказы"]}
+            />
+            <Bar 
+              dataKey="ordersCount" 
+              fill="var(--text-primary)" 
+              radius={[4, 4, 0, 0]} 
+              maxBarSize={48} 
+            />
+          </BarChart>
+        </ResponsiveContainer>
       </div>
     </div>
   );
