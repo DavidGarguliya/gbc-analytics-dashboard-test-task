@@ -1,4 +1,20 @@
 # CHRONICLE
+## 2026-04-11 — Russian README and handoff refresh
+- Branch: `task/readme-russian-handoff`
+- Scope: refreshed every repository README into Russian and expanded the root handoff document with a fuller inventory of real blockers, resolutions, and final reviewer context.
+- Implemented scope:
+  - rewrote [README.md](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/README.md) into a fuller Russian handoff document with the current architecture, live contracts, operator workflow, a broadened blocker-resolution table, and the explicit note that the task brought substantial enjoyment
+  - updated [app/README.md](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/app/README.md), [lib/README.md](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/lib/README.md), [scripts/README.md](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/scripts/README.md), and [supabase/README.md](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/supabase/README.md) so the directory-level documentation is fully Russian and matches the current repository shape
+  - synchronized [STATE.md](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/docs/STATE.md) and [CHRONICLE.md](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/docs/CHRONICLE.md) with the completed documentation slice
+- Verification:
+  - `npm run docs:golden`
+  - `npm run lint`
+  - `npm run typecheck`
+  - `npm test`
+- Remaining risks / next:
+  - the accepted Telegram screenshot still exists only as an external submission artifact and remains outside the repository
+  - if future runtime behavior changes, the root README blocker table must stay synchronized rather than becoming a stale retrospective
+
 ## 2026-04-11 — Overview breakdown grid refinement
 - Branch: `task/overview-cards-grid-refinement`
 - Scope: tightened the overview breakdown layout without changing dashboard metrics, source semantics, or the Supabase-only read path.
