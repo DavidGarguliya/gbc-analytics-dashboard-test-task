@@ -945,9 +945,13 @@ export function DashboardView({ dashboard, renderedAt }: DashboardViewProps) {
         <BreakdownRows
           revenueCurrencyCode={analytics.currentSummary.revenue.currencyCode ?? dashboard.currencyCode}
           rows={analytics.marketingSourceBreakdown}
-          subtitle="Источники привлечения на основе utm_source: выручка, средний чек, крупные заказы и сравнение периода."
           title="Источник заказа"
           variant="source"
+        />
+        <BreakdownRows
+          rows={analytics.amountBreakdown}
+          title="Распределение по сумме заказа"
+          variant="amount"
         />
         <BreakdownRows
           rows={analytics.statusBreakdown}
@@ -956,14 +960,8 @@ export function DashboardView({ dashboard, renderedAt }: DashboardViewProps) {
         />
         <BreakdownRows
           rows={analytics.orderMethodBreakdown}
-          subtitle="Операционный способ оформления заказа."
           title="Способ оформления"
           variant="status"
-        />
-        <BreakdownRows
-          rows={analytics.amountBreakdown}
-          title="Распределение по сумме заказа"
-          variant="amount"
         />
       </section>
 

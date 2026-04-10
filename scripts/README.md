@@ -1,18 +1,20 @@
 # scripts/
 
-Operational scripts and local repository guards.
+Операционные скрипты и локальные repository guards.
 
-Current contents:
-- `check-docs.sh` — local golden check that mirrors required governing docs presence
-- `import-retailcrm.ts` — imports `mock_orders.json` into RetailCRM through the official batch upload endpoint
-- `run-pipeline.ts` — runs the full local chain in order: import -> sync -> dashboard read -> Telegram alerts -> final summary
-- `run-pipeline.command` — macOS wrapper for `npm run pipeline`
-- `run-pipeline.cmd` — Windows wrapper for `npm run pipeline`
-- `sync-retailcrm.ts` — pulls live RetailCRM orders, upserts them into Supabase, and persists explicit sync state
-- `send-telegram-alerts.ts` — checks Supabase for unalerted KZT orders above the fixed threshold, sends Telegram messages, and records dedupe state
+Содержимое каталога:
 
-Constraints:
-- scripts must be idempotent where practical
-- scripts must fail loudly on integration errors
-- scripts must log progress clearly
-- `npm run pipeline` is the documented local one-command path and auto-loads `.env.local`
+- `check-docs.sh` — локальная golden-проверка обязательных governing docs
+- `import-retailcrm.ts` — импортирует `mock_orders.json` в RetailCRM через batch upload endpoint
+- `sync-retailcrm.ts` — тянет live orders из RetailCRM, upsert-ит их в Supabase и сохраняет explicit `sync_state`
+- `send-telegram-alerts.ts` — читает из Supabase неотправленные high-value orders, отправляет Telegram alerts и записывает дедупликацию
+- `run-pipeline.ts` — запускает локальную цепочку `import -> sync -> dashboard read -> Telegram alerts -> final summary`
+- `run-pipeline.command` — macOS wrapper для `npm run pipeline`
+- `run-pipeline.cmd` — Windows wrapper для `npm run pipeline`
+
+Инварианты:
+
+- скрипты должны быть idempotent там, где это практически возможно
+- скрипты должны fail loud при интеграционных ошибках
+- прогресс должен логироваться явно
+- `npm run pipeline` остаётся документированным one-command локальным путём и поднимает `.env.local`

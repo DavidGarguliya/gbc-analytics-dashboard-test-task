@@ -1,13 +1,14 @@
 # supabase/
 
-Supabase schema baseline and future migrations.
+Базовая Supabase schema и авторитетная точка описания storage-структуры проекта.
 
-Current contents:
-- `schema.sql` — baseline Postgres schema for `orders`, `sync_state`, and `alerts_sent`
+Содержимое каталога:
 
-Expected future contents:
-- optional migrations if introduced later
+- `schema.sql` — baseline Postgres schema для `orders`, `sync_state` и `alerts_sent`
 
-Constraints:
-- schema changes must be documented in `docs/DATA_MODEL.md`
-- uniqueness and dedupe rules must remain explicit
+Что важно:
+
+- схема должна быть применена до первого live sync и до server-side чтения dashboard
+- изменения схемы нужно синхронно отражать в `docs/DATA_MODEL.md`
+- uniqueness, upsert и dedupe rules должны оставаться явными
+- hidden persistence layers добавлять нельзя

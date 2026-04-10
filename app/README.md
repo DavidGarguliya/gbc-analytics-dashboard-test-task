@@ -1,17 +1,19 @@
 # app/
 
-Current Next.js App Router surface for the delivery.
+Текущая App Router поверхность dashboard.
 
-Current contents:
-- `layout.tsx` — root metadata, font, and global shell
-- `page.tsx` — scaffold landing page for the assignment
-- `globals.css` / `page.module.css` — baseline styling
+Содержимое каталога:
 
-Constraints:
-- no direct RetailCRM access from browser code
-- no direct Telegram access from browser code
-- secrets only in server-side execution paths
+- `layout.tsx` — корневой layout, metadata и глобальная оболочка приложения
+- `page.tsx` — server-side entrypoint dashboard, который читает данные только из Supabase
+- `dashboard-view.tsx` — основная React-вёрстка overview, фильтров, графиков, breakdown-карточек, таблицы и detail panel
+- `globals.css` — глобальные переменные, базовые стили и shared surface tokens
+- `page.module.css` — модульные стили dashboard, включая current `2x2` layout для breakdown-блоков
 
-Expected future additions:
-- dashboard data views
-- server routes for operator-triggered actions if later justified
+Инварианты:
+
+- browser code не должен обращаться к RetailCRM напрямую
+- browser code не должен обращаться к Telegram напрямую
+- secrets допустимы только в server-side execution paths
+- dashboard остаётся Supabase-only read surface
+- интерфейс сохраняет русский язык и не смешивает `marketingSource` с `orderMethod`

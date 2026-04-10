@@ -1,4 +1,37 @@
 # CHRONICLE
+## 2026-04-11 — Russian README and handoff refresh
+- Branch: `task/readme-russian-handoff`
+- Scope: refreshed every repository README into Russian and expanded the root handoff document with a fuller inventory of real blockers, resolutions, and final reviewer context.
+- Implemented scope:
+  - rewrote [README.md](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/README.md) into a fuller Russian handoff document with the current architecture, live contracts, operator workflow, a broadened blocker-resolution table, and the explicit note that the task brought substantial enjoyment
+  - updated [app/README.md](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/app/README.md), [lib/README.md](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/lib/README.md), [scripts/README.md](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/scripts/README.md), and [supabase/README.md](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/supabase/README.md) so the directory-level documentation is fully Russian and matches the current repository shape
+  - synchronized [STATE.md](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/docs/STATE.md) and [CHRONICLE.md](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/docs/CHRONICLE.md) with the completed documentation slice
+- Verification:
+  - `npm run docs:golden`
+  - `npm run lint`
+  - `npm run typecheck`
+  - `npm test`
+- Remaining risks / next:
+  - the accepted Telegram screenshot still exists only as an external submission artifact and remains outside the repository
+  - if future runtime behavior changes, the root README blocker table must stay synchronized rather than becoming a stale retrospective
+
+## 2026-04-11 — Overview breakdown grid refinement
+- Branch: `task/overview-cards-grid-refinement`
+- Scope: tightened the overview breakdown layout without changing dashboard metrics, source semantics, or the Supabase-only read path.
+- Implemented scope:
+  - updated [dashboard-view.tsx](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/app/dashboard-view.tsx) so the overview card order becomes `Источник заказа`, `Распределение по сумме заказа`, `Заказы по статусам`, `Способ оформления`
+  - removed the explanatory subtitle copy from `Источник заказа` and `Способ оформления` to reduce visual noise on the overview
+  - updated [page.module.css](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/app/page.module.css) so the breakdown section renders in a stable two-column grid until the existing mobile fallback breakpoint
+- Verification:
+  - `npm run docs:golden`
+  - `npm run lint`
+  - `npm run typecheck`
+  - `npm test`
+  - `npm run build`
+- Remaining risks / next:
+  - the top row now mixes a taller source card with a shorter amount-distribution card, so any later visual equalization should stay purely presentational and avoid bloating the overview
+  - production will not reflect the tighter grid until this slice is promoted beyond `feat/next-stage-baseline`
+
 ## 2026-04-11 — Controlled source analytics refinement
 - Branch: `task/source-analytics-controlled-refinement`
 - Scope: refined the existing marketing-source analytics presentation without changing the already separated projection semantics, Supabase-only read path, or overall dashboard layout.
