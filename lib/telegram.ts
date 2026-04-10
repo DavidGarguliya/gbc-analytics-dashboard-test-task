@@ -2,6 +2,7 @@ import { readRequiredEnv } from "@/lib/env";
 import {
   buildOperationalOrderSummary,
   formatOperationalOrderLabel,
+  formatOrderMethod,
   splitOperationalItems,
 } from "@/lib/order-operational";
 
@@ -83,7 +84,8 @@ export function formatHighValueOrderAlert(order: TelegramHighValueOrder): string
     `📞 Телефон: ${summary.phone ?? "Не указан"}`,
     `✉️ Email: ${summary.email ?? "Не указан"}`,
     `🏙 Город: ${summary.city ?? "Не указан"}`,
-    `📣 Источник: ${summary.sourceLabel}`,
+    `📣 Источник: ${summary.marketingSource || "Не указан"}`,
+    `🛒 Способ оформления: ${summary.orderMethod ? formatOrderMethod(summary.orderMethod) : "Не указан"}`,
     "🧾 Состав:",
     ...itemLines,
     ...(additionalItemsLine ? [additionalItemsLine] : []),

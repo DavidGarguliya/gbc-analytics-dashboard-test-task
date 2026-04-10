@@ -13,6 +13,9 @@ const sampleOrder: TelegramHighValueOrder = {
   number: "MOCK-0050",
   phone: "+77090123450",
   raw_json: {
+    customFields: {
+      utm_source: "instagram",
+    },
     delivery: {
       address: {
         city: "Шымкент",
@@ -35,9 +38,10 @@ const sampleOrder: TelegramHighValueOrder = {
         quantity: 1,
       },
     ],
+    orderMethod: "shopping-cart",
   },
   retailcrm_id: 90,
-  source: "shopping-cart",
+  source: "legacy-mixed-value",
   status: "offer-analog",
   total_sum: 81000,
 };
@@ -58,7 +62,8 @@ describe("formatHighValueOrderAlert", () => {
         "📞 Телефон: +77090123450",
         "✉️ Email: feruza.yusupova@example.com",
         "🏙 Город: Шымкент",
-        "📣 Источник: Через корзину",
+        "📣 Источник: instagram",
+        "🛒 Способ оформления: Через корзину",
         "🧾 Состав:",
         "• Топ Soft ×1",
         "• Комплект Balance ×1",
@@ -109,7 +114,8 @@ describe("sendHighValueOrderAlert", () => {
             "📞 Телефон: +77090123450",
             "✉️ Email: feruza.yusupova@example.com",
             "🏙 Город: Шымкент",
-            "📣 Источник: Через корзину",
+            "📣 Источник: instagram",
+            "🛒 Способ оформления: Через корзину",
             "🧾 Состав:",
             "• Топ Soft ×1",
             "• Комплект Balance ×1",

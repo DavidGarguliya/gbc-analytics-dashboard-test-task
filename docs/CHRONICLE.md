@@ -1,4 +1,23 @@
 # CHRONICLE
+## 2026-04-11 — Analytics source/model refinement
+- Branch: `task/analytics-refinement`
+- Scope: completed the read-model refinement that separates marketing attribution from operational order method in the dashboard and Telegram surfaces without changing the Supabase schema.
+- Implemented scope:
+  - updated [order-operational.ts](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/lib/order-operational.ts) so `marketingSource` is derived only from `raw_json.customFields.utm_source`, while `orderMethod` is derived only from `raw_json.orderMethod`
+  - updated [dashboard.ts](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/lib/dashboard.ts) and [dashboard-view.tsx](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/app/dashboard-view.tsx) so the overview uses separate `Источник заказа` and `Способ оформления` blocks, the table uses marketing source, and order details show both values independently
+  - updated [telegram.ts](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/lib/telegram.ts) so alert messages emit separate `Источник` and `Способ оформления` lines
+  - refreshed [dashboard.test.ts](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/lib/dashboard.test.ts), [order-operational.test.ts](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/lib/order-operational.test.ts), and [telegram.test.ts](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/lib/telegram.test.ts) to lock the new projection contract into tests
+  - synchronized [docs/SPEC.md](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/docs/SPEC.md), [docs/ARCHITECTURE.md](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/docs/ARCHITECTURE.md), [docs/DATA_MODEL.md](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/docs/DATA_MODEL.md), [docs/STATE.md](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/docs/STATE.md), and [README.md](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/README.md) with the refined read-model semantics
+- Verification:
+  - `npm run docs:golden`
+  - `npm run lint`
+  - `npm run typecheck`
+  - `npm test`
+  - `npm run build`
+- Remaining risks / next:
+  - the persisted `orders.source` column remains historically mixed, so future analytics code must keep using the raw-json-derived projection instead of reusing that field directly
+  - the promoted Vercel alias still reflects the last merged slice until `task/analytics-refinement` is merged and redeployed
+
 ## 2026-04-11 — Orders Overview Final Polish
 - Branch: `task/ui-final-polish`
 - Scope: completed the final UI polish pass for the dashboard overview screen, including pagination, optimized column utility, and refined chart aesthetics.

@@ -66,7 +66,8 @@ Responsibility:
 - preserve raw payload for traceability,
 - store synchronization state,
 - store alert dedupe state,
-- serve as the only dashboard read source.
+- serve as the only dashboard read source,
+- derive read-model-only fields such as `marketingSource` and `orderMethod` from persisted `raw_json` without expanding the storage schema.
 
 ### 2.5 Dashboard
 Responsibility:
@@ -135,11 +136,14 @@ Boundary:
 2. Render summary metrics.
 3. Render time-series chart.
 4. Render analytical breakdowns and the orders table.
-5. When a row is selected, derive the operational detail panel from the stored order row plus persisted `raw_json`.
+5. When a row is selected, derive the operational detail panel from the stored order row plus persisted `raw_json`, including:
+   - `marketingSource` from `raw_json.customFields.utm_source`
+   - `orderMethod` from `raw_json.orderMethod`
+   - city and item composition from the persisted payload only.
 
 ### 4.4 Alert flow
 1. Find orders above threshold that have not been alerted.
-2. Build the operational alert message from the same persisted order summary rules used by the detail panel.
+2. Build the operational alert message from the same persisted order summary rules used by the detail panel, keeping marketing source and order method as separate values.
 3. Send Telegram messages.
 4. Persist sent alerts in `alerts_sent`.
 5. Exit with success/failure logs.

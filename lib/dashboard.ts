@@ -1,11 +1,11 @@
 import {
   buildOperationalOrderSummary,
+  formatOrderMethod,
   type OperationalOrderItem,
 } from "@/lib/order-operational";
 
 export const DASHBOARD_LARGE_ORDER_THRESHOLD = 50_000;
 export const DASHBOARD_LATEST_ORDERS_LIMIT = 8;
-export const DASHBOARD_SOURCE_COLUMN_LABEL = "Источник / метод";
 
 export const DASHBOARD_PERIOD_OPTIONS = [
   { key: "7d", label: "7 дней" },
@@ -73,10 +73,11 @@ export type DashboardOrder = {
   isLargeOrder: boolean;
   itemCount: number;
   items: DashboardOrderItem[];
+  marketingSource: string | null;
   number: string | null;
+  orderMethod: string | null;
   phone: string | null;
   retailcrmId: number;
-  sourceLabel: string;
   status: string | null;
   syncedAt: string;
   totalSum: number;
@@ -104,6 +105,7 @@ export type DashboardTrendPoint = {
 };
 
 export type DashboardBreakdownRow = {
+  averageOrderValue: number | null;
   count: number;
   key: string;
   label: string;
@@ -123,13 +125,13 @@ export type DashboardResolvedRange = {
 export type DashboardUiFilters = {
   customEnd: string;
   customStart: string;
+  marketingSource: string;
   onlyLargeOrders: boolean;
   periodKey: DashboardPeriodKey;
   search: string;
   showComparison: boolean;
   sortDirection: DashboardSortDirection;
   sortKey: DashboardSortKey;
-  source: string;
   status: string;
 };
 
@@ -146,20 +148,21 @@ export type DashboardAnalytics = {
   filteredOrders: DashboardOrder[];
   freshness: DashboardFreshness;
   hasActiveFilters: boolean;
+  marketingSourceBreakdown: DashboardBreakdownRow[];
+  orderMethodBreakdown: DashboardBreakdownRow[];
   previousSummary: DashboardSummary | null;
   range: DashboardResolvedRange;
-  sourceBreakdown: DashboardBreakdownRow[];
   statusBreakdown: DashboardBreakdownRow[];
   trendSeries: DashboardTrendPoint[];
 };
 
 export type DashboardReadModel = {
-  averageOrderValue: DashboardMoneyValue;
-  availableSources: string[];
+  availableMarketingSources: string[];
   availableStatuses: string[];
+  averageOrderValue: DashboardMoneyValue;
   currencyCode: string | null;
-  lastSyncedAt: string | null;
   largeOrderThreshold: number;
+  lastSyncedAt: string | null;
   latestOrders: DashboardOrder[];
   orders: DashboardOrder[];
   ordersByDay: Array<{
@@ -167,7 +170,6 @@ export type DashboardReadModel = {
     date: string;
   }>;
   revenueMetric: DashboardMoneyValue;
-  sourceColumnLabel: typeof DASHBOARD_SOURCE_COLUMN_LABEL;
   totalOrders: number;
 };
 
@@ -348,6 +350,7 @@ function buildStatusBreakdown(orders: readonly DashboardOrder[]): DashboardBreak
       return left[0].localeCompare(right[0], "ru");
     })
     .map(([label, count]) => ({
+      averageOrderValue: null,
       count,
       key: label,
       label,
@@ -356,7 +359,7 @@ function buildStatusBreakdown(orders: readonly DashboardOrder[]): DashboardBreak
     }));
 }
 
-function buildSourceBreakdown(input: {
+function buildMarketingSourceBreakdown(input: {
   currencyHint: string | null;
   orders: readonly DashboardOrder[];
 }): DashboardBreakdownRow[] {
@@ -371,14 +374,15 @@ function buildSourceBreakdown(input: {
   const buckets = new Map<string, { count: number; revenue: number }>();
 
   for (const order of orders) {
-    const existingBucket = buckets.get(order.sourceLabel) ?? {
+    const label = order.marketingSource || "Не указан";
+    const existingBucket = buckets.get(label) ?? {
       count: 0,
       revenue: 0,
     };
 
     existingBucket.count += 1;
     existingBucket.revenue += order.totalSum;
-    buckets.set(order.sourceLabel, existingBucket);
+    buckets.set(label, existingBucket);
   }
 
   return [...buckets.entries()]
@@ -392,6 +396,60 @@ function buildSourceBreakdown(input: {
       return sortDimensionLabels(left[0], right[0]);
     })
     .map(([label, bucket]) => ({
+      averageOrderValue:
+        allowRevenue && singleCurrency !== null && bucket.count > 0
+          ? roundValue(bucket.revenue / bucket.count)
+          : null,
+      count: bucket.count,
+      key: label,
+      label,
+      revenueAmount:
+        allowRevenue && singleCurrency !== null ? roundValue(bucket.revenue) : null,
+      share: roundValue(bucket.count / orders.length),
+    }));
+}
+
+function buildOrderMethodBreakdown(input: {
+  currencyHint: string | null;
+  orders: readonly DashboardOrder[];
+}): DashboardBreakdownRow[] {
+  const { currencyHint, orders } = input;
+
+  if (orders.length === 0) {
+    return [];
+  }
+
+  const singleCurrency = readSingleCurrency(orders) ?? currencyHint;
+  const allowRevenue = readSingleCurrency(orders) !== null || orders.length === 0;
+  const buckets = new Map<string, { count: number; revenue: number }>();
+
+  for (const order of orders) {
+    const label = order.orderMethod ? formatOrderMethod(order.orderMethod) : "Не указан";
+    const existingBucket = buckets.get(label) ?? {
+      count: 0,
+      revenue: 0,
+    };
+
+    existingBucket.count += 1;
+    existingBucket.revenue += order.totalSum;
+    buckets.set(label, existingBucket);
+  }
+
+  return [...buckets.entries()]
+    .sort((left, right) => {
+      const countDiff = right[1].count - left[1].count;
+
+      if (countDiff !== 0) {
+        return countDiff;
+      }
+
+      return sortDimensionLabels(left[0], right[0]);
+    })
+    .map(([label, bucket]) => ({
+      averageOrderValue:
+        allowRevenue && singleCurrency !== null && bucket.count > 0
+          ? roundValue(bucket.revenue / bucket.count)
+          : null,
       count: bucket.count,
       key: label,
       label,
@@ -405,7 +463,7 @@ function buildAmountBreakdown(orders: readonly DashboardOrder[]): DashboardBreak
   const totalOrders = orders.length;
 
   return DASHBOARD_AMOUNT_BUCKETS.map((bucket) => {
-    const count = orders.filter((order) => {
+    const bucketOrders = orders.filter((order) => {
       if (order.totalSum < bucket.minInclusive) {
         return false;
       }
@@ -415,13 +473,20 @@ function buildAmountBreakdown(orders: readonly DashboardOrder[]): DashboardBreak
       }
 
       return true;
-    }).length;
+    });
+
+    const count = bucketOrders.length;
+    let revenue = 0;
+    for (const order of bucketOrders) {
+      revenue += order.totalSum;
+    }
 
     return {
+      averageOrderValue: count > 0 ? roundValue(revenue / count) : null,
       count,
       key: bucket.key,
       label: bucket.label,
-      revenueAmount: null,
+      revenueAmount: count > 0 ? roundValue(revenue) : null,
       share: totalOrders === 0 ? 0 : roundValue(count / totalOrders),
     };
   });
@@ -662,14 +727,14 @@ function sortDashboardOrders(input: {
 
 function filterDashboardOrders(input: {
   end: string | null;
+  marketingSource: string;
   onlyLargeOrders: boolean;
   orders: readonly DashboardOrder[];
   search: string;
-  source: string;
   start: string | null;
   status: string;
 }): DashboardOrder[] {
-  const { end, onlyLargeOrders, orders, search, source, start, status } = input;
+  const { end, marketingSource, onlyLargeOrders, orders, search, start, status } = input;
   const normalizedSearch = search.trim().toLocaleLowerCase("ru");
 
   return orders.filter((order) => {
@@ -687,7 +752,7 @@ function filterDashboardOrders(input: {
       return false;
     }
 
-    if (source !== "all" && order.sourceLabel !== source) {
+    if (marketingSource !== "all" && (order.marketingSource || "Не указан") !== marketingSource) {
       return false;
     }
 
@@ -808,10 +873,11 @@ export function buildDashboardReadModel(input: {
           operationalSummary.totalSum > DASHBOARD_LARGE_ORDER_THRESHOLD,
         itemCount: operationalSummary.itemCount,
         items: operationalSummary.items,
+        marketingSource: operationalSummary.marketingSource,
         number: operationalSummary.number,
+        orderMethod: operationalSummary.orderMethod,
         phone: operationalSummary.phone,
         retailcrmId: operationalSummary.retailcrmId,
-        sourceLabel: operationalSummary.sourceLabel,
         status: operationalSummary.status,
         syncedAt: order.synced_at,
         totalSum: operationalSummary.totalSum,
@@ -825,22 +891,24 @@ export function buildDashboardReadModel(input: {
   });
   const ordersByDay = buildOrdersByDay(normalizedOrders);
 
+  const rawSources = new Set(
+    normalizedOrders.map((order) => order.marketingSource || "Не указан")
+  );
+  rawSources.delete("Не указан");
+
   return {
-    averageOrderValue: overallSummary.averageOrderValue,
-    availableSources: [...new Set(normalizedOrders.map((order) => order.sourceLabel))].sort(
-      sortDimensionLabels,
-    ),
+    availableMarketingSources: [...rawSources].sort(sortDimensionLabels),
     availableStatuses: [
       ...new Set(normalizedOrders.map((order) => order.status?.trim() || "Не указан")),
     ].sort(sortDimensionLabels),
+    averageOrderValue: overallSummary.averageOrderValue,
     currencyCode,
-    lastSyncedAt: input.lastSyncedAt,
     largeOrderThreshold: DASHBOARD_LARGE_ORDER_THRESHOLD,
+    lastSyncedAt: input.lastSyncedAt,
     latestOrders: buildLatestOrders(normalizedOrders),
     orders: normalizedOrders,
     ordersByDay,
     revenueMetric: overallSummary.revenue,
-    sourceColumnLabel: DASHBOARD_SOURCE_COLUMN_LABEL,
     totalOrders: normalizedOrders.length,
   };
 }
@@ -859,10 +927,10 @@ export function buildDashboardAnalytics(input: {
   });
   const currentOrders = filterDashboardOrders({
     end: range.end,
+    marketingSource: filters.marketingSource,
     onlyLargeOrders: filters.onlyLargeOrders,
     orders: dashboard.orders,
     search: filters.search,
-    source: filters.source,
     start: range.start,
     status: filters.status,
   });
@@ -870,10 +938,10 @@ export function buildDashboardAnalytics(input: {
     filters.showComparison && range.comparisonStart !== null && range.comparisonEnd !== null
       ? filterDashboardOrders({
           end: range.comparisonEnd,
+          marketingSource: filters.marketingSource,
           onlyLargeOrders: filters.onlyLargeOrders,
           orders: dashboard.orders,
           search: filters.search,
-          source: filters.source,
           start: range.comparisonStart,
           status: filters.status,
         })
@@ -903,10 +971,18 @@ export function buildDashboardAnalytics(input: {
       filters.periodKey !== "all" ||
       filters.showComparison ||
       filters.status !== "all" ||
-      filters.source !== "all" ||
+      filters.marketingSource !== "all" ||
       filters.onlyLargeOrders ||
       filters.search.trim().length > 0 ||
       (usingCustomPeriod && (filters.customStart.length > 0 || filters.customEnd.length > 0)),
+    marketingSourceBreakdown: buildMarketingSourceBreakdown({
+      currencyHint: dashboard.currencyCode,
+      orders: currentOrders,
+    }),
+    orderMethodBreakdown: buildOrderMethodBreakdown({
+      currencyHint: dashboard.currencyCode,
+      orders: currentOrders,
+    }),
     previousSummary:
       filters.showComparison && range.comparisonStart !== null && range.comparisonEnd !== null
         ? buildSummary({
@@ -915,10 +991,6 @@ export function buildDashboardAnalytics(input: {
           })
         : null,
     range,
-    sourceBreakdown: buildSourceBreakdown({
-      currencyHint: dashboard.currencyCode,
-      orders: currentOrders,
-    }),
     statusBreakdown: buildStatusBreakdown(currentOrders),
     trendSeries: buildTrendSeries({
       currencyHint: dashboard.currencyCode,

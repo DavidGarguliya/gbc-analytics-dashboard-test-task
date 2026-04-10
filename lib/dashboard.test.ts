@@ -25,6 +25,7 @@ const sampleOrders: DashboardOrderRow[] = [
           city: "Алматы",
         },
       },
+      orderMethod: "shopping-cart",
       items: [
         {
           initialPrice: 55000,
@@ -47,11 +48,15 @@ const sampleOrders: DashboardOrderRow[] = [
     source: "shopping-cart",
     synced_at: "2026-04-10T10:00:00+00:00",
     raw_json: {
+      customFields: {
+        utm_source: "google",
+      },
       delivery: {
         address: {
           city: "Шымкент",
         },
       },
+      orderMethod: "shopping-cart",
       items: [
         {
           initialPrice: 31000,
@@ -79,6 +84,9 @@ const sampleOrders: DashboardOrderRow[] = [
     source: "instagram",
     synced_at: "2026-04-10T10:00:00+00:00",
     raw_json: {
+      customFields: {
+        utm_source: "instagram",
+      },
       delivery: {
         address: {
           city: "Астана",
@@ -125,8 +133,9 @@ describe("buildDashboardReadModel", () => {
       }),
     ).toEqual(
       expect.objectContaining({
-      availableSources: ["instagram", "Не указан", "Через корзину"],
-      availableStatuses: ["new", "Предложить замену"],
+      availableMarketingSources: ["google", "instagram"],
+      availableStatuses: ["Предложить замену", "new"],
+      averageOrderValue: { amount: 58750, currencyCode: "KZT" },
       currencyCode: "KZT",
       lastSyncedAt: "2026-04-10T12:00:00.000Z",
       largeOrderThreshold: 50000,
@@ -137,7 +146,8 @@ describe("buildDashboardReadModel", () => {
           unitsCount: 2,
           customerName: "Феруза Юсупова",
           city: "Шымкент",
-          sourceLabel: "Через корзину",
+          marketingSource: "google",
+          orderMethod: "shopping-cart",
           isLargeOrder: true,
         }),
         expect.objectContaining({
@@ -146,7 +156,8 @@ describe("buildDashboardReadModel", () => {
           unitsCount: 1,
           customerName: "Карина Осипова",
           city: "Астана",
-          sourceLabel: "instagram",
+          marketingSource: "instagram",
+          orderMethod: null,
           isLargeOrder: false,
         }),
         expect.objectContaining({
@@ -154,7 +165,8 @@ describe("buildDashboardReadModel", () => {
           itemCount: 0,
           unitsCount: 0,
           city: "Караганда",
-          sourceLabel: "Не указан",
+          marketingSource: null,
+          orderMethod: null,
           isLargeOrder: false,
         }),
         expect.objectContaining({
@@ -163,11 +175,11 @@ describe("buildDashboardReadModel", () => {
           unitsCount: 2,
           customerName: "Алина Ким",
           city: "Алматы",
-          sourceLabel: "Через корзину",
+          marketingSource: null,
+          orderMethod: "shopping-cart",
           isLargeOrder: true,
         }),
       ],
-      sourceColumnLabel: "Источник / метод",
       }),
     );
   });
@@ -192,7 +204,7 @@ describe("buildDashboardAnalytics", () => {
           showComparison: false,
           sortDirection: "desc",
           sortKey: "createdAt",
-          source: "all",
+          marketingSource: "all",
           status: "all",
         },
         renderedAt: "2026-04-10T12:05:00.000Z",
@@ -200,20 +212,23 @@ describe("buildDashboardAnalytics", () => {
     ).toEqual({
       amountBreakdown: [
         {
+          averageOrderValue: 12000,
           count: 1,
           key: "under-25000",
           label: "до 25 000",
-          revenueAmount: null,
+          revenueAmount: 12000,
           share: 0.25,
         },
         {
+          averageOrderValue: 37000,
           count: 1,
           key: "25000-50000",
           label: "25 000 – 50 000",
-          revenueAmount: null,
+          revenueAmount: 37000,
           share: 0.25,
         },
         {
+          averageOrderValue: null,
           count: 0,
           key: "50000-75000",
           label: "50 000 – 75 000",
@@ -221,10 +236,11 @@ describe("buildDashboardAnalytics", () => {
           share: 0,
         },
         {
+          averageOrderValue: 93000,
           count: 2,
           key: "75000-plus",
           label: "75 000+",
-          revenueAmount: null,
+          revenueAmount: 186000,
           share: 0.5,
         },
       ],
@@ -263,8 +279,35 @@ describe("buildDashboardAnalytics", () => {
         start: "2026-02-17",
         totalDays: 3,
       },
-      sourceBreakdown: [
+      marketingSourceBreakdown: [
         {
+          averageOrderValue: 58500,
+          count: 2,
+          key: "Не указан",
+          label: "Не указан",
+          revenueAmount: 117000,
+          share: 0.5,
+        },
+        {
+          averageOrderValue: 81000,
+          count: 1,
+          key: "google",
+          label: "google",
+          revenueAmount: 81000,
+          share: 0.25,
+        },
+        {
+          averageOrderValue: 37000,
+          count: 1,
+          key: "instagram",
+          label: "instagram",
+          revenueAmount: 37000,
+          share: 0.25,
+        },
+      ],
+      orderMethodBreakdown: [
+        {
+          averageOrderValue: 93000,
           count: 2,
           key: "Через корзину",
           label: "Через корзину",
@@ -272,22 +315,17 @@ describe("buildDashboardAnalytics", () => {
           share: 0.5,
         },
         {
-          count: 1,
-          key: "instagram",
-          label: "instagram",
-          revenueAmount: 37000,
-          share: 0.25,
-        },
-        {
-          count: 1,
+          averageOrderValue: 24500,
+          count: 2,
           key: "Не указан",
           label: "Не указан",
-          revenueAmount: 12000,
-          share: 0.25,
+          revenueAmount: 49000,
+          share: 0.5,
         },
       ],
       statusBreakdown: [
         {
+          averageOrderValue: null,
           count: 3,
           key: "Предложить замену",
           label: "Предложить замену",
@@ -295,6 +333,7 @@ describe("buildDashboardAnalytics", () => {
           share: 0.75,
         },
         {
+          averageOrderValue: null,
           count: 1,
           key: "new",
           label: "new",
@@ -325,7 +364,7 @@ describe("buildDashboardAnalytics", () => {
     });
   });
 
-  it("applies search, source, and large-order filters before sorting the table", () => {
+  it("applies search and large-order filters before sorting the table", () => {
     const dashboard = buildDashboardReadModel({
       lastSyncedAt: "2026-04-10T12:00:00.000Z",
       orders: sampleOrders,
@@ -342,7 +381,7 @@ describe("buildDashboardAnalytics", () => {
         showComparison: false,
         sortDirection: "asc",
         sortKey: "totalSum",
-        source: "Через корзину",
+        marketingSource: "all",
         status: "all",
       },
       renderedAt: "2026-04-10T12:05:00.000Z",
@@ -361,8 +400,46 @@ describe("buildDashboardAnalytics", () => {
         currencyCode: "KZT",
       },
     });
-    expect(analytics.filteredOrders.map((order) => order.retailcrmId)).toEqual([90, 88]);
     expect(analytics.hasActiveFilters).toBe(true);
+  });
+
+  it("filters by marketing source without falling back to the mixed persisted source field", () => {
+    const dashboard = buildDashboardReadModel({
+      lastSyncedAt: "2026-04-10T12:00:00.000Z",
+      orders: sampleOrders,
+    });
+
+    const analytics = buildDashboardAnalytics({
+      dashboard,
+      filters: {
+        customEnd: "",
+        customStart: "",
+        marketingSource: "instagram",
+        onlyLargeOrders: false,
+        periodKey: "all",
+        search: "",
+        showComparison: false,
+        sortDirection: "desc",
+        sortKey: "createdAt",
+        status: "all",
+      },
+      renderedAt: "2026-04-10T12:05:00.000Z",
+    });
+
+    expect(analytics.filteredOrders.map((order) => order.retailcrmId)).toEqual([89]);
+    expect(analytics.currentSummary).toEqual({
+      averageOrderValue: {
+        amount: 37000,
+        currencyCode: "KZT",
+      },
+      largeOrdersCount: 0,
+      largeOrdersRevenueShare: 0,
+      orderCount: 1,
+      revenue: {
+        amount: 37000,
+        currencyCode: "KZT",
+      },
+    });
   });
 
   it("keeps revenue metrics honest when the filtered slice contains mixed currencies", () => {
@@ -388,7 +465,7 @@ describe("buildDashboardAnalytics", () => {
         showComparison: false,
         sortDirection: "desc",
         sortKey: "createdAt",
-        source: "all",
+        marketingSource: "all",
         status: "all",
       },
       renderedAt: "2026-04-10T12:05:00.000Z",
@@ -404,7 +481,10 @@ describe("buildDashboardAnalytics", () => {
     });
     expect(analytics.trendSeries.every((point) => point.revenueAmount === null)).toBe(true);
     expect(
-      analytics.sourceBreakdown.every((row) => row.revenueAmount === null),
+      analytics.marketingSourceBreakdown.every((row) => row.revenueAmount === null),
+    ).toBe(true);
+    expect(
+      analytics.orderMethodBreakdown.every((row) => row.revenueAmount === null),
     ).toBe(true);
   });
 });

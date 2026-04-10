@@ -55,7 +55,8 @@ System behavior:
   - customer,
   - phone,
   - city,
-  - source / method label,
+  - marketing source,
+  - order method,
   - item composition,
   - positions count,
   - units count,
@@ -66,6 +67,9 @@ Constraints:
 - dashboard data source must be Supabase only,
 - UI should be clean, modern, and product-grade rather than hero-style or admin-template-style,
 - reviewer must be able to understand it quickly.
+- marketing attribution must be derived in the read/projection layer from persisted `raw_json.customFields.utm_source`,
+- operational order method must be derived in the read/projection layer from persisted `raw_json.orderMethod`,
+- no schema migration is required for that refinement as long as the dependency on persisted `raw_json` remains explicit.
 - if city, item composition, or units count are not stored as dedicated columns, they may be derived from the persisted `raw_json` payload as long as the dependency remains explicit and honest.
 
 Expected outcome:
@@ -82,6 +86,7 @@ Operational note:
 - the current live RetailCRM account now returns the imported demo orders with `currency = KZT`,
 - later alert logic must therefore compare the numeric amount field as stored by RetailCRM and include the stored currency in the message,
 - the alert message should use the same operational field set as the dashboard order details where those values are available from Supabase plus persisted `raw_json`,
+- the alert message should expose marketing source and order method as separate lines instead of a mixed source/method label,
 - the alert message may additionally include `email` directly under `phone` when that value is present in the persisted `raw_json` and remains operationally useful,
 - if city, item composition, or units count are not stored as dedicated columns, they may be derived from persisted `raw_json` without introducing a second upstream read path,
 - no implicit currency conversion is part of this assignment unless a later decision introduces it explicitly.
