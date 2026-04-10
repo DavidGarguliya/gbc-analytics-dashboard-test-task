@@ -281,6 +281,36 @@
   - the accepted Telegram screenshot remains an external submission artifact and is not stored in this repository
   - the import stage remains a seed-import stage; it reports duplicate-safe rejection rather than pretending repeated uploads succeeded
 
+## 2026-04-10 — Post-handoff dashboard and README polish
+- Branch: `task/final-hardening`
+- Scope: corrected the reviewer-facing UX issues discovered after the initial M8 closeout without changing any business logic, data contracts, or integration boundaries.
+- Implemented scope:
+  - localized the dashboard UI to Russian
+  - replaced the visually flat day-by-day bar wall with a weekly summary built from the same Supabase read model, plus a cadence explanation for the current one-order-per-day data set
+  - updated the dashboard typography and layout for a more informative, less repetitive presentation
+  - rewrote [README.md](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/README.md) in Russian while preserving setup, deployment, prompts, blockers, resolutions, and handoff evidence sections
+- Key artifacts:
+  - [app/layout.tsx](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/app/layout.tsx)
+  - [app/globals.css](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/app/globals.css)
+  - [app/page.tsx](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/app/page.tsx)
+  - [app/page.module.css](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/app/page.module.css)
+  - [lib/dashboard.ts](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/lib/dashboard.ts)
+  - [lib/dashboard.test.ts](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/lib/dashboard.test.ts)
+  - [README.md](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/README.md)
+  - [docs/STATE.md](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/docs/STATE.md)
+  - [docs/CHRONICLE.md](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/docs/CHRONICLE.md)
+- Verification:
+  - `npm run docs:golden`
+  - `npm run lint`
+  - `npm run typecheck`
+  - `npm test`
+  - `npm run build`
+  - `npm run start -- --hostname 127.0.0.1 --port 4010`
+  - local HTML verification confirmed Russian metadata/UI strings and the new weekly rhythm panel rendered from Supabase-backed data
+- Remaining risks / next:
+  - production still needs a fresh Vercel deployment to publish this reviewer-facing UI update
+  - the accepted Telegram screenshot remains an external submission artifact
+
 ## 2026-04-09 — M3.1 live contract reconciliation
 - Branch: `task/m3-contract-reconciliation` from `task/m3-live-checkpoint`
 - Scope: reconciled the planned import contract with the observed live RetailCRM behavior and chose the smallest safe adaptation before any sync work.

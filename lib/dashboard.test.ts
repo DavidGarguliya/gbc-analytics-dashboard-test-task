@@ -58,7 +58,15 @@ describe("buildDashboardReadModel", () => {
       averageOrderValue: {
         amount: 58750,
         currencyCode: "KZT",
-        label: "Average order value",
+        label: "Средний чек",
+      },
+      cadenceSummary: {
+        activeDays: 3,
+        averageOrdersPerActiveDay: 1.33,
+        firstOrderDate: "2026-02-17",
+        lastOrderDate: "2026-02-19",
+        peakDayCount: 2,
+        steadyDailyCount: null,
       },
       latestOrders: [
         expect.objectContaining({
@@ -71,7 +79,7 @@ describe("buildDashboardReadModel", () => {
         }),
         expect.objectContaining({
           retailcrmId: 87,
-          sourceLabel: "Unspecified",
+          sourceLabel: "Не указан",
         }),
         expect.objectContaining({
           retailcrmId: 88,
@@ -83,12 +91,20 @@ describe("buildDashboardReadModel", () => {
         { count: 1, date: "2026-02-18" },
         { count: 1, date: "2026-02-19" },
       ],
+      ordersByWeek: [
+        {
+          count: 4,
+          revenueAmount: 235000,
+          weekEnd: "2026-02-22",
+          weekStart: "2026-02-16",
+        },
+      ],
       revenueMetric: {
         amount: 235000,
         currencyCode: "KZT",
-        label: "Total revenue",
+        label: "Выручка",
       },
-      sourceColumnLabel: "Source / Method",
+      sourceColumnLabel: "Источник / способ",
       totalOrders: 4,
     });
   });
@@ -107,12 +123,20 @@ describe("buildDashboardReadModel", () => {
         averageOrderValue: {
           amount: null,
           currencyCode: null,
-          label: "Average order value",
+          label: "Средний чек",
         },
+        ordersByWeek: [
+          {
+            count: 2,
+            revenueAmount: null,
+            weekEnd: "2026-02-22",
+            weekStart: "2026-02-16",
+          },
+        ],
         revenueMetric: {
           amount: null,
           currencyCode: null,
-          label: "Total revenue",
+          label: "Выручка",
         },
       }),
     );

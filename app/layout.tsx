@@ -1,16 +1,16 @@
 import type { Metadata } from "next";
-import { Space_Grotesk } from "next/font/google";
+import { Rubik } from "next/font/google";
 
 import "./globals.css";
 
-const spaceGrotesk = Space_Grotesk({
-  variable: "--font-space-grotesk",
-  subsets: ["latin"],
+const rubik = Rubik({
+  subsets: ["cyrillic", "latin"],
+  variable: "--font-rubik",
 });
 
 export const metadata: Metadata = {
-  title: "RetailCRM Analytics Dashboard",
-  description: "Production-shaped scaffold for the RetailCRM analytics test assignment.",
+  title: "Дашборд заказов RetailCRM",
+  description: "Дашборд заказов на основе витрины данных в Supabase для тестового задания.",
 };
 
 export default function RootLayout({
@@ -19,7 +19,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={spaceGrotesk.variable}>
+    <html lang="ru" className={rubik.variable}>
       <body>{children}</body>
     </html>
   );
