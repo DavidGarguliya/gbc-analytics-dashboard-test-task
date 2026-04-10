@@ -1,7 +1,7 @@
 # STATE
 
 ## Current state
-Status: M2 is closed. M3 is sufficiently validated for the test assignment after M3.1 live contract reconciliation. M4 is closed and live-verified. M5 dashboard read model and UI are implemented against Supabase as the only read source. After a post-M5 upstream currency realignment, the live RetailCRM contract of record now returns `KZT`, Supabase has been resynced, and the dashboard renders the current synced data set in `KZT` without any client-side relabeling or currency conversion. M6 Telegram alert foundation is closed and live-verified against that KZT contract, with explicit dedupe in `alerts_sent`. M7 end-to-end pipeline runner is closed and live-verified as a one-command local chain over the existing foundations. M8 deployment and handoff is materially complete: the dashboard is deployed and reachable on Vercel at `https://gbc-analytics-dashboard-test-task.vercel.app`, the repository is published at `https://github.com/DavidGarguliya/gbc-analytics-dashboard-test-task`, and the deployed page renders the expected Supabase-backed metrics. The only remaining external artifact is the accepted Telegram screenshot, and the only remaining deployment nicety is converting the current manual Vercel project into a Git-backed Vercel integration once Vercel can see the repo through its GitHub integration.
+Status: M2 is closed. M3 is sufficiently validated for the test assignment after M3.1 live contract reconciliation. M4 is closed and live-verified. M5 dashboard read model and UI are implemented against Supabase as the only read source. After a post-M5 upstream currency realignment, the live RetailCRM contract of record now returns `KZT`, Supabase has been resynced, and the dashboard renders the current synced data set in `KZT` without any client-side relabeling or currency conversion. M6 Telegram alert foundation is closed and live-verified against that KZT contract, with explicit dedupe in `alerts_sent`. M7 end-to-end pipeline runner is closed and live-verified as a one-command local chain over the existing foundations. M8 deployment and handoff is complete: the dashboard is deployed and reachable on Vercel at `https://gbc-analytics-dashboard-test-task.vercel.app`, the repository is published at `https://github.com/DavidGarguliya/gbc-analytics-dashboard-test-task`, the deployed page renders the expected Supabase-backed metrics, and the Vercel project is now linked to that GitHub repository with `main` as the production branch. The only remaining external artifact is the accepted Telegram screenshot.
 
 ## Active branch
 Checkpoint-review branch: `task/final-hardening`
@@ -38,22 +38,19 @@ Canonical local integration branch: `feat/next-stage-baseline`
 - M8 Vercel deployment completed and live-verified for the dashboard at `https://gbc-analytics-dashboard-test-task.vercel.app`
 
 ## In progress
-- Final handoff evidence sync for M8
-- README and deployment docs are aligned to the live Vercel runtime behavior and submission checklist
+- Final submission packaging only
 
 ## Next recommended step
-Finish the remaining external submission evidence and close M8
+Attach the remaining external evidence and submit M8
 
 Specific next action:
 - attach the accepted Telegram screenshot artifact to the submission package
-- if required, finish the Vercel GitHub App access step in the Vercel dashboard so the current project can be converted from CLI-deployed to git-backed
 - keep production/deployment Telegram configuration explicit so the pipeline does not depend on ad hoc local chat-id discovery
 - preserve the stored Supabase `KZT` contract for any later deployment or handoff work
 - avoid reinterpreting currency semantics or introducing non-KZT fallback behavior
 
 ## Known blockers
 - The accepted Telegram screenshot exists as an external submission artifact and is not stored in this repository
-- `vercel git connect` still fails against the published public repo, which indicates the Vercel GitHub integration does not yet have usable repository access despite the repo now existing and being public
 
 ## Risks to watch
 - overengineering during import adapter setup,
@@ -65,7 +62,6 @@ Specific next action:
 - deployment and operator environments still need a configured `TELEGRAM_CHAT_ID` instead of relying on chat-id discovery during ad hoc live verification,
 - the alert runner currently uses send-then-mark semantics; if a process exits after a successful Telegram send but before the dedupe write, a rerun could resend that specific order.
 - the Vercel project currently contains optional browser-safe env placeholders that are not used by the current server-rendered dashboard, so future client-side Supabase usage must be introduced deliberately rather than assumed from deployment state
-- the current Vercel production deployment is valid and reachable, but until the Git integration is connected, future production updates still depend on explicit CLI deploys rather than automatic deploy hooks
 
 ## Definition of health at this stage
 Healthy if:
@@ -77,7 +73,8 @@ Healthy if:
 - the dashboard renders those Supabase rows with metrics matching the current synced data set: 50 orders, `2,451,000 KZT` total revenue, `49,020 KZT` average order value,
 - the alert path has been live-verified to send all current qualifying `KZT` orders once and to send zero duplicates on immediate rerun,
 - the pipeline runner has been live-verified through both `npm run pipeline` and the macOS launcher, with an honest rerun summary of import `uploaded=0`, sync `50/50`, dashboard `50` orders, and alerts `0/0`,
-- the Vercel dashboard URL returns HTTP `200` and renders the expected Supabase-backed values: `2,451,000 KZT` total revenue, `49,020 KZT` average order value, and recent orders such as `MOCK-0050`.
+- the Vercel dashboard URL returns HTTP `200` and renders the expected Supabase-backed values: `2,451,000 KZT` total revenue, `49,020 KZT` average order value, and recent orders such as `MOCK-0050`,
+- the Vercel project is linked to GitHub repository `DavidGarguliya/gbc-analytics-dashboard-test-task` with `main` as the production branch.
 
 ## Milestone checkpoint status
 

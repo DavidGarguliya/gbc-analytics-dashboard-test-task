@@ -258,8 +258,27 @@
     - `49,020 KZT`
     - `MOCK-0050`
 - Remaining risks / next:
-  - the Telegram screenshot remains an external handoff artifact and is not stored in the repository
-  - `vercel git connect` still fails on the now-public repository, so the project remains reachable and production-ready but not yet converted to a Git-backed Vercel integration
+  - at this checkpoint the only remaining external artifact was the accepted Telegram screenshot
+  - Git-backed deployment status still needed final confirmation after repository publication
+
+## 2026-04-10 — M8 deployment handoff finalized
+- Branch: `task/final-hardening` from `feat/next-stage-baseline`
+- Scope: finalized the deployment handoff after confirming that the Vercel project is now linked to the published GitHub repository and updating the state docs to match the final live reality.
+- Implemented scope:
+  - confirmed through the Vercel project API that `gbc-analytics-dashboard-test-task` is linked to GitHub repository `DavidGarguliya/gbc-analytics-dashboard-test-task`
+  - confirmed the connected Vercel production branch is `main`
+  - updated [STATE.md](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/docs/STATE.md) and [CHRONICLE.md](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/docs/CHRONICLE.md) so the recorded M8 status no longer claims Git integration is still pending
+- Verification:
+  - `npx vercel@latest api /v9/projects/gbc-analytics-dashboard-test-task --raw | jq '{name, link, latestDeployment: .targets.production.url, latestAlias: .targets.production.alias}'`
+  - Vercel API returned `link.type = "github"`, `link.org = "DavidGarguliya"`, `link.repo = "gbc-analytics-dashboard-test-task"`, and `link.productionBranch = "main"`
+  - `curl -I https://gbc-analytics-dashboard-test-task.vercel.app` returned `HTTP/2 200`
+  - deployed HTML still contains the expected Supabase-backed markers:
+    - `Supabase only read path`
+    - `2,451,000 KZT`
+    - `49,020 KZT`
+    - `MOCK-0050`
+- Remaining risks / next:
+  - the accepted Telegram screenshot remains an external submission artifact and is not stored in this repository
   - the import stage remains a seed-import stage; it reports duplicate-safe rejection rather than pretending repeated uploads succeeded
 
 ## 2026-04-09 — M3.1 live contract reconciliation
