@@ -1,4 +1,21 @@
 # CHRONICLE
+## 2026-04-11 — Overview breakdown grid refinement
+- Branch: `task/overview-cards-grid-refinement`
+- Scope: tightened the overview breakdown layout without changing dashboard metrics, source semantics, or the Supabase-only read path.
+- Implemented scope:
+  - updated [dashboard-view.tsx](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/app/dashboard-view.tsx) so the overview card order becomes `Источник заказа`, `Распределение по сумме заказа`, `Заказы по статусам`, `Способ оформления`
+  - removed the explanatory subtitle copy from `Источник заказа` and `Способ оформления` to reduce visual noise on the overview
+  - updated [page.module.css](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/app/page.module.css) so the breakdown section renders in a stable two-column grid until the existing mobile fallback breakpoint
+- Verification:
+  - `npm run docs:golden`
+  - `npm run lint`
+  - `npm run typecheck`
+  - `npm test`
+  - `npm run build`
+- Remaining risks / next:
+  - the top row now mixes a taller source card with a shorter amount-distribution card, so any later visual equalization should stay purely presentational and avoid bloating the overview
+  - production will not reflect the tighter grid until this slice is promoted beyond `feat/next-stage-baseline`
+
 ## 2026-04-11 — Controlled source analytics refinement
 - Branch: `task/source-analytics-controlled-refinement`
 - Scope: refined the existing marketing-source analytics presentation without changing the already separated projection semantics, Supabase-only read path, or overall dashboard layout.
