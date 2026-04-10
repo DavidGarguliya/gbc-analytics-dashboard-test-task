@@ -67,6 +67,25 @@ function readTrimmedString(value: unknown): string | null {
   return normalized.length > 0 ? normalized : null;
 }
 
+function formatSourceLabel(rawSource: string | null): string {
+  if (rawSource === "shopping-cart") {
+    return "Через корзину";
+  }
+
+  if (rawSource === "offerr-analog") {
+    return "Предложить замену";
+  }
+
+  return rawSource ?? OPERATIONAL_FALLBACK_LABEL;
+}
+
+function formatStatusLabel(rawStatus: string | null): string | null {
+  if (rawStatus === "offer-analog" || rawStatus === "offerr-analog") {
+    return "Предложить замену";
+  }
+  return rawStatus;
+}
+
 function roundValue(value: number): number {
   return Math.round(value * 100) / 100;
 }
@@ -185,11 +204,10 @@ export function buildOperationalOrderSummary(
     number: readTrimmedString(record.number) ?? readTrimmedString(record.raw_json.number),
     phone: readTrimmedString(record.phone) ?? readTrimmedString(record.raw_json.phone),
     retailcrmId: record.retailcrm_id,
-    sourceLabel:
-      readTrimmedString(record.source) ??
-      readFallbackSource(record.raw_json) ??
-      OPERATIONAL_FALLBACK_LABEL,
-    status: readTrimmedString(record.status),
+    sourceLabel: formatSourceLabel(
+      readTrimmedString(record.source) ?? readFallbackSource(record.raw_json)
+    ),
+    status: formatStatusLabel(readTrimmedString(record.status)),
     totalSum: Number(record.total_sum),
     unitsCount: readOperationalUnitsCount(items),
   };
