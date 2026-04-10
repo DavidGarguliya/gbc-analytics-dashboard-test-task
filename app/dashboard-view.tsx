@@ -21,6 +21,7 @@ import {
 } from "@/lib/dashboard";
 import {
   formatOperationalOrderLabel,
+  formatOrderMethod,
   splitOperationalItems,
 } from "@/lib/order-operational";
 
@@ -376,6 +377,7 @@ function OrdersTrendChart(props: {
 
 function renderBreakdownValue(input: {
   row: {
+    averageOrderValue: number | null;
     count: number;
     revenueAmount: number | null;
     share: number;
@@ -387,15 +389,15 @@ function renderBreakdownValue(input: {
     return (
       <div className={styles.sliceValueBlock}>
         <span className={styles.sliceValuePrimary}>
-          {formatNumberValue(input.row.count)} заказа
+          {formatNumberValue(input.row.count)} заказов
         </span>
         <span className={styles.sliceValueSecondary}>
-          {input.row.revenueAmount !== null
-            ? formatMoneyValue({
-                amount: input.row.revenueAmount,
+          {input.row.averageOrderValue !== null
+            ? `${formatMoneyValue({
+                amount: input.row.averageOrderValue,
                 currencyCode: input.revenueCurrencyCode ?? null,
-              })
-            : "Выручка недоступна"}
+              })} / чек`
+            : "Чек неизвестен"}
         </span>
       </div>
     );
@@ -411,6 +413,7 @@ function renderBreakdownValue(input: {
 
 function BreakdownRows(props: {
   rows: Array<{
+    averageOrderValue: number | null;
     count: number;
     key: string;
     label: string;
@@ -491,7 +494,6 @@ function formatItemPriceMeta(order: DashboardOrder, item: DashboardOrder["items"
 function OrderDetailsPanel(props: {
   onClose: () => void;
   order: DashboardOrder;
-  sourceColumnLabel: string;
 }) {
   const orderLabel = formatOperationalOrderLabel(props.order);
   const visibleItems = splitOperationalItems(props.order.items, 5);
@@ -519,7 +521,7 @@ function OrderDetailsPanel(props: {
           {props.order.status ? (
             <span className={styles.subtleBadge}>{props.order.status}</span>
           ) : null}
-          <span className={styles.subtleBadge}>{props.order.sourceLabel}</span>
+          <span className={styles.subtleBadge}>{props.order.marketingSource || "Без источника"}</span>
         </div>
       </div>
 
@@ -527,7 +529,8 @@ function OrderDetailsPanel(props: {
         <DetailField label="Клиент" value={props.order.customerName ?? "Не указан"} />
         <DetailField label="Телефон" value={props.order.phone ?? "Не указан"} />
         <DetailField label="Город" value={props.order.city ?? "Не указан"} />
-        <DetailField label={props.sourceColumnLabel} value={props.order.sourceLabel} />
+        <DetailField label="Маркетинговый источник" value={props.order.marketingSource || "Не указан"} />
+        <DetailField label="Способ оформления" value={props.order.orderMethod ? formatOrderMethod(props.order.orderMethod) : "Не указан"} />
         <DetailField label="Позиций" value={formatNumberValue(props.order.itemCount)} />
         <DetailField label="Единиц товара" value={formatCountValue(props.order.unitsCount)} />
         <DetailField label="Дата" value={formatDateTimeLabel(props.order.createdAt)} />
@@ -630,7 +633,7 @@ export function DashboardView({ dashboard, renderedAt }: DashboardViewProps) {
   const [showComparison, setShowComparison] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(true);
   const [status, setStatus] = useState("all");
-  const [source, setSource] = useState("all");
+  const [marketingSource, setMarketingSource] = useState("all");
   const [onlyLargeOrders, setOnlyLargeOrders] = useState(false);
   const [search, setSearch] = useState("");
   const [customStart, setCustomStart] = useState("");
@@ -649,13 +652,13 @@ export function DashboardView({ dashboard, renderedAt }: DashboardViewProps) {
         filters: {
           customEnd,
           customStart,
+          marketingSource,
           onlyLargeOrders,
           periodKey,
           search: deferredSearch,
           showComparison,
           sortDirection,
           sortKey,
-          source,
           status,
         },
         renderedAt,
@@ -665,13 +668,13 @@ export function DashboardView({ dashboard, renderedAt }: DashboardViewProps) {
       customStart,
       dashboard,
       deferredSearch,
+      marketingSource,
       onlyLargeOrders,
       periodKey,
       renderedAt,
       showComparison,
       sortDirection,
       sortKey,
-      source,
       status,
     ],
   );
@@ -687,7 +690,7 @@ export function DashboardView({ dashboard, renderedAt }: DashboardViewProps) {
     setPeriodKey("all");
     setShowComparison(false);
     setStatus("all");
-    setSource("all");
+    setMarketingSource("all");
     setOnlyLargeOrders(false);
     setSearch("");
     setCustomStart("");
@@ -789,10 +792,10 @@ export function DashboardView({ dashboard, renderedAt }: DashboardViewProps) {
             </label>
 
             <label className={styles.filterField}>
-              <span>Источник / метод</span>
-              <select onChange={(event) => updateFilterAndResetPage(setSource, event.target.value)} value={source}>
-                <option value="all">Все значения</option>
-                {dashboard.availableSources.map((value) => (
+              <span>Маркетинговый источник</span>
+              <select onChange={(event) => updateFilterAndResetPage(setMarketingSource, event.target.value)} value={marketingSource}>
+                <option value="all">Все источники</option>
+                {dashboard.availableMarketingSources.map((value) => (
                   <option key={value} value={value}>
                     {value}
                   </option>
@@ -918,10 +921,16 @@ export function DashboardView({ dashboard, renderedAt }: DashboardViewProps) {
         />
         <BreakdownRows
           revenueCurrencyCode={analytics.currentSummary.revenue.currencyCode ?? dashboard.currencyCode}
-          rows={analytics.sourceBreakdown}
-          subtitle="Источник берётся из utm_source, если он есть, иначе используется method заказа."
-          title="Источник / метод заказа"
+          rows={analytics.marketingSourceBreakdown}
+          subtitle="Источники привлечения (на основе utm_source)."
+          title="Источник заказа"
           variant="source"
+        />
+        <BreakdownRows
+          rows={analytics.orderMethodBreakdown}
+          subtitle="Операционный способ оформления заказа."
+          title="Способ оформления"
+          variant="status"
         />
         <BreakdownRows
           rows={analytics.amountBreakdown}
@@ -980,7 +989,7 @@ export function DashboardView({ dashboard, renderedAt }: DashboardViewProps) {
                         sortKey="totalSum"
                       />
                     </th>
-                    <th>{dashboard.sourceColumnLabel}</th>
+                    <th>Источник</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1015,7 +1024,7 @@ export function DashboardView({ dashboard, renderedAt }: DashboardViewProps) {
                           ) : null}
                         </div>
                       </td>
-                      <td>{order.sourceLabel}</td>
+                      <td>{order.marketingSource || "Не указан"}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -1074,7 +1083,6 @@ export function DashboardView({ dashboard, renderedAt }: DashboardViewProps) {
           <OrderDetailsPanel
             onClose={() => setSelectedOrderId(null)}
             order={selectedOrder}
-            sourceColumnLabel={dashboard.sourceColumnLabel}
           />
         ) : null}
       </section>

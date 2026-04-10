@@ -27,6 +27,8 @@ Supabase
 - RetailCRM — единственный upstream-источник заказов
 - Supabase — единственный источник данных для dashboard и alert-check
 - валюта в сохранённых данных сейчас `KZT`
+- маркетинговая атрибуция читается из сохранённого `raw_json.customFields.utm_source`
+- операционный способ оформления читается из сохранённого `raw_json.orderMethod`
 - правило алерта: `total_sum > 50 000` без валютной конвертации
 - дедупликация алертов хранится явно в `alerts_sent`
 
@@ -36,7 +38,7 @@ Supabase
 
 - полностью на русском языке
 - остаётся Supabase-only read screen
-- показывает compact header, control bar, KPI, trends, breakdowns и orders drilldown
+- показывает compact header, control bar, KPI, trends, раздельные breakdown-блоки по источнику и способу оформления, а также orders drilldown
 - использует detail panel заказа в том же операционном формате, что и Telegram alert
 
 Операционные поля в detail panel:
@@ -46,7 +48,8 @@ Supabase
 - клиент
 - телефон
 - город
-- источник / метод
+- маркетинговый источник
+- способ оформления
 - состав заказа
 - количество позиций
 - количество единиц товара
@@ -59,6 +62,9 @@ Supabase
 Важно:
 
 - `customer_name` и `phone` читаются из сохранённой строки `orders`
+- `marketingSource` строится только из `orders.raw_json.customFields.utm_source`
+- `orderMethod` строится только из `orders.raw_json.orderMethod`
+- сохранённый `orders.source` не используется как честный маркетинговый источник в dashboard и Telegram, потому что исторически он смешивал `utm_source` и `orderMethod`
 - `city`, `items`, `positions`, `units` сейчас честно выводятся из сохранённого `orders.raw_json`
 - реальные названия позиций читаются из сохранённого item payload, включая live RetailCRM shape `items[*].offer.displayName` / `items[*].offer.name`
 - raw payload целиком в UI не показывается

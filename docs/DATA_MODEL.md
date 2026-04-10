@@ -24,7 +24,7 @@ Recommended fields:
 - `phone` — optional customer phone if available and appropriate
 - `total_sum` — numeric order amount
 - `currency` — order currency code or symbol
-- `source` — optional acquisition/source label
+- `source` — optional persisted legacy/mixed label from sync (`utm_source` when present, otherwise `orderMethod`); kept for storage compatibility, but not treated as the authoritative analytics dimension
 - `raw_json` — raw upstream payload as json/jsonb
 - `synced_at` — timestamp of last successful upsert into local storage
 
@@ -33,6 +33,7 @@ Required semantics:
 - repeat sync must update existing rows instead of inserting duplicates
 - `raw_json` should preserve enough upstream detail for troubleshooting
 - the persisted row plus `raw_json` should be sufficient to build the operational order summary used by both the dashboard detail panel and Telegram alerts
+- honest marketing attribution must come from `raw_json.customFields.utm_source`, and honest operational order method must come from `raw_json.orderMethod`
 
 ### 2. `sync_state`
 Purpose:
@@ -99,7 +100,8 @@ The current operational overview also needs one explicit per-order projection fo
 - `currency`
 - `customer_name`
 - `phone`
-- `source`
+- `marketingSource` derived from `raw_json.customFields.utm_source`
+- `orderMethod` derived from `raw_json.orderMethod`
 - `status`
 - `external_id`
 - `retailcrm_id`
@@ -112,6 +114,8 @@ The current operational overview also needs one explicit per-order projection fo
 The current Telegram alert projection uses the same base order summary and may additionally derive:
 - `email` from `raw_json.email`
 - item titles from live RetailCRM item payloads such as `raw_json.items[*].productName` or nested `raw_json.items[*].offer.displayName` / `offer.name`
+
+The persisted `orders.source` field remains useful only as historical storage/output from the sync layer. Dashboard and Telegram presentation must not use it as the authoritative marketing-source dimension because it can mix acquisition and operational semantics.
 
 This is still considered one Supabase-backed read model because all derivation happens from persisted rows and persisted `raw_json`, not from secondary upstream requests.
 

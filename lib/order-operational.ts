@@ -30,10 +30,11 @@ export type OperationalOrderSummary = {
   externalId: string | null;
   itemCount: number;
   items: OperationalOrderItem[];
+  marketingSource: string | null;
   number: string | null;
+  orderMethod: string | null;
   phone: string | null;
   retailcrmId: number;
-  sourceLabel: string;
   status: string | null;
   totalSum: number;
   unitsCount: number | null;
@@ -67,16 +68,16 @@ function readTrimmedString(value: unknown): string | null {
   return normalized.length > 0 ? normalized : null;
 }
 
-function formatSourceLabel(rawSource: string | null): string {
-  if (rawSource === "shopping-cart") {
+export function formatOrderMethod(rawMethod: string | null): string {
+  if (rawMethod === "shopping-cart") {
     return "Через корзину";
   }
 
-  if (rawSource === "offerr-analog") {
+  if (rawMethod === "offer-analog" || rawMethod === "offerr-analog") {
     return "Предложить замену";
   }
 
-  return rawSource ?? OPERATIONAL_FALLBACK_LABEL;
+  return rawMethod ?? OPERATIONAL_FALLBACK_LABEL;
 }
 
 function formatStatusLabel(rawStatus: string | null): string | null {
@@ -98,7 +99,7 @@ function readFallbackCustomerName(rawJson: Record<string, unknown>): string | nu
   return name.length > 0 ? name : null;
 }
 
-function readFallbackSource(rawJson: Record<string, unknown>): string | null {
+function readMarketingSource(rawJson: Record<string, unknown>): string | null {
   const customFields = rawJson.customFields;
 
   if (isObject(customFields)) {
@@ -109,6 +110,10 @@ function readFallbackSource(rawJson: Record<string, unknown>): string | null {
     }
   }
 
+  return null;
+}
+
+function readOrderMethod(rawJson: Record<string, unknown>): string | null {
   return readTrimmedString(rawJson.orderMethod);
 }
 
@@ -201,12 +206,11 @@ export function buildOperationalOrderSummary(
       readTrimmedString(record.external_id) ?? readTrimmedString(record.raw_json.externalId),
     itemCount: items.length,
     items,
+    marketingSource: readMarketingSource(record.raw_json),
     number: readTrimmedString(record.number) ?? readTrimmedString(record.raw_json.number),
+    orderMethod: readOrderMethod(record.raw_json),
     phone: readTrimmedString(record.phone) ?? readTrimmedString(record.raw_json.phone),
     retailcrmId: record.retailcrm_id,
-    sourceLabel: formatSourceLabel(
-      readTrimmedString(record.source) ?? readFallbackSource(record.raw_json)
-    ),
     status: formatStatusLabel(readTrimmedString(record.status)),
     totalSum: Number(record.total_sum),
     unitsCount: readOperationalUnitsCount(items),
