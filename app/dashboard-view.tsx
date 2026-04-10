@@ -67,9 +67,11 @@ function formatMoneyValue(input: {
     return "Смешанные валюты";
   }
 
+  const symbol = input.currencyCode === "KZT" ? "₸" : input.currencyCode;
+
   return `${new Intl.NumberFormat("ru-RU", {
     maximumFractionDigits: 0,
-  }).format(input.amount)} ${input.currencyCode}`;
+  }).format(input.amount)} ${symbol}`;
 }
 
 function formatDateLabel(value: string): string {
@@ -726,7 +728,7 @@ export function DashboardView({ dashboard, renderedAt }: DashboardViewProps) {
           <p className={styles.subtitleLine}>
             Данные из Supabase • Последняя синхронизация:{" "}
             {analytics.freshness.absoluteLabel ?? "нет данных"} • Валюта:{" "}
-            {dashboard.currencyCode ?? "смешанная"}
+            {dashboard.currencyCode === "KZT" ? "₸" : (dashboard.currencyCode ?? "смешанная")}
           </p>
         </div>
 
@@ -882,7 +884,7 @@ export function DashboardView({ dashboard, renderedAt }: DashboardViewProps) {
         />
         <MetricCard
           delta={summaryDeltas.largeOrdersCount}
-          subtitle={`свыше ${formatNumberValue(dashboard.largeOrderThreshold)} KZT`}
+          subtitle={`свыше ${formatNumberValue(dashboard.largeOrderThreshold)} ₸`}
           title="Крупные заказы"
           value={formatNumberValue(analytics.currentSummary.largeOrdersCount)}
         />
