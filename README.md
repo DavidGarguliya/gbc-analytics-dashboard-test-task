@@ -276,7 +276,7 @@ The implementation was driven milestone-by-milestone with explicit scope constra
 ## Final Handoff Checklist
 
 - [x] Vercel dashboard URL recorded
-- [ ] GitHub repository URL recorded
+- [x] GitHub repository URL recorded
 - [ ] Telegram screenshot attached
 - [x] Supabase schema requirement documented
 - [x] local env requirements documented
@@ -288,6 +288,6 @@ The implementation was driven milestone-by-milestone with explicit scope constra
 ## Evidence Inventory
 
 - Vercel URL: `https://gbc-analytics-dashboard-test-task.vercel.app`
-- GitHub repo URL: record the repository URL from the configured remote used for submission
+- GitHub repo URL: `https://github.com/DavidGarguliya/gbc-analytics-dashboard-test-task`
 - Telegram screenshot: attach the screenshot from the accepted M6 live alert verification
 - Submission-ready summary: this repository implements the full assignment chain `mock_orders.json -> RetailCRM -> Supabase -> Dashboard -> Telegram alerts -> Vercel`, with the accepted live contract of `KZT`, alert semantics of `total_sum > 50,000 KZT`, explicit alert dedupe in `alerts_sent`, and a one-command local pipeline runner for repeatable operator execution

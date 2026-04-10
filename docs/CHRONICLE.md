@@ -250,14 +250,16 @@
 - Verification:
   - live Vercel production deployment completed with alias `https://gbc-analytics-dashboard-test-task.vercel.app`
   - `curl -I https://gbc-analytics-dashboard-test-task.vercel.app` returned `HTTP/2 200`
+  - repository published to GitHub at `https://github.com/DavidGarguliya/gbc-analytics-dashboard-test-task`
+  - `main` is now the public GitHub default branch
   - deployed HTML contains the expected Supabase-backed markers:
     - `Supabase only read path`
     - `2,451,000 KZT`
     - `49,020 KZT`
     - `MOCK-0050`
 - Remaining risks / next:
-  - the local git repository has no `origin`, so the final GitHub repository URL still needs to be supplied externally for the submission package
   - the Telegram screenshot remains an external handoff artifact and is not stored in the repository
+  - `vercel git connect` still fails on the now-public repository, so the project remains reachable and production-ready but not yet converted to a Git-backed Vercel integration
   - the import stage remains a seed-import stage; it reports duplicate-safe rejection rather than pretending repeated uploads succeeded
 
 ## 2026-04-09 — M3.1 live contract reconciliation
