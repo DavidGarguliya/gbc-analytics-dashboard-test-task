@@ -125,8 +125,8 @@ describe("buildDashboardReadModel", () => {
       }),
     ).toEqual(
       expect.objectContaining({
-      availableSources: ["instagram", "shopping-cart", "Не указан"],
-      availableStatuses: ["new", "offer-analog"],
+      availableSources: ["instagram", "Не указан", "Через корзину"],
+      availableStatuses: ["new", "Предложить замену"],
       currencyCode: "KZT",
       lastSyncedAt: "2026-04-10T12:00:00.000Z",
       largeOrderThreshold: 50000,
@@ -137,7 +137,7 @@ describe("buildDashboardReadModel", () => {
           unitsCount: 2,
           customerName: "Феруза Юсупова",
           city: "Шымкент",
-          sourceLabel: "shopping-cart",
+          sourceLabel: "Через корзину",
           isLargeOrder: true,
         }),
         expect.objectContaining({
@@ -163,7 +163,7 @@ describe("buildDashboardReadModel", () => {
           unitsCount: 2,
           customerName: "Алина Ким",
           city: "Алматы",
-          sourceLabel: "shopping-cart",
+          sourceLabel: "Через корзину",
           isLargeOrder: true,
         }),
       ],
@@ -266,8 +266,8 @@ describe("buildDashboardAnalytics", () => {
       sourceBreakdown: [
         {
           count: 2,
-          key: "shopping-cart",
-          label: "shopping-cart",
+          key: "Через корзину",
+          label: "Через корзину",
           revenueAmount: 186000,
           share: 0.5,
         },
@@ -289,8 +289,8 @@ describe("buildDashboardAnalytics", () => {
       statusBreakdown: [
         {
           count: 3,
-          key: "offer-analog",
-          label: "offer-analog",
+          key: "Предложить замену",
+          label: "Предложить замену",
           revenueAmount: null,
           share: 0.75,
         },
@@ -342,7 +342,7 @@ describe("buildDashboardAnalytics", () => {
         showComparison: false,
         sortDirection: "asc",
         sortKey: "totalSum",
-        source: "shopping-cart",
+        source: "Через корзину",
         status: "all",
       },
       renderedAt: "2026-04-10T12:05:00.000Z",
