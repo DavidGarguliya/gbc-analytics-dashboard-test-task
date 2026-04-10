@@ -144,17 +144,22 @@ Done when:
 - summary output is honest,
 - wrappers are present and documented.
 
-### M8 — Final hardening
+### M8 — Deployment and handoff
 Goal:
-- clean residual issues before handoff.
+- complete Vercel deployment and finalize reviewer-facing handoff material.
 
 Outputs:
-- final documentation sync
-- cleanup of dead code or drift
+- working Vercel dashboard deployment
+- final README with setup, deployment, prompts, blockers, and limitations
+- final deployment and run instructions
+- final evidence inventory and handoff checklist
 - final verification pass
 
 Done when:
-- repository is reviewable without oral explanation.
+- dashboard is reachable on Vercel,
+- deployed reads stay aligned with Supabase,
+- repository is reviewable without oral explanation,
+- final evidence list is complete.
 
 ---
 

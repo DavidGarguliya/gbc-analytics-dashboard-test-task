@@ -238,6 +238,26 @@
 - Remaining risks / next:
   - `npm run pipeline` now auto-loads `.env.local` for local use, but deployment/runtime environments still need explicit env management
   - the Windows launcher is present and documented but was not executed in this macOS session
+
+## 2026-04-10 — M8 deployment and handoff in progress
+- Branch: `task/final-hardening` from `feat/next-stage-baseline`
+- Scope: completed the live Vercel dashboard deployment, tightened the README and deployment docs around the accepted dashboard-only runtime shape, and started the final handoff evidence inventory.
+- Implemented scope:
+  - linked the repository to Vercel project `gbc-analytics-dashboard-test-task`
+  - configured production Vercel env for the current server-rendered dashboard path
+  - deployed the dashboard successfully to [https://gbc-analytics-dashboard-test-task.vercel.app](https://gbc-analytics-dashboard-test-task.vercel.app)
+  - updated [README.md](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/README.md), [DEPLOYMENT.md](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/docs/DEPLOYMENT.md), and [.env.example](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/.env.example) so deployment prerequisites match the actual runtime behavior
+- Verification:
+  - live Vercel production deployment completed with alias `https://gbc-analytics-dashboard-test-task.vercel.app`
+  - `curl -I https://gbc-analytics-dashboard-test-task.vercel.app` returned `HTTP/2 200`
+  - deployed HTML contains the expected Supabase-backed markers:
+    - `Supabase only read path`
+    - `2,451,000 KZT`
+    - `49,020 KZT`
+    - `MOCK-0050`
+- Remaining risks / next:
+  - the local git repository has no `origin`, so the final GitHub repository URL still needs to be supplied externally for the submission package
+  - the Telegram screenshot remains an external handoff artifact and is not stored in the repository
   - the import stage remains a seed-import stage; it reports duplicate-safe rejection rather than pretending repeated uploads succeeded
 
 ## 2026-04-09 — M3.1 live contract reconciliation

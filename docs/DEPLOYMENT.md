@@ -3,68 +3,69 @@
 ## Deployment target
 Primary deployment target: Vercel
 
-## Expected deployment shape
-- Next.js application deployed to Vercel
-- environment variables configured in Vercel project settings
-- dashboard accessible through Vercel URL
+## Chosen deployment shape
+Use Vercel for the dashboard only. Keep import, sync, alerts, and the end-to-end pipeline as local server-side operator commands.
 
-## Required environment variables
-- `RETAILCRM_BASE_URL`
-- `RETAILCRM_API_KEY`
-- optional `RETAILCRM_SITE_CODE`
+Why this shape:
+- it preserves the accepted security boundary
+- it avoids exposing RetailCRM and Telegram operations on public routes
+- it keeps deployment compact and reviewable
+
+## Deployment prerequisites
+
+### Supabase
+- apply [`supabase/schema.sql`](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/supabase/schema.sql) before first deployment verification
+- confirm the target project contains the synced `orders` read model
+
+### Vercel env vars for dashboard-only deployment
 - `SUPABASE_URL`
-- `SUPABASE_ANON_KEY`
 - `SUPABASE_SERVICE_ROLE_KEY`
+
+Optional only:
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-- `TELEGRAM_BOT_TOKEN`
-- `TELEGRAM_CHAT_ID`
 - `NEXT_PUBLIC_APP_URL`
 
+Not required on Vercel for the accepted deployment shape:
+- `RETAILCRM_BASE_URL`
+- `RETAILCRM_API_KEY`
+- `RETAILCRM_SITE_CODE`
+- `SUPABASE_ANON_KEY`
+- `TELEGRAM_BOT_TOKEN`
+- `TELEGRAM_CHAT_ID`
+
 ## Deployment sequence
-1. Create Vercel project and connect the repository.
-2. Set all required environment variables.
-3. Trigger deployment.
-4. Verify the dashboard loads and queries Supabase correctly.
-5. If server-side routes are used for sync/alerts, verify they run in the deployed environment or remain local-only if that is the chosen operational mode.
+1. Authenticate to Vercel.
+2. Link the local repository to the Vercel project.
+3. Set the dashboard-only Vercel environment variables.
+4. Deploy the current Next.js application to production.
+5. Verify the deployed dashboard reads the current Supabase data correctly.
 
-## Operational choices
-There are two acceptable operating patterns for this assignment:
+Concrete CLI flow:
 
-### Option A — deploy dashboard only, run scripts locally
-Use Vercel only for the dashboard UI.
-Run import/sync/alerts locally from scripts.
+```bash
+vercel login
+vercel link
+vercel deploy --prod
+```
 
-Pros:
-- simpler,
-- lower deployment risk,
-- easier to debug.
+If GitHub login is preferred:
 
-Cons:
-- less self-contained.
-
-### Option B — deploy dashboard plus server-side operator routes
-Expose internal server routes for admin-triggered sync/alert checks.
-
-Pros:
-- more cohesive web deployment.
-
-Cons:
-- requires additional care for route safety and invocation.
-
-Recommendation:
-Choose the simplest option that satisfies the assignment and keeps security boundaries clear.
+```bash
+vercel login --github --oob
+```
 
 ## Verification after deploy
-- dashboard URL opens successfully,
-- key metrics render,
-- recent orders render,
-- no browser-side integration errors for secret-bearing systems,
-- README contains the final deployed URL.
+- the Vercel URL opens successfully
+- the dashboard renders `orders` from Supabase rather than RetailCRM
+- metrics match the synced Supabase data set
+- the latest orders table renders from Supabase data
+- no browser-side secret leakage is introduced
+- the deployed dashboard works with server-side Supabase env only
 
 ## Evidence checklist
 At final closeout collect:
-- deployed Vercel URL,
-- GitHub repository URL,
-- Telegram screenshot,
-- README prompt and troubleshooting section.
+- deployed Vercel URL
+- GitHub repository URL
+- Telegram screenshot from the accepted alert run
+- README section covering prompts, blockers, resolutions, and limitations

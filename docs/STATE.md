@@ -1,10 +1,10 @@
 # STATE
 
 ## Current state
-Status: M2 is closed. M3 is sufficiently validated for the test assignment after M3.1 live contract reconciliation. M4 is closed and live-verified. M5 dashboard read model and UI are implemented against Supabase as the only read source. After a post-M5 upstream currency realignment, the live RetailCRM contract of record now returns `KZT`, Supabase has been resynced, and the dashboard renders the current synced data set in `KZT` without any client-side relabeling or currency conversion. M6 Telegram alert foundation is closed and live-verified against that KZT contract, with explicit dedupe in `alerts_sent`. M7 end-to-end pipeline runner is now closed and live-verified as a one-command local chain over the existing foundations.
+Status: M2 is closed. M3 is sufficiently validated for the test assignment after M3.1 live contract reconciliation. M4 is closed and live-verified. M5 dashboard read model and UI are implemented against Supabase as the only read source. After a post-M5 upstream currency realignment, the live RetailCRM contract of record now returns `KZT`, Supabase has been resynced, and the dashboard renders the current synced data set in `KZT` without any client-side relabeling or currency conversion. M6 Telegram alert foundation is closed and live-verified against that KZT contract, with explicit dedupe in `alerts_sent`. M7 end-to-end pipeline runner is closed and live-verified as a one-command local chain over the existing foundations. M8 deployment and handoff is in progress: the dashboard is now deployed and reachable on Vercel at `https://gbc-analytics-dashboard-test-task.vercel.app`, and the deployed page renders the expected Supabase-backed metrics, but the final external evidence inventory still depends on a GitHub repository URL and the accepted Telegram screenshot artifact.
 
 ## Active branch
-Checkpoint-review branch: `task/deployment-readme`
+Checkpoint-review branch: `task/final-hardening`
 Canonical local integration branch: `feat/next-stage-baseline`
 
 ## Completed
@@ -35,20 +35,25 @@ Canonical local integration branch: `feat/next-stage-baseline`
 - M6 alert foundation added with a Telegram Bot API adapter, explicit high-value KZT Supabase reads, durable dedupe writes to `alerts_sent`, and a server-side CLI entrypoint
 - M6 live verification completed by deriving the Telegram chat target from bot updates, sending all current qualifying alerts once, and confirming a zero-send rerun
 - M7 pipeline runner added with a single local command, macOS and Windows launchers, and live-verified end-to-end execution over import, sync, dashboard read, and alert stages
+- M8 Vercel deployment completed and live-verified for the dashboard at `https://gbc-analytics-dashboard-test-task.vercel.app`
 
 ## In progress
-- No active implementation slice beyond M7 closeout
+- Final handoff evidence sync for M8
+- README and deployment docs are being aligned to the live Vercel runtime behavior and submission checklist
 
 ## Next recommended step
-Stop implementation work here unless a separate final-handoff or deployment-evidence slice is explicitly opened
+Finish the remaining external submission evidence and close M8
 
 Specific next action:
+- record the final GitHub repository URL used for submission
+- attach the accepted Telegram screenshot artifact to the submission package
 - keep production/deployment Telegram configuration explicit so the pipeline does not depend on ad hoc local chat-id discovery
 - preserve the stored Supabase `KZT` contract for any later deployment or handoff work
 - avoid reinterpreting currency semantics or introducing non-KZT fallback behavior
 
 ## Known blockers
-- Final deployment settings depend on the chosen runtime implementation details
+- The local git repository has no configured `origin`, so the final GitHub repository URL cannot be derived automatically from this workspace
+- The accepted Telegram screenshot exists as an external submission artifact and is not stored in this repository
 
 ## Risks to watch
 - overengineering during import adapter setup,
@@ -59,6 +64,7 @@ Specific next action:
 - the dashboard currently computes metrics from stored rows in one server-side read path; if order volume grows later, read-model aggregation should evolve explicitly rather than drift into hidden client computation,
 - deployment and operator environments still need a configured `TELEGRAM_CHAT_ID` instead of relying on chat-id discovery during ad hoc live verification,
 - the alert runner currently uses send-then-mark semantics; if a process exits after a successful Telegram send but before the dedupe write, a rerun could resend that specific order.
+- the Vercel project currently contains optional browser-safe env placeholders that are not used by the current server-rendered dashboard, so future client-side Supabase usage must be introduced deliberately rather than assumed from deployment state
 
 ## Definition of health at this stage
 Healthy if:
@@ -69,7 +75,8 @@ Healthy if:
 - the configured Supabase project contains 50 synced orders and one explicit `retailcrm_orders_sync` state row after a rerun-safe live verification,
 - the dashboard renders those Supabase rows with metrics matching the current synced data set: 50 orders, `2,451,000 KZT` total revenue, `49,020 KZT` average order value,
 - the alert path has been live-verified to send all current qualifying `KZT` orders once and to send zero duplicates on immediate rerun,
-- the pipeline runner has been live-verified through both `npm run pipeline` and the macOS launcher, with an honest rerun summary of import `uploaded=0`, sync `50/50`, dashboard `50` orders, and alerts `0/0`.
+- the pipeline runner has been live-verified through both `npm run pipeline` and the macOS launcher, with an honest rerun summary of import `uploaded=0`, sync `50/50`, dashboard `50` orders, and alerts `0/0`,
+- the Vercel dashboard URL returns HTTP `200` and renders the expected Supabase-backed values: `2,451,000 KZT` total revenue, `49,020 KZT` average order value, and recent orders such as `MOCK-0050`.
 
 ## Milestone checkpoint status
 
