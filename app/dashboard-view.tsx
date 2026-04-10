@@ -14,6 +14,7 @@ import {
 import {
   buildDashboardAnalytics,
   DASHBOARD_PERIOD_OPTIONS,
+  type DashboardBreakdownRow,
   type DashboardOrder,
   type DashboardPeriodKey,
   type DashboardReadModel,
@@ -376,29 +377,58 @@ function OrdersTrendChart(props: {
 }
 
 function renderBreakdownValue(input: {
-  row: {
-    averageOrderValue: number | null;
-    count: number;
-    revenueAmount: number | null;
-    share: number;
-  };
+  row: DashboardBreakdownRow;
   revenueCurrencyCode?: string | null;
   variant: "amount" | "source" | "status";
 }) {
   if (input.variant === "source") {
+    const revenueDelta = buildDelta({
+      current: input.row.revenueAmount,
+      previous: input.row.previousRevenueAmount,
+    });
+    const averageCheckLabel =
+      input.row.averageOrderValue !== null
+        ? `ср. чек ${formatMoneyValue({
+            amount: input.row.averageOrderValue,
+            currencyCode: input.revenueCurrencyCode ?? null,
+          })}`
+        : "чек неизвестен";
+    const revenueShareLabel =
+      input.row.revenueShare !== null
+        ? `${formatPercentValue(input.row.revenueShare)} выручки`
+        : "доля выручки неизвестна";
+
     return (
       <div className={styles.sliceValueBlock}>
         <span className={styles.sliceValuePrimary}>
-          {formatNumberValue(input.row.count)} заказов
+          {input.row.revenueAmount !== null
+            ? formatMoneyValue({
+                amount: input.row.revenueAmount,
+                currencyCode: input.revenueCurrencyCode ?? null,
+              })
+            : "Выручка неизвестна"}
         </span>
         <span className={styles.sliceValueSecondary}>
-          {input.row.averageOrderValue !== null
-            ? `${formatMoneyValue({
-                amount: input.row.averageOrderValue,
-                currencyCode: input.revenueCurrencyCode ?? null,
-              })} / чек`
-            : "Чек неизвестен"}
+          {formatNumberValue(input.row.count)} заказов • {averageCheckLabel}
         </span>
+        <span className={styles.sliceValueTertiary}>
+          Крупных: {formatNumberValue(input.row.largeOrdersCount ?? 0)} • {revenueShareLabel}
+        </span>
+        {revenueDelta ? (
+          <span
+            className={`${styles.metricDelta} ${styles.sliceValueTrend} ${
+              revenueDelta.tone === "up"
+                ? styles.metricDeltaUp
+                : revenueDelta.tone === "down"
+                  ? styles.metricDeltaDown
+                  : revenueDelta.tone === "flat"
+                    ? styles.metricDeltaFlat
+                    : styles.metricDeltaMuted
+            }`}
+          >
+            {revenueDelta.label}
+          </span>
+        ) : null}
       </div>
     );
   }
@@ -412,14 +442,7 @@ function renderBreakdownValue(input: {
 }
 
 function BreakdownRows(props: {
-  rows: Array<{
-    averageOrderValue: number | null;
-    count: number;
-    key: string;
-    label: string;
-    revenueAmount: number | null;
-    share: number;
-  }>;
+  rows: DashboardBreakdownRow[];
   revenueCurrencyCode?: string | null;
   subtitle?: string;
   title: string;
@@ -446,7 +469,12 @@ function BreakdownRows(props: {
             <div className={styles.sliceTrack}>
               <div
                 className={styles.sliceFill}
-                style={{ width: `${Math.max(row.share * 100, row.count > 0 ? 8 : 0)}%` }}
+                style={{
+                  width: `${Math.max(
+                    (props.variant === "source" ? row.revenueShare ?? row.share : row.share) * 100,
+                    row.count > 0 ? 8 : 0,
+                  )}%`,
+                }}
               />
             </div>
           </div>
@@ -915,16 +943,16 @@ export function DashboardView({ dashboard, renderedAt }: DashboardViewProps) {
 
       <section className={styles.slicesGrid}>
         <BreakdownRows
+          revenueCurrencyCode={analytics.currentSummary.revenue.currencyCode ?? dashboard.currencyCode}
+          rows={analytics.marketingSourceBreakdown}
+          subtitle="Источники привлечения на основе utm_source: выручка, средний чек, крупные заказы и сравнение периода."
+          title="Источник заказа"
+          variant="source"
+        />
+        <BreakdownRows
           rows={analytics.statusBreakdown}
           title="Заказы по статусам"
           variant="status"
-        />
-        <BreakdownRows
-          revenueCurrencyCode={analytics.currentSummary.revenue.currencyCode ?? dashboard.currencyCode}
-          rows={analytics.marketingSourceBreakdown}
-          subtitle="Источники привлечения (на основе utm_source)."
-          title="Источник заказа"
-          variant="source"
         />
         <BreakdownRows
           rows={analytics.orderMethodBreakdown}

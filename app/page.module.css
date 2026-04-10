@@ -435,6 +435,17 @@
   text-align: right;
 }
 
+.sliceValueTertiary {
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  text-align: right;
+}
+
+.sliceValueTrend {
+  justify-self: end;
+  margin-top: 0.08rem;
+}
+
 .sliceTrack {
   height: 0.25rem;
   overflow: hidden;

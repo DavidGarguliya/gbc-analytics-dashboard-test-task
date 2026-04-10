@@ -216,7 +216,10 @@ describe("buildDashboardAnalytics", () => {
           count: 1,
           key: "under-25000",
           label: "до 25 000",
+          largeOrdersCount: null,
+          previousRevenueAmount: null,
           revenueAmount: 12000,
+          revenueShare: null,
           share: 0.25,
         },
         {
@@ -224,7 +227,10 @@ describe("buildDashboardAnalytics", () => {
           count: 1,
           key: "25000-50000",
           label: "25 000 – 50 000",
+          largeOrdersCount: null,
+          previousRevenueAmount: null,
           revenueAmount: 37000,
+          revenueShare: null,
           share: 0.25,
         },
         {
@@ -232,7 +238,10 @@ describe("buildDashboardAnalytics", () => {
           count: 0,
           key: "50000-75000",
           label: "50 000 – 75 000",
+          largeOrdersCount: null,
+          previousRevenueAmount: null,
           revenueAmount: null,
+          revenueShare: null,
           share: 0,
         },
         {
@@ -240,7 +249,10 @@ describe("buildDashboardAnalytics", () => {
           count: 2,
           key: "75000-plus",
           label: "75 000+",
+          largeOrdersCount: null,
+          previousRevenueAmount: null,
           revenueAmount: 186000,
+          revenueShare: null,
           share: 0.5,
         },
       ],
@@ -285,7 +297,10 @@ describe("buildDashboardAnalytics", () => {
           count: 2,
           key: "Не указан",
           label: "Не указан",
+          largeOrdersCount: 1,
+          previousRevenueAmount: null,
           revenueAmount: 117000,
+          revenueShare: 0.5,
           share: 0.5,
         },
         {
@@ -293,7 +308,10 @@ describe("buildDashboardAnalytics", () => {
           count: 1,
           key: "google",
           label: "google",
+          largeOrdersCount: 1,
+          previousRevenueAmount: null,
           revenueAmount: 81000,
+          revenueShare: 0.34,
           share: 0.25,
         },
         {
@@ -301,7 +319,10 @@ describe("buildDashboardAnalytics", () => {
           count: 1,
           key: "instagram",
           label: "instagram",
+          largeOrdersCount: 0,
+          previousRevenueAmount: null,
           revenueAmount: 37000,
+          revenueShare: 0.16,
           share: 0.25,
         },
       ],
@@ -311,7 +332,10 @@ describe("buildDashboardAnalytics", () => {
           count: 2,
           key: "Через корзину",
           label: "Через корзину",
+          largeOrdersCount: null,
+          previousRevenueAmount: null,
           revenueAmount: 186000,
+          revenueShare: null,
           share: 0.5,
         },
         {
@@ -319,7 +343,10 @@ describe("buildDashboardAnalytics", () => {
           count: 2,
           key: "Не указан",
           label: "Не указан",
+          largeOrdersCount: null,
+          previousRevenueAmount: null,
           revenueAmount: 49000,
+          revenueShare: null,
           share: 0.5,
         },
       ],
@@ -329,7 +356,10 @@ describe("buildDashboardAnalytics", () => {
           count: 3,
           key: "Предложить замену",
           label: "Предложить замену",
+          largeOrdersCount: null,
+          previousRevenueAmount: null,
           revenueAmount: null,
+          revenueShare: null,
           share: 0.75,
         },
         {
@@ -337,7 +367,10 @@ describe("buildDashboardAnalytics", () => {
           count: 1,
           key: "new",
           label: "new",
+          largeOrdersCount: null,
+          previousRevenueAmount: null,
           revenueAmount: null,
+          revenueShare: null,
           share: 0.25,
         },
       ],
@@ -484,7 +517,75 @@ describe("buildDashboardAnalytics", () => {
       analytics.marketingSourceBreakdown.every((row) => row.revenueAmount === null),
     ).toBe(true);
     expect(
+      analytics.marketingSourceBreakdown.every((row) => row.revenueShare === null),
+    ).toBe(true);
+    expect(
       analytics.orderMethodBreakdown.every((row) => row.revenueAmount === null),
     ).toBe(true);
+  });
+
+  it("adds revenue-share and comparison-period context to marketing source breakdowns", () => {
+    const dashboard = buildDashboardReadModel({
+      lastSyncedAt: "2026-04-10T12:00:00.000Z",
+      orders: [
+        ...sampleOrders,
+        {
+          ...sampleOrders[1],
+          retailcrm_id: 91,
+          external_id: "mock-order-0051",
+          number: "MOCK-0051",
+          created_at: "2026-02-17T08:00:00+00:00",
+          total_sum: 40000,
+          raw_json: {
+            ...sampleOrders[1].raw_json,
+            customFields: {
+              utm_source: "google",
+            },
+          },
+        },
+      ],
+    });
+
+    const analytics = buildDashboardAnalytics({
+      dashboard,
+      filters: {
+        customEnd: "2026-02-19",
+        customStart: "2026-02-18",
+        marketingSource: "all",
+        onlyLargeOrders: false,
+        periodKey: "custom",
+        search: "",
+        showComparison: true,
+        sortDirection: "desc",
+        sortKey: "createdAt",
+        status: "all",
+      },
+      renderedAt: "2026-04-10T12:05:00.000Z",
+    });
+
+    expect(analytics.marketingSourceBreakdown).toEqual([
+      {
+        averageOrderValue: 81000,
+        count: 1,
+        key: "google",
+        label: "google",
+        largeOrdersCount: 1,
+        previousRevenueAmount: 40000,
+        revenueAmount: 81000,
+        revenueShare: 0.69,
+        share: 0.5,
+      },
+      {
+        averageOrderValue: 37000,
+        count: 1,
+        key: "instagram",
+        label: "instagram",
+        largeOrdersCount: 0,
+        previousRevenueAmount: 0,
+        revenueAmount: 37000,
+        revenueShare: 0.31,
+        share: 0.5,
+      },
+    ]);
   });
 });

@@ -39,6 +39,7 @@ Supabase
 - полностью на русском языке
 - остаётся Supabase-only read screen
 - показывает compact header, control bar, KPI, trends, раздельные breakdown-блоки по источнику и способу оформления, а также orders drilldown
+- блок `Источник заказа` считает источник только по `utm_source` и показывает по каналу выручку, средний чек, число крупных заказов, долю выручки и comparison-period context
 - использует detail panel заказа в том же операционном формате, что и Telegram alert
 
 Операционные поля в detail panel:
