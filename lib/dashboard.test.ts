@@ -1,11 +1,12 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  DASHBOARD_LATEST_ORDERS_LIMIT,
+  buildDashboardAnalytics,
   buildDashboardReadModel,
+  type DashboardOrderRow,
 } from "@/lib/dashboard";
 
-const sampleOrders = [
+const sampleOrders: DashboardOrderRow[] = [
   {
     retailcrm_id: 88,
     external_id: "mock-order-0048",
@@ -16,6 +17,15 @@ const sampleOrders = [
     currency: "KZT",
     source: "shopping-cart",
     synced_at: "2026-04-10T10:00:00+00:00",
+    raw_json: {
+      items: [
+        {
+          initialPrice: 55000,
+          productName: "Комплект Premium",
+          quantity: 1,
+        },
+      ],
+    },
   },
   {
     retailcrm_id: 90,
@@ -27,6 +37,20 @@ const sampleOrders = [
     currency: "KZT",
     source: "shopping-cart",
     synced_at: "2026-04-10T10:00:00+00:00",
+    raw_json: {
+      items: [
+        {
+          initialPrice: 31000,
+          productName: "Топ Soft",
+          quantity: 1,
+        },
+        {
+          initialPrice: 50000,
+          productName: "Комплект Balance",
+          quantity: 1,
+        },
+      ],
+    },
   },
   {
     retailcrm_id: 89,
@@ -38,6 +62,15 @@ const sampleOrders = [
     currency: "KZT",
     source: "instagram",
     synced_at: "2026-04-10T10:00:00+00:00",
+    raw_json: {
+      items: [
+        {
+          initialPrice: 37000,
+          productName: "Платье Shape",
+          quantity: 1,
+        },
+      ],
+    },
   },
   {
     retailcrm_id: 87,
@@ -49,114 +82,290 @@ const sampleOrders = [
     currency: "KZT",
     source: null,
     synced_at: "2026-04-10T10:00:00+00:00",
+    raw_json: {
+      items: [],
+    },
   },
-] as const;
+];
 
 describe("buildDashboardReadModel", () => {
-  it("builds dashboard metrics, latest orders, and orders-by-day from Supabase rows", () => {
-    expect(buildDashboardReadModel(sampleOrders)).toEqual({
-      averageOrderValue: {
-        amount: 58750,
-        currencyCode: "KZT",
-        label: "Средний чек",
-      },
-      cadenceSummary: {
-        activeDays: 3,
-        averageOrdersPerActiveDay: 1.33,
-        firstOrderDate: "2026-02-17",
-        lastOrderDate: "2026-02-19",
-        peakDayCount: 2,
-        steadyDailyCount: null,
-      },
-      latestOrders: [
+  it("normalizes orders, sources, statuses, and last sync metadata for the dashboard", () => {
+    expect(
+      buildDashboardReadModel({
+        lastSyncedAt: "2026-04-10T12:00:00.000Z",
+        orders: sampleOrders,
+      }),
+    ).toEqual(
+      expect.objectContaining({
+      availableSources: ["instagram", "shopping-cart", "Не указан"],
+      availableStatuses: ["new", "offer-analog"],
+      currencyCode: "KZT",
+      lastSyncedAt: "2026-04-10T12:00:00.000Z",
+      largeOrderThreshold: 50000,
+      orders: [
         expect.objectContaining({
           retailcrmId: 90,
+          itemCount: 2,
           sourceLabel: "shopping-cart",
+          isLargeOrder: true,
         }),
         expect.objectContaining({
           retailcrmId: 89,
+          itemCount: 1,
           sourceLabel: "instagram",
+          isLargeOrder: false,
         }),
         expect.objectContaining({
           retailcrmId: 87,
+          itemCount: 0,
           sourceLabel: "Не указан",
+          isLargeOrder: false,
         }),
         expect.objectContaining({
           retailcrmId: 88,
+          itemCount: 1,
           sourceLabel: "shopping-cart",
+          isLargeOrder: true,
         }),
       ],
-      ordersByDay: [
-        { count: 2, date: "2026-02-17" },
-        { count: 1, date: "2026-02-18" },
-        { count: 1, date: "2026-02-19" },
-      ],
-      ordersByWeek: [
+      sourceColumnLabel: "Источник / метод",
+      }),
+    );
+  });
+});
+
+describe("buildDashboardAnalytics", () => {
+  it("builds summary metrics, trends, and breakdowns for the selected slice", () => {
+    const dashboard = buildDashboardReadModel({
+      lastSyncedAt: "2026-04-10T12:00:00.000Z",
+      orders: sampleOrders,
+    });
+
+    expect(
+      buildDashboardAnalytics({
+        dashboard,
+        filters: {
+          customEnd: "",
+          customStart: "",
+          onlyLargeOrders: false,
+          periodKey: "all",
+          search: "",
+          showComparison: false,
+          sortDirection: "desc",
+          sortKey: "createdAt",
+          source: "all",
+          status: "all",
+        },
+        renderedAt: "2026-04-10T12:05:00.000Z",
+      }),
+    ).toEqual({
+      amountBreakdown: [
         {
-          count: 4,
-          revenueAmount: 235000,
-          weekEnd: "2026-02-22",
-          weekStart: "2026-02-16",
+          count: 1,
+          key: "under-25000",
+          label: "до 25 000",
+          revenueAmount: null,
+          share: 0.25,
+        },
+        {
+          count: 1,
+          key: "25000-50000",
+          label: "25 000 – 50 000",
+          revenueAmount: null,
+          share: 0.25,
+        },
+        {
+          count: 0,
+          key: "50000-75000",
+          label: "50 000 – 75 000",
+          revenueAmount: null,
+          share: 0,
+        },
+        {
+          count: 2,
+          key: "75000-plus",
+          label: "75 000+",
+          revenueAmount: null,
+          share: 0.5,
         },
       ],
-      revenueMetric: {
-        amount: 235000,
-        currencyCode: "KZT",
-        label: "Выручка",
+      anchorDate: "2026-02-19",
+      currentSummary: {
+        averageOrderValue: {
+          amount: 58750,
+          currencyCode: "KZT",
+        },
+        largeOrdersCount: 2,
+        largeOrdersRevenueShare: 0.79,
+        orderCount: 4,
+        revenue: {
+          amount: 235000,
+          currencyCode: "KZT",
+        },
       },
-      sourceColumnLabel: "Источник / способ",
-      totalOrders: 4,
+      filteredOrders: [
+        expect.objectContaining({ retailcrmId: 90 }),
+        expect.objectContaining({ retailcrmId: 89 }),
+        expect.objectContaining({ retailcrmId: 87 }),
+        expect.objectContaining({ retailcrmId: 88 }),
+      ],
+      freshness: {
+        absoluteLabel: "10 апр. 2026 г., 12:00",
+        label: "5 мин назад",
+        lastSyncedAt: "2026-04-10T12:00:00.000Z",
+      },
+      hasActiveFilters: false,
+      previousSummary: null,
+      range: {
+        comparisonEnd: null,
+        comparisonStart: null,
+        end: "2026-02-19",
+        grain: "day",
+        start: "2026-02-17",
+        totalDays: 3,
+      },
+      sourceBreakdown: [
+        {
+          count: 2,
+          key: "shopping-cart",
+          label: "shopping-cart",
+          revenueAmount: 186000,
+          share: 0.5,
+        },
+        {
+          count: 1,
+          key: "instagram",
+          label: "instagram",
+          revenueAmount: 37000,
+          share: 0.25,
+        },
+        {
+          count: 1,
+          key: "Не указан",
+          label: "Не указан",
+          revenueAmount: 12000,
+          share: 0.25,
+        },
+      ],
+      statusBreakdown: [
+        {
+          count: 3,
+          key: "offer-analog",
+          label: "offer-analog",
+          revenueAmount: null,
+          share: 0.75,
+        },
+        {
+          count: 1,
+          key: "new",
+          label: "new",
+          revenueAmount: null,
+          share: 0.25,
+        },
+      ],
+      trendSeries: [
+        {
+          key: "2026-02-17",
+          label: "17 февр.",
+          ordersCount: 2,
+          revenueAmount: 117000,
+        },
+        {
+          key: "2026-02-18",
+          label: "18 февр.",
+          ordersCount: 1,
+          revenueAmount: 37000,
+        },
+        {
+          key: "2026-02-19",
+          label: "19 февр.",
+          ordersCount: 1,
+          revenueAmount: 81000,
+        },
+      ],
     });
   });
 
-  it("avoids claiming a converted revenue metric when the stored data contains mixed currencies", () => {
-    expect(
-      buildDashboardReadModel([
+  it("applies search, source, and large-order filters before sorting the table", () => {
+    const dashboard = buildDashboardReadModel({
+      lastSyncedAt: "2026-04-10T12:00:00.000Z",
+      orders: sampleOrders,
+    });
+
+    const analytics = buildDashboardAnalytics({
+      dashboard,
+      filters: {
+        customEnd: "",
+        customStart: "",
+        onlyLargeOrders: true,
+        periodKey: "all",
+        search: "mock-00",
+        showComparison: false,
+        sortDirection: "asc",
+        sortKey: "totalSum",
+        source: "shopping-cart",
+        status: "all",
+      },
+      renderedAt: "2026-04-10T12:05:00.000Z",
+    });
+
+    expect(analytics.currentSummary).toEqual({
+      averageOrderValue: {
+        amount: 93000,
+        currencyCode: "KZT",
+      },
+      largeOrdersCount: 2,
+      largeOrdersRevenueShare: 1,
+      orderCount: 2,
+      revenue: {
+        amount: 186000,
+        currencyCode: "KZT",
+      },
+    });
+    expect(analytics.filteredOrders.map((order) => order.retailcrmId)).toEqual([90, 88]);
+    expect(analytics.hasActiveFilters).toBe(true);
+  });
+
+  it("keeps revenue metrics honest when the filtered slice contains mixed currencies", () => {
+    const dashboard = buildDashboardReadModel({
+      lastSyncedAt: "2026-04-10T12:00:00.000Z",
+      orders: [
         sampleOrders[0],
         {
           ...sampleOrders[1],
           currency: "USD",
         },
-      ]),
-    ).toEqual(
-      expect.objectContaining({
-        averageOrderValue: {
-          amount: null,
-          currencyCode: null,
-          label: "Средний чек",
-        },
-        ordersByWeek: [
-          {
-            count: 2,
-            revenueAmount: null,
-            weekEnd: "2026-02-22",
-            weekStart: "2026-02-16",
-          },
-        ],
-        revenueMetric: {
-          amount: null,
-          currencyCode: null,
-          label: "Выручка",
-        },
-      }),
-    );
-  });
+      ],
+    });
 
-  it("caps latest orders to the configured dashboard limit", () => {
-    const orders = Array.from({ length: DASHBOARD_LATEST_ORDERS_LIMIT + 2 }, (_, index) => ({
-      retailcrm_id: index + 1,
-      external_id: `mock-order-${index + 1}`,
-      number: `MOCK-${index + 1}`,
-      created_at: new Date(Date.UTC(2026, 1, index + 1, 9, 0, 0)).toISOString(),
-      status: "new",
-      total_sum: 1000 + index,
-      currency: "KZT",
-      source: "shopping-cart",
-      synced_at: "2026-04-10T10:00:00+00:00",
-    }));
+    const analytics = buildDashboardAnalytics({
+      dashboard,
+      filters: {
+        customEnd: "",
+        customStart: "",
+        onlyLargeOrders: false,
+        periodKey: "all",
+        search: "",
+        showComparison: false,
+        sortDirection: "desc",
+        sortKey: "createdAt",
+        source: "all",
+        status: "all",
+      },
+      renderedAt: "2026-04-10T12:05:00.000Z",
+    });
 
-    expect(buildDashboardReadModel(orders).latestOrders).toHaveLength(
-      DASHBOARD_LATEST_ORDERS_LIMIT,
-    );
+    expect(analytics.currentSummary.revenue).toEqual({
+      amount: null,
+      currencyCode: null,
+    });
+    expect(analytics.currentSummary.averageOrderValue).toEqual({
+      amount: null,
+      currencyCode: null,
+    });
+    expect(analytics.trendSeries.every((point) => point.revenueAmount === null)).toBe(true);
+    expect(
+      analytics.sourceBreakdown.every((row) => row.revenueAmount === null),
+    ).toBe(true);
   });
 });

@@ -1,7 +1,7 @@
 # STATE
 
 ## Current state
-Status: M2 is closed. M3 is sufficiently validated for the test assignment after M3.1 live contract reconciliation. M4 is closed and live-verified. M5 dashboard read model and UI are implemented against Supabase as the only read source. After a post-M5 upstream currency realignment, the live RetailCRM contract of record now returns `KZT`, Supabase has been resynced, and the dashboard renders the current synced data set in `KZT` without any client-side relabeling or currency conversion. M6 Telegram alert foundation is closed and live-verified against that KZT contract, with explicit dedupe in `alerts_sent`. M7 end-to-end pipeline runner is closed and live-verified as a one-command local chain over the existing foundations. M8 deployment and handoff is complete: the dashboard is deployed and reachable on Vercel at `https://gbc-analytics-dashboard-test-task.vercel.app`, the repository is published at `https://github.com/DavidGarguliya/gbc-analytics-dashboard-test-task`, the deployed page renders the expected Supabase-backed metrics, and the Vercel project is now linked to that GitHub repository with `main` as the production branch. After the initial handoff closeout, the dashboard UI was localized to Russian, the misleading flat daily bar grid was replaced with a weekly summary plus cadence explanation, and `README.md` was rewritten in Russian. The only remaining external artifact is the accepted Telegram screenshot.
+Status: M2 is closed. M3 is sufficiently validated for the test assignment after M3.1 live contract reconciliation. M4 is closed and live-verified. M5 dashboard read model and UI are implemented against Supabase as the only read source. After a post-M5 upstream currency realignment, the live RetailCRM contract of record now returns `KZT`, Supabase has been resynced, and the dashboard renders the current synced data set in `KZT` without any client-side relabeling or currency conversion. M6 Telegram alert foundation is closed and live-verified against that KZT contract, with explicit dedupe in `alerts_sent`. M7 end-to-end pipeline runner is closed and live-verified as a one-command local chain over the existing foundations. M8 deployment and handoff is complete: the dashboard is deployed and reachable on Vercel at `https://gbc-analytics-dashboard-test-task.vercel.app`, the repository is published at `https://github.com/DavidGarguliya/gbc-analytics-dashboard-test-task`, and the Vercel project is linked to that GitHub repository with `main` as the production branch. After the initial handoff closeout, the dashboard was rebuilt into a denser Russian-language analytical overview: compact header, period controls, comparable KPI strip, compact trend charts, status/source/amount breakdowns, and a sortable drilldown table, still backed only by the Supabase read model. The only remaining external artifact is the accepted Telegram screenshot.
 
 ## Active branch
 Checkpoint-review branch: `task/final-hardening`
@@ -36,7 +36,7 @@ Canonical local integration branch: `feat/next-stage-baseline`
 - M6 live verification completed by deriving the Telegram chat target from bot updates, sending all current qualifying alerts once, and confirming a zero-send rerun
 - M7 pipeline runner added with a single local command, macOS and Windows launchers, and live-verified end-to-end execution over import, sync, dashboard read, and alert stages
 - M8 Vercel deployment completed and live-verified for the dashboard at `https://gbc-analytics-dashboard-test-task.vercel.app`
-- Dashboard UI localized to Russian and reframed to show weekly order rhythm instead of a flat daily bar wall for the current one-order-per-day data set
+- Dashboard rebuilt into a Russian analytical overview with period filters, KPI deltas, compact trends, analytical breakdowns, and a sortable drilldown table
 - README rewritten in Russian for reviewer-facing delivery quality
 
 ## In progress
@@ -75,7 +75,7 @@ Healthy if:
 - the dashboard renders those Supabase rows with metrics matching the current synced data set: 50 orders, `2,451,000 KZT` total revenue, `49,020 KZT` average order value,
 - the alert path has been live-verified to send all current qualifying `KZT` orders once and to send zero duplicates on immediate rerun,
 - the pipeline runner has been live-verified through both `npm run pipeline` and the macOS launcher, with an honest rerun summary of import `uploaded=0`, sync `50/50`, dashboard `50` orders, and alerts `0/0`,
-- the Vercel dashboard URL returns HTTP `200` and renders the expected Supabase-backed values: `2,451,000 KZT` total revenue, `49,020 KZT` average order value, and recent orders such as `MOCK-0050`,
+- the Vercel dashboard URL returns HTTP `200` and renders the expected Supabase-backed overview markers and values such as `Дашборд заказов`, `Выручка по дням`, `Источник / метод заказа`, `2,451,000 KZT`, `49,020 KZT`, and `MOCK-0050`,
 - the Vercel project is linked to GitHub repository `DavidGarguliya/gbc-analytics-dashboard-test-task` with `main` as the production branch.
 
 ## Milestone checkpoint status

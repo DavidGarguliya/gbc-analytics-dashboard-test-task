@@ -497,3 +497,39 @@
 - Risks / next:
   - M6 can now be implemented against the corrected live `KZT` contract
   - historical M3/M3.1 notes that recorded `RUB` remain valid as historical evidence, but not as current contract truth
+
+## 2026-04-10 — Post-M8 dashboard analytical redesign
+- Branch: `task/final-hardening`
+- Scope: replaced the interim reviewer-facing dashboard polish with a denser Russian analytical overview that answers for the selected slice what is happening, how the dynamics move, what composes the result, and which orders explain it.
+- Implemented scope:
+  - replaced the oversized narrative layout with a compact dashboard header and control bar
+  - added period selection (`7/30/90/всё время/свой период`), compare-with-previous toggle, status/source/large-order filters, and search by order number or `externalId`
+  - expanded the Supabase-backed read model with explicit `lastSyncedAt`, normalized order items from stored `raw_json`, and client-safe order records for drilldown
+  - added KPI cards for orders, revenue, average check, large orders, large-order revenue share, and data freshness
+  - replaced the weak flat daily wall with compact revenue and order trend charts that switch aggregation grain by range length
+  - added analytical slices for statuses, source/method, and order-amount distribution
+  - replaced the simple latest-orders list with a sortable drilldown table and an order-details side panel
+- Preserved constraints:
+  - dashboard still reads only the Supabase read model on the server
+  - no browser-side Supabase, RetailCRM, or Telegram access was introduced
+  - source attribution remains conservative: stored `source` still means `utm_source` when present, otherwise order method fallback
+  - no product analytics or unsupported business metrics were fabricated
+- Key artifacts:
+  - `app/dashboard-view.tsx`
+  - `app/page.tsx`
+  - `app/page.module.css`
+  - `lib/dashboard.ts`
+  - `lib/dashboard-read.ts`
+  - `lib/dashboard.test.ts`
+  - `docs/STATE.md`
+  - `docs/CHRONICLE.md`
+- Verification:
+  - `npm run lint`
+  - `npm run typecheck`
+  - `npm test`
+  - `npm run build`
+  - `npm run start -- --hostname 127.0.0.1 --port 3101`
+  - `curl http://127.0.0.1:3101` confirmed server-rendered markers including `Дашборд заказов`, `Выручка по дням`, `Источник / метод заказа`, `Распределение по сумме заказа`, `2 451 000 KZT`, `49 020 KZT`, and `MOCK-0050`
+- Risks / next:
+  - production alias still needs one more Git-backed Vercel deployment/verification for this exact UI slice
+  - the large-order threshold and amount buckets remain intentionally tied to the current stored `KZT` contract
