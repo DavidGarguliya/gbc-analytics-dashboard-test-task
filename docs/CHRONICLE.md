@@ -1,5 +1,20 @@
 # CHRONICLE
 
+## 2026-04-10 — Telegram alert payload refinement
+- Branch: `task/overview-visual-redesign`
+- Scope: corrected Telegram/UI item extraction to use real persisted RetailCRM item names and added persisted email to Telegram alerts only.
+- Implemented scope:
+  - updated [order-operational.ts](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/lib/order-operational.ts) to read item titles from live nested payloads such as `raw_json.items[*].offer.displayName` and `offer.name`, while still supporting direct `productName`
+  - extended [telegram.ts](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/lib/telegram.ts) so alerts include `Email` directly under `Телефон` when `raw_json.email` exists
+  - added [order-operational.test.ts](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/lib/order-operational.test.ts) and refreshed [telegram.test.ts](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/lib/telegram.test.ts) to lock the live payload shape into tests
+- Verification:
+  - `npm test -- lib/order-operational.test.ts lib/telegram.test.ts lib/telegram-alerts.test.ts`
+  - live Supabase spot-check for `MOCK-0050` confirmed `raw_json.email` plus real item titles under `raw_json.items[*].offer.name`
+  - one real Telegram test alert was resent manually without touching `alerts_sent`
+- Remaining risks / next:
+  - `email` still comes from persisted `raw_json`, so upstream payload-shape changes must be handled explicitly in the shared helper
+  - if later policy decides email is not proportionate for Telegram, this formatter change should be reverted without changing the dashboard detail panel
+
 ## 2026-04-10 — Controlled overview redesign and operational alert alignment
 - Branch: `task/overview-visual-redesign` from `feat/next-stage-baseline`
 - Scope: rebuilt the overview screen into a lighter product-grade analytics dashboard, aligned the order detail drawer with the Telegram operational alert format, and did the minimum honest read-model enrichment required for those views.

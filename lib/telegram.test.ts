@@ -18,15 +18,20 @@ const sampleOrder: TelegramHighValueOrder = {
         city: "Шымкент",
       },
     },
+    email: "feruza.yusupova@example.com",
     items: [
       {
+        offer: {
+          displayName: "Топ Soft",
+        },
         initialPrice: 31000,
-        productName: "Топ Soft",
         quantity: 1,
       },
       {
+        offer: {
+          name: "Комплект Balance",
+        },
         initialPrice: 50000,
-        productName: "Комплект Balance",
         quantity: 1,
       },
     ],
@@ -51,6 +56,7 @@ describe("formatHighValueOrderAlert", () => {
         "💰 Сумма: 81 000 KZT",
         "👤 Клиент: Феруза Юсупова",
         "📞 Телефон: +77090123450",
+        "✉️ Email: feruza.yusupova@example.com",
         "🏙 Город: Шымкент",
         "📣 Источник: shopping-cart",
         "🧾 Состав:",
@@ -101,6 +107,7 @@ describe("sendHighValueOrderAlert", () => {
             "💰 Сумма: 81 000 KZT",
             "👤 Клиент: Феруза Юсупова",
             "📞 Телефон: +77090123450",
+            "✉️ Email: feruza.yusupova@example.com",
             "🏙 Город: Шымкент",
             "📣 Источник: shopping-cart",
             "🧾 Состав:",

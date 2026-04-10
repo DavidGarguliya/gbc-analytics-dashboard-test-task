@@ -109,6 +109,10 @@ The current operational overview also needs one explicit per-order projection fo
 - derived positions count from `raw_json.items.length`
 - derived units count from `raw_json.items[*].quantity`
 
+The current Telegram alert projection uses the same base order summary and may additionally derive:
+- `email` from `raw_json.email`
+- item titles from live RetailCRM item payloads such as `raw_json.items[*].productName` or nested `raw_json.items[*].offer.displayName` / `offer.name`
+
 This is still considered one Supabase-backed read model because all derivation happens from persisted rows and persisted `raw_json`, not from secondary upstream requests.
 
 No materialized views are necessary unless later justified.

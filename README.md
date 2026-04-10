@@ -39,7 +39,7 @@ Supabase
 - показывает compact header, control bar, KPI, trends, breakdowns и orders drilldown
 - использует detail panel заказа в том же операционном формате, что и Telegram alert
 
-Операционные поля в detail panel и alert:
+Операционные поля в detail panel:
 
 - номер заказа
 - сумма и валюта
@@ -52,12 +52,17 @@ Supabase
 - количество единиц товара
 - дата
 
+Дополнительно для Telegram alert:
+
+- email сразу под телефоном, если он уже есть в сохранённом `raw_json`
+
 Важно:
 
 - `customer_name` и `phone` читаются из сохранённой строки `orders`
 - `city`, `items`, `positions`, `units` сейчас честно выводятся из сохранённого `orders.raw_json`
+- реальные названия позиций читаются из сохранённого item payload, включая live RetailCRM shape `items[*].offer.displayName` / `items[*].offer.name`
 - raw payload целиком в UI не показывается
-- full address и email по умолчанию не показываются
+- full address и email по умолчанию не показываются в UI
 
 ## Технологии
 

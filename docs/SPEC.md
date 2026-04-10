@@ -82,6 +82,7 @@ Operational note:
 - the current live RetailCRM account now returns the imported demo orders with `currency = KZT`,
 - later alert logic must therefore compare the numeric amount field as stored by RetailCRM and include the stored currency in the message,
 - the alert message should use the same operational field set as the dashboard order details where those values are available from Supabase plus persisted `raw_json`,
+- the alert message may additionally include `email` directly under `phone` when that value is present in the persisted `raw_json` and remains operationally useful,
 - if city, item composition, or units count are not stored as dedicated columns, they may be derived from persisted `raw_json` without introducing a second upstream read path,
 - no implicit currency conversion is part of this assignment unless a later decision introduces it explicitly.
 

@@ -26,6 +26,7 @@ export type OperationalOrderSummary = {
   currency: string;
   customerName: string | null;
   city: string | null;
+  email: string | null;
   externalId: string | null;
   itemCount: number;
   items: OperationalOrderItem[];
@@ -108,6 +109,23 @@ function readDeliveryCity(rawJson: Record<string, unknown>): string | null {
   return readTrimmedString(address.city);
 }
 
+function readEmail(rawJson: Record<string, unknown>): string | null {
+  return readTrimmedString(rawJson.email);
+}
+
+function readOfferProductName(item: Record<string, unknown>): string | null {
+  const offer = item.offer;
+
+  if (!isObject(offer)) {
+    return null;
+  }
+
+  return (
+    readTrimmedString(offer.displayName) ??
+    readTrimmedString(offer.name)
+  );
+}
+
 export function readOperationalOrderItems(
   rawJson: Record<string, unknown>,
 ): OperationalOrderItem[] {
@@ -125,7 +143,9 @@ export function readOperationalOrderItems(
       lineTotal:
         quantity !== null && unitPrice !== null ? roundValue(quantity * unitPrice) : null,
       productName:
-        readTrimmedString(item.productName) ?? `Позиция ${index + 1}`,
+        readTrimmedString(item.productName) ??
+        readOfferProductName(item) ??
+        `Позиция ${index + 1}`,
       quantity,
       unitPrice,
     };
@@ -157,6 +177,7 @@ export function buildOperationalOrderSummary(
     customerName:
       readTrimmedString(record.customer_name) ?? readFallbackCustomerName(record.raw_json),
     city: readDeliveryCity(record.raw_json),
+    email: readEmail(record.raw_json),
     externalId:
       readTrimmedString(record.external_id) ?? readTrimmedString(record.raw_json.externalId),
     itemCount: items.length,

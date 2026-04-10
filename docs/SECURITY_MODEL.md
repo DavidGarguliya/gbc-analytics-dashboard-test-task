@@ -47,7 +47,8 @@ Guidance:
 - do not unnecessarily display sensitive fields in the dashboard,
 - do not include private customer details in Telegram beyond what is useful and proportionate.
 - the operational detail panel and Telegram alerts may use customer name, phone, city, and compact item composition because they are operationally useful for this assignment,
-- full address text, email, raw JSON, and non-operational technical fields must not be shown by default in the UI.
+- `email` must not be shown by default in the UI, but may be included in Telegram alerts when present in persisted `raw_json` and useful for operator follow-up,
+- full address text, raw JSON, and non-operational technical fields must not be shown by default in the UI.
 
 ---
 

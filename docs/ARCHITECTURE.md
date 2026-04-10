@@ -83,6 +83,7 @@ Boundary:
 Responsibility:
 - send readable alert messages for high-value orders,
 - use the same operational field set as the dashboard order-detail panel where those values exist in the persisted Supabase read model,
+- include persisted `email` in the alert only when it is available from `raw_json` and useful for operator follow-up,
 - record that the notification was sent,
 - prevent duplicates.
 

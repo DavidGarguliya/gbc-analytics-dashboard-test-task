@@ -81,6 +81,7 @@ export function formatHighValueOrderAlert(order: TelegramHighValueOrder): string
     `💰 Сумма: ${formatStoredAmount(summary.totalSum)} ${summary.currency}`,
     `👤 Клиент: ${summary.customerName ?? "Не указан"}`,
     `📞 Телефон: ${summary.phone ?? "Не указан"}`,
+    `✉️ Email: ${summary.email ?? "Не указан"}`,
     `🏙 Город: ${summary.city ?? "Не указан"}`,
     `📣 Источник: ${summary.sourceLabel}`,
     "🧾 Состав:",
