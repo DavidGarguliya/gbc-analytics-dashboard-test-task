@@ -70,17 +70,19 @@ Responsibility:
 
 ### 2.5 Dashboard
 Responsibility:
-- render metrics and recent orders,
+- render metrics, trends, breakdowns, a sortable orders table, and an operational order-detail panel,
 - read only from Supabase,
 - remain small and reviewable.
 
 Boundary:
 - no direct upstream CRM access,
 - no secrets in client-side paths.
+- any operational detail fields not stored as dedicated columns, such as city or item-derived counts, must be derived from the persisted Supabase row plus `raw_json`, not by calling RetailCRM again.
 
 ### 2.6 Telegram notifier
 Responsibility:
 - send readable alert messages for high-value orders,
+- use the same operational field set as the dashboard order-detail panel where those values exist in the persisted Supabase read model,
 - record that the notification was sent,
 - prevent duplicates.
 
@@ -107,6 +109,7 @@ Boundary:
 - One deployable web app repository.
 - No background infrastructure beyond what the platform already provides unless justified.
 - No speculative modularization.
+- If dashboard details and Telegram alerts need the same operational view of an order, use one thin shared projection helper rather than parallel formatting logic.
 
 ---
 
@@ -130,13 +133,15 @@ Boundary:
 1. Query aggregated and recent order data from Supabase.
 2. Render summary metrics.
 3. Render time-series chart.
-4. Render latest orders list.
+4. Render analytical breakdowns and the orders table.
+5. When a row is selected, derive the operational detail panel from the stored order row plus persisted `raw_json`.
 
 ### 4.4 Alert flow
 1. Find orders above threshold that have not been alerted.
-2. Send Telegram messages.
-3. Persist sent alerts in `alerts_sent`.
-4. Exit with success/failure logs.
+2. Build the operational alert message from the same persisted order summary rules used by the detail panel.
+3. Send Telegram messages.
+4. Persist sent alerts in `alerts_sent`.
+5. Exit with success/failure logs.
 
 ---
 

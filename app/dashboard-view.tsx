@@ -10,6 +10,10 @@ import {
   type DashboardReadModel,
   type DashboardSummary,
 } from "@/lib/dashboard";
+import {
+  formatOperationalOrderLabel,
+  splitOperationalItems,
+} from "@/lib/order-operational";
 
 import styles from "./page.module.css";
 
@@ -23,6 +27,16 @@ type DeltaTone = "down" | "flat" | "muted" | "up";
 function formatNumberValue(value: number): string {
   return new Intl.NumberFormat("ru-RU", {
     maximumFractionDigits: 0,
+  }).format(value);
+}
+
+function formatCountValue(value: number | null): string {
+  if (value === null) {
+    return "н/д";
+  }
+
+  return new Intl.NumberFormat("ru-RU", {
+    maximumFractionDigits: Number.isInteger(value) ? 0 : 2,
   }).format(value);
 }
 
@@ -52,6 +66,14 @@ function formatMoneyValue(input: {
 function formatDateLabel(value: string): string {
   return new Intl.DateTimeFormat("ru-RU", {
     dateStyle: "medium",
+    timeZone: "UTC",
+  }).format(new Date(value));
+}
+
+function formatDateTimeLabel(value: string): string {
+  return new Intl.DateTimeFormat("ru-RU", {
+    dateStyle: "medium",
+    timeStyle: "short",
     timeZone: "UTC",
   }).format(new Date(value));
 }
@@ -179,23 +201,25 @@ function MetricCard(props: {
   return (
     <article className={styles.metricCard}>
       <p className={styles.metricLabel}>{props.title}</p>
-      <p className={styles.metricValue}>{props.value}</p>
+      <div className={styles.metricValueRow}>
+        <p className={styles.metricValue}>{props.value}</p>
+        {props.delta ? (
+          <p
+            className={`${styles.metricDelta} ${
+              props.delta.tone === "up"
+                ? styles.metricDeltaUp
+                : props.delta.tone === "down"
+                  ? styles.metricDeltaDown
+                  : props.delta.tone === "flat"
+                    ? styles.metricDeltaFlat
+                    : styles.metricDeltaMuted
+            }`}
+          >
+            {props.delta.label}
+          </p>
+        ) : null}
+      </div>
       <p className={styles.metricSupport}>{props.subtitle}</p>
-      {props.delta ? (
-        <p
-          className={`${styles.metricDelta} ${
-            props.delta.tone === "up"
-              ? styles.metricDeltaUp
-              : props.delta.tone === "down"
-                ? styles.metricDeltaDown
-                : props.delta.tone === "flat"
-                  ? styles.metricDeltaFlat
-                  : styles.metricDeltaMuted
-          }`}
-        >
-          {props.delta.label}
-        </p>
-      ) : null}
     </article>
   );
 }
@@ -217,7 +241,9 @@ function RevenueTrendChart(props: {
             <p className={styles.chartLabel}>Выручка по дням</p>
             <h3 className={styles.chartTitle}>Нет данных</h3>
           </div>
-          <p className={styles.chartHint}>После первой синхронизации график начнёт строиться из Supabase.</p>
+          <p className={styles.chartHint}>
+            После первой синхронизации график начнёт строиться из Supabase.
+          </p>
         </div>
       </div>
     );
@@ -227,14 +253,13 @@ function RevenueTrendChart(props: {
   const maxValue = Math.max(...values, 1);
   const coordinates = props.points.map((point, index) => {
     const x = props.points.length === 1 ? 50 : (index / (props.points.length - 1)) * 100;
-    const y = 92 - ((point.revenueAmount ?? 0) / maxValue) * 72;
+    const y = 88 - ((point.revenueAmount ?? 0) / maxValue) * 64;
 
     return { ...point, x, y };
   });
   const linePath = coordinates
     .map((point, index) => `${index === 0 ? "M" : "L"} ${point.x} ${point.y}`)
     .join(" ");
-  const areaPath = `${linePath} L ${coordinates.at(-1)?.x ?? 100} 92 L ${coordinates[0]?.x ?? 0} 92 Z`;
   const totalRevenue = values.reduce((sum, value) => sum + value, 0);
 
   return (
@@ -259,13 +284,17 @@ function RevenueTrendChart(props: {
           preserveAspectRatio="none"
           viewBox="0 0 100 100"
         >
-          <defs>
-            <linearGradient id="revenueFill" x1="0" x2="0" y1="0" y2="1">
-              <stop offset="0%" stopColor="rgba(27, 102, 95, 0.32)" />
-              <stop offset="100%" stopColor="rgba(27, 102, 95, 0)" />
-            </linearGradient>
-          </defs>
-          <path className={styles.lineChartArea} d={areaPath} />
+          {[20, 40, 60, 80].map((line) => (
+            <line
+              className={styles.chartGridLine}
+              key={line}
+              x1="0"
+              x2="100"
+              y1={line}
+              y2={line}
+            />
+          ))}
+          <line className={styles.chartBaseline} x1="0" x2="100" y1="88" y2="88" />
           <path className={styles.lineChartStroke} d={linePath} />
           {coordinates.map((point) => (
             <circle
@@ -273,7 +302,7 @@ function RevenueTrendChart(props: {
               cx={point.x}
               cy={point.y}
               key={point.key}
-              r="1.8"
+              r="1.5"
             />
           ))}
         </svg>
@@ -313,14 +342,15 @@ function OrdersTrendChart(props: {
 
   const values = props.points.map((point) => point.ordersCount);
   const maxValue = Math.max(...values, 1);
-  const isFlat = values.every((value) => value === values[0]);
 
   return (
     <div className={styles.chartCard}>
       <div className={styles.chartMeta}>
         <div>
           <p className={styles.chartLabel}>Заказы по дням</p>
-          <h3 className={styles.chartTitle}>{formatNumberValue(values.reduce((sum, value) => sum + value, 0))}</h3>
+          <h3 className={styles.chartTitle}>
+            {formatNumberValue(values.reduce((sum, value) => sum + value, 0))}
+          </h3>
         </div>
         <p className={styles.chartHint}>Количество заказов за выбранный период</p>
       </div>
@@ -330,12 +360,17 @@ function OrdersTrendChart(props: {
           {props.points.map((point, index) => (
             <div className={styles.barChartColumnWrap} key={point.key}>
               <span className={styles.barChartValue}>{point.ordersCount}</span>
-              <div
-                className={styles.barChartColumn}
-                style={{
-                  height: `${Math.max((point.ordersCount / maxValue) * 100, point.ordersCount > 0 ? 12 : 0)}%`,
-                }}
-              />
+              <div className={styles.barChartRail}>
+                <div
+                  className={styles.barChartColumn}
+                  style={{
+                    height: `${Math.max(
+                      (point.ordersCount / maxValue) * 100,
+                      point.ordersCount > 0 ? 10 : 0,
+                    )}%`,
+                  }}
+                />
+              </div>
               <span className={styles.barChartLabel}>
                 {shouldRenderAxisLabel(index, props.points.length) ? point.label : ""}
               </span>
@@ -343,11 +378,44 @@ function OrdersTrendChart(props: {
           ))}
         </div>
         <p className={styles.barChartFootnote}>
-          {isFlat
-            ? "Поток ровный, поэтому график работает как компактная контрольная линия, а не как крупная декоративная сетка."
-            : "При длинном периоде данные автоматически собираются по неделям или месяцам."}
+          При длинном периоде данные автоматически агрегируются по неделям или месяцам.
         </p>
       </div>
+    </div>
+  );
+}
+
+function renderBreakdownValue(input: {
+  row: {
+    count: number;
+    revenueAmount: number | null;
+    share: number;
+  };
+  revenueCurrencyCode?: string | null;
+  variant: "amount" | "source" | "status";
+}) {
+  if (input.variant === "source") {
+    return (
+      <div className={styles.sliceValueBlock}>
+        <span className={styles.sliceValuePrimary}>
+          {formatNumberValue(input.row.count)} заказа
+        </span>
+        <span className={styles.sliceValueSecondary}>
+          {input.row.revenueAmount !== null
+            ? formatMoneyValue({
+                amount: input.row.revenueAmount,
+                currencyCode: input.revenueCurrencyCode ?? null,
+              })
+            : "Выручка недоступна"}
+        </span>
+      </div>
+    );
+  }
+
+  return (
+    <div className={styles.sliceValueBlock}>
+      <span className={styles.sliceValuePrimary}>{formatNumberValue(input.row.count)}</span>
+      <span className={styles.sliceValueSecondary}>{formatPercentValue(input.row.share)}</span>
     </div>
   );
 }
@@ -377,19 +445,16 @@ function BreakdownRows(props: {
           <div className={styles.sliceRow} key={row.key}>
             <div className={styles.sliceRowTop}>
               <span className={styles.sliceRowLabel}>{row.label}</span>
-              <span className={styles.sliceRowValue}>
-                {props.variant === "source" && row.revenueAmount !== null
-                  ? `${formatNumberValue(row.count)} · ${formatMoneyValue({
-                      amount: row.revenueAmount,
-                      currencyCode: props.revenueCurrencyCode ?? null,
-                    })}`
-                  : `${formatNumberValue(row.count)} · ${formatPercentValue(row.share)}`}
-              </span>
+              {renderBreakdownValue({
+                revenueCurrencyCode: props.revenueCurrencyCode,
+                row,
+                variant: props.variant,
+              })}
             </div>
             <div className={styles.sliceTrack}>
               <div
                 className={styles.sliceFill}
-                style={{ width: `${Math.max(row.share * 100, row.count > 0 ? 10 : 0)}%` }}
+                style={{ width: `${Math.max(row.share * 100, row.count > 0 ? 8 : 0)}%` }}
               />
             </div>
           </div>
@@ -399,79 +464,134 @@ function BreakdownRows(props: {
   );
 }
 
+function DetailField(props: {
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className={styles.orderDetailField}>
+      <span className={styles.orderDetailLabel}>{props.label}</span>
+      <span className={styles.orderDetailValue}>{props.value}</span>
+    </div>
+  );
+}
+
+function formatItemPriceMeta(order: DashboardOrder, item: DashboardOrder["items"][number]): string | null {
+  const unitPrice =
+    item.unitPrice !== null
+      ? formatMoneyValue({
+          amount: item.unitPrice,
+          currencyCode: order.currency,
+        })
+      : null;
+  const lineTotal =
+    item.lineTotal !== null
+      ? formatMoneyValue({
+          amount: item.lineTotal,
+          currencyCode: order.currency,
+        })
+      : null;
+
+  if (item.quantity !== null && item.quantity > 1 && unitPrice && lineTotal) {
+    return `${unitPrice}/шт • ${lineTotal}`;
+  }
+
+  return lineTotal ?? unitPrice;
+}
+
 function OrderDetailsPanel(props: {
   onClose: () => void;
   order: DashboardOrder;
   sourceColumnLabel: string;
 }) {
+  const orderLabel = formatOperationalOrderLabel(props.order);
+  const visibleItems = splitOperationalItems(props.order.items, 5);
+
   return (
     <aside className={styles.orderDetails}>
       <div className={styles.orderDetailsHeader}>
         <div>
           <p className={styles.panelLabel}>Детали заказа</p>
-          <h3 className={styles.orderDetailsTitle}>{props.order.number ?? `#${props.order.retailcrmId}`}</h3>
+          <h3 className={styles.orderDetailsTitle}>{orderLabel}</h3>
         </div>
         <button className={styles.closeButton} onClick={props.onClose} type="button">
           Закрыть
         </button>
       </div>
 
-      <dl className={styles.orderDetailsGrid}>
-        <div className={styles.orderDetailsRow}>
-          <dt>External ID</dt>
-          <dd>{props.order.externalId ?? `retailcrm:${props.order.retailcrmId}`}</dd>
+      <div className={styles.orderDetailsAmountBlock}>
+        <p className={styles.orderDetailsAmount}>
+          {formatMoneyValue({
+            amount: props.order.totalSum,
+            currencyCode: props.order.currency,
+          })}
+        </p>
+        <div className={styles.orderDetailsMetaRow}>
+          {props.order.status ? (
+            <span className={styles.subtleBadge}>{props.order.status}</span>
+          ) : null}
+          <span className={styles.subtleBadge}>{props.order.sourceLabel}</span>
         </div>
-        <div className={styles.orderDetailsRow}>
-          <dt>Дата</dt>
-          <dd>{formatDateLabel(props.order.createdAt)}</dd>
-        </div>
-        <div className={styles.orderDetailsRow}>
-          <dt>Статус</dt>
-          <dd>{props.order.status ?? "Не указан"}</dd>
-        </div>
-        <div className={styles.orderDetailsRow}>
-          <dt>Сумма</dt>
-          <dd>
-            {formatMoneyValue({
-              amount: props.order.totalSum,
-              currencyCode: props.order.currency,
-            })}
-          </dd>
-        </div>
-        <div className={styles.orderDetailsRow}>
-          <dt>{props.sourceColumnLabel}</dt>
-          <dd>{props.order.sourceLabel}</dd>
-        </div>
-        <div className={styles.orderDetailsRow}>
-          <dt>Позиций</dt>
-          <dd>{formatNumberValue(props.order.itemCount)}</dd>
-        </div>
-        <div className={styles.orderDetailsRow}>
-          <dt>Крупный заказ</dt>
-          <dd>{props.order.isLargeOrder ? "Да" : "Нет"}</dd>
-        </div>
-        <div className={styles.orderDetailsRow}>
-          <dt>Синхронизирован</dt>
-          <dd>{formatDateLabel(props.order.syncedAt)}</dd>
-        </div>
-      </dl>
+      </div>
+
+      <div className={styles.orderDetailsGrid}>
+        <DetailField label="Клиент" value={props.order.customerName ?? "Не указан"} />
+        <DetailField label="Телефон" value={props.order.phone ?? "Не указан"} />
+        <DetailField label="Город" value={props.order.city ?? "Не указан"} />
+        <DetailField label={props.sourceColumnLabel} value={props.order.sourceLabel} />
+        <DetailField label="Позиций" value={formatNumberValue(props.order.itemCount)} />
+        <DetailField label="Единиц товара" value={formatCountValue(props.order.unitsCount)} />
+        <DetailField label="Дата" value={formatDateTimeLabel(props.order.createdAt)} />
+        {props.order.status ? <DetailField label="Статус" value={props.order.status} /> : null}
+      </div>
 
       <div className={styles.orderItemsBlock}>
-        <p className={styles.orderItemsTitle}>Состав заказа</p>
+        <div className={styles.sectionHeader}>
+          <h4 className={styles.sectionTitle}>Состав заказа</h4>
+          <span className={styles.sectionMeta}>
+            {formatNumberValue(props.order.itemCount)} позиций
+          </span>
+        </div>
+
         {props.order.items.length === 0 ? (
-          <p className={styles.orderItemsEmpty}>В сохранённом raw payload позиции не переданы.</p>
+          <p className={styles.orderItemsEmpty}>В сохранённой read-model состав заказа не передан.</p>
         ) : (
           <ul className={styles.orderItemsList}>
-            {props.order.items.map((item, index) => (
+            {visibleItems.visibleItems.map((item, index) => (
               <li className={styles.orderItemsRow} key={`${item.productName}-${index}`}>
-                <span>{item.productName}</span>
-                <span>
-                  {item.quantity !== null ? `${formatNumberValue(item.quantity)} шт` : "кол-во н/д"}
-                </span>
+                <div className={styles.orderItemCopy}>
+                  <span className={styles.orderItemName}>{item.productName}</span>
+                  {formatItemPriceMeta(props.order, item) ? (
+                    <span className={styles.orderItemMeta}>
+                      {formatItemPriceMeta(props.order, item)}
+                    </span>
+                  ) : null}
+                </div>
+                <span className={styles.orderItemQty}>×{formatCountValue(item.quantity)}</span>
               </li>
             ))}
           </ul>
         )}
+
+        {visibleItems.hiddenCount > 0 ? (
+          <p className={styles.orderItemsMore}>+ ещё {visibleItems.hiddenCount}</p>
+        ) : null}
+      </div>
+
+      <div className={styles.orderTechnicalBlock}>
+        <div className={styles.sectionHeader}>
+          <h4 className={styles.sectionTitle}>Технический блок</h4>
+          <span className={styles.sectionMeta}>вторичная информация</span>
+        </div>
+        <div className={styles.orderTechnicalGrid}>
+          <DetailField
+            label="RetailCRM ID"
+            value={String(props.order.retailcrmId)}
+          />
+          {props.order.externalId ? (
+            <DetailField label="External ID" value={props.order.externalId} />
+          ) : null}
+        </div>
       </div>
     </aside>
   );
@@ -600,15 +720,12 @@ export function DashboardView({ dashboard, renderedAt }: DashboardViewProps) {
     <section className={styles.dashboardShell}>
       <header className={styles.topbar}>
         <div className={styles.titleBlock}>
-          <p className={styles.topbarLabel}>Операционный overview</p>
           <h1 className={styles.pageTitle}>Дашборд заказов</h1>
-          <div className={styles.metaRow}>
-            <span className={styles.metaChip}>Данные из Supabase</span>
-            <span className={styles.metaChip}>
-              Последняя синхронизация: {analytics.freshness.absoluteLabel ?? "нет данных"}
-            </span>
-            <span className={styles.metaChip}>Валюта: {dashboard.currencyCode ?? "смешанная"}</span>
-          </div>
+          <p className={styles.subtitleLine}>
+            Данные из Supabase • Последняя синхронизация:{" "}
+            {analytics.freshness.absoluteLabel ?? "нет данных"} • Валюта:{" "}
+            {dashboard.currencyCode ?? "смешанная"}
+          </p>
         </div>
 
         <div className={styles.topbarControls}>
@@ -628,40 +745,33 @@ export function DashboardView({ dashboard, renderedAt }: DashboardViewProps) {
             ))}
           </div>
 
-          <label className={styles.switchRow}>
-            <input
-              checked={showComparison}
-              onChange={(event) => setShowComparison(event.target.checked)}
-              type="checkbox"
-            />
-            <span>Сравнить с предыдущим периодом</span>
-          </label>
+          <div className={styles.controlRow}>
+            <label className={styles.compareToggle}>
+              <input
+                checked={showComparison}
+                onChange={(event) => setShowComparison(event.target.checked)}
+                type="checkbox"
+              />
+              <span>Сравнить с предыдущим периодом</span>
+            </label>
 
-          <button
-            aria-expanded={filtersOpen}
-            className={`${styles.filterToggle} ${filtersOpen ? styles.filterToggleActive : ""}`}
-            onClick={() => setFiltersOpen((current) => !current)}
-            type="button"
-          >
-            Фильтры
-          </button>
+            <button
+              aria-expanded={filtersOpen}
+              className={`${styles.filterToggle} ${
+                filtersOpen ? styles.filterToggleActive : ""
+              }`}
+              onClick={() => setFiltersOpen((current) => !current)}
+              type="button"
+            >
+              Фильтры
+            </button>
+          </div>
         </div>
       </header>
 
       {filtersOpen ? (
         <section className={styles.filtersPanel}>
           <div className={styles.filtersGrid}>
-            <label className={styles.filterField}>
-              <span>Период</span>
-              <select onChange={(event) => setPeriodKey(event.target.value as DashboardPeriodKey)} value={periodKey}>
-                {DASHBOARD_PERIOD_OPTIONS.map((option) => (
-                  <option key={option.key} value={option.key}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </label>
-
             <label className={styles.filterField}>
               <span>Статус</span>
               <select onChange={(event) => setStatus(event.target.value)} value={status}>
@@ -688,7 +798,7 @@ export function DashboardView({ dashboard, renderedAt }: DashboardViewProps) {
 
             <div className={styles.filterField}>
               <span>Крупные заказы</span>
-              <label className={styles.switchRow}>
+              <label className={styles.fieldToggle}>
                 <input
                   checked={onlyLargeOrders}
                   onChange={(event) => setOnlyLargeOrders(event.target.checked)}
@@ -702,7 +812,7 @@ export function DashboardView({ dashboard, renderedAt }: DashboardViewProps) {
               <span>Поиск заказа</span>
               <input
                 onChange={(event) => setSearch(event.target.value)}
-                placeholder="Номер или external id"
+                placeholder="Номер заказа или external id"
                 type="search"
                 value={search}
               />
@@ -733,17 +843,13 @@ export function DashboardView({ dashboard, renderedAt }: DashboardViewProps) {
                   />
                 </label>
               </div>
-            ) : (
-              <div className={styles.filtersActions}>
-                <button
-                  className={styles.resetButton}
-                  onClick={resetFilters}
-                  type="button"
-                >
-                  Сбросить фильтры
-                </button>
-              </div>
-            )}
+            ) : null}
+
+            <div className={styles.filtersActions}>
+              <button className={styles.resetButton} onClick={resetFilters} type="button">
+                Сбросить фильтры
+              </button>
+            </div>
           </div>
 
           <p className={styles.filtersCaption}>
@@ -820,7 +926,11 @@ export function DashboardView({ dashboard, renderedAt }: DashboardViewProps) {
         />
       </section>
 
-      <section className={styles.tableSection}>
+      <section
+        className={`${styles.tableSection} ${
+          selectedOrder ? styles.tableSectionWithDetails : ""
+        }`}
+      >
         <div className={styles.tablePanel}>
           <div className={styles.tableHeader}>
             <div>
@@ -880,7 +990,7 @@ export function DashboardView({ dashboard, renderedAt }: DashboardViewProps) {
                       <td>
                         <div className={styles.orderIdentity}>
                           <span className={styles.orderNumber}>
-                            {order.number ?? `#${order.retailcrmId}`}
+                            {formatOperationalOrderLabel(order)}
                           </span>
                           <span className={styles.orderExternalId}>
                             {order.externalId ?? `retailcrm:${order.retailcrmId}`}

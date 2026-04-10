@@ -9,8 +9,30 @@ import {
 const sampleOrder: TelegramHighValueOrder = {
   created_at: "2026-02-19T09:00:00.000Z",
   currency: "KZT",
+  customer_name: "Феруза Юсупова",
   number: "MOCK-0050",
+  phone: "+77090123450",
+  raw_json: {
+    delivery: {
+      address: {
+        city: "Шымкент",
+      },
+    },
+    items: [
+      {
+        initialPrice: 31000,
+        productName: "Топ Soft",
+        quantity: 1,
+      },
+      {
+        initialPrice: 50000,
+        productName: "Комплект Balance",
+        quantity: 1,
+      },
+    ],
+  },
   retailcrm_id: 90,
+  source: "shopping-cart",
   status: "offer-analog",
   total_sum: 81000,
 };
@@ -23,12 +45,20 @@ describe("formatHighValueOrderAlert", () => {
   it("formats the stored order fields into a readable Telegram message", () => {
     expect(formatHighValueOrderAlert(sampleOrder)).toBe(
       [
-        "High-value order detected",
-        "Order: MOCK-0050",
-        "RetailCRM ID: 90",
-        "Amount: 81,000 KZT",
-        "Status: offer-analog",
-        "Created at: 2026-02-19 09:00:00 UTC",
+        "🛒 Новый крупный заказ!",
+        "",
+        "📦 Заказ: MOCK-0050",
+        "💰 Сумма: 81 000 KZT",
+        "👤 Клиент: Феруза Юсупова",
+        "📞 Телефон: +77090123450",
+        "🏙 Город: Шымкент",
+        "📣 Источник: shopping-cart",
+        "🧾 Состав:",
+        "• Топ Soft ×1",
+        "• Комплект Balance ×1",
+        "",
+        "📊 Позиций: 2 • Единиц товара: 2",
+        "📅 Дата: 19 февр. 2026 г., 09:00 UTC",
       ].join("\n"),
     );
   });
@@ -39,7 +69,7 @@ describe("formatHighValueOrderAlert", () => {
         ...sampleOrder,
         number: null,
       }),
-    ).toContain("Order: #90");
+    ).toContain("📦 Заказ: #90");
   });
 });
 
@@ -65,12 +95,20 @@ describe("sendHighValueOrderAlert", () => {
           chat_id: "-100123456",
           disable_notification: false,
           text: [
-            "High-value order detected",
-            "Order: MOCK-0050",
-            "RetailCRM ID: 90",
-            "Amount: 81,000 KZT",
-            "Status: offer-analog",
-            "Created at: 2026-02-19 09:00:00 UTC",
+            "🛒 Новый крупный заказ!",
+            "",
+            "📦 Заказ: MOCK-0050",
+            "💰 Сумма: 81 000 KZT",
+            "👤 Клиент: Феруза Юсупова",
+            "📞 Телефон: +77090123450",
+            "🏙 Город: Шымкент",
+            "📣 Источник: shopping-cart",
+            "🧾 Состав:",
+            "• Топ Soft ×1",
+            "• Комплект Balance ×1",
+            "",
+            "📊 Позиций: 2 • Единиц товара: 2",
+            "📅 Дата: 19 февр. 2026 г., 09:00 UTC",
           ].join("\n"),
         }),
       },

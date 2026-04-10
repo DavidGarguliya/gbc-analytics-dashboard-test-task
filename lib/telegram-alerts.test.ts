@@ -10,16 +10,38 @@ const pendingOrders: PendingHighValueOrderAlert[] = [
   {
     created_at: "2026-02-19T09:00:00.000Z",
     currency: "KZT",
+    customer_name: "Феруза Юсупова",
     number: "MOCK-0050",
+    phone: "+77090123450",
+    raw_json: {
+      delivery: {
+        address: {
+          city: "Шымкент",
+        },
+      },
+      items: [],
+    },
     retailcrm_id: 90,
+    source: "shopping-cart",
     status: "offer-analog",
     total_sum: 81000,
   },
   {
     created_at: "2026-02-20T10:30:00.000Z",
     currency: "KZT",
+    customer_name: "Айгерим Саттарова",
     number: "MOCK-0051",
+    phone: "+77090123451",
+    raw_json: {
+      delivery: {
+        address: {
+          city: "Алматы",
+        },
+      },
+      items: [],
+    },
     retailcrm_id: 91,
+    source: "instagram",
     status: "new",
     total_sum: 91000,
   },

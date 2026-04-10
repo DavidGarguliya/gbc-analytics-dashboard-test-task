@@ -24,7 +24,7 @@ export async function readDashboardReadModel() {
     supabase
       .from("orders")
       .select(
-        "retailcrm_id, external_id, number, created_at, status, total_sum, currency, source, synced_at, raw_json",
+        "retailcrm_id, external_id, number, created_at, status, customer_name, phone, total_sum, currency, source, synced_at, raw_json",
       )
       .order("created_at", { ascending: false })
       .order("retailcrm_id", { ascending: false }),

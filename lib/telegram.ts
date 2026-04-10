@@ -1,10 +1,19 @@
 import { readRequiredEnv } from "@/lib/env";
+import {
+  buildOperationalOrderSummary,
+  formatOperationalOrderLabel,
+  splitOperationalItems,
+} from "@/lib/order-operational";
 
 export type TelegramHighValueOrder = {
   created_at: string;
   currency: string;
+  customer_name: string | null;
   number: string | null;
+  phone: string | null;
+  raw_json: Record<string, unknown>;
   retailcrm_id: number;
+  source: string | null;
   status: string | null;
   total_sum: number;
 };
@@ -12,28 +21,74 @@ export type TelegramHighValueOrder = {
 type FetchImplementation = typeof fetch;
 
 function formatStoredAmount(value: number): string {
-  return new Intl.NumberFormat("en-US", {
+  return new Intl.NumberFormat("ru-RU", {
     maximumFractionDigits: 2,
     minimumFractionDigits: Number.isInteger(value) ? 0 : 2,
-  }).format(value);
+  })
+    .format(value)
+    .replace(/\u00A0/g, " ");
 }
 
 function formatStoredTimestamp(value: string): string {
-  const isoValue = new Date(value).toISOString();
+  const date = new Date(value);
+  const months = [
+    "янв.",
+    "февр.",
+    "мар.",
+    "апр.",
+    "мая",
+    "июн.",
+    "июл.",
+    "авг.",
+    "сент.",
+    "окт.",
+    "нояб.",
+    "дек.",
+  ];
 
-  return `${isoValue.slice(0, 19).replace("T", " ")} UTC`;
+  return `${date.getUTCDate()} ${months[date.getUTCMonth()]} ${date.getUTCFullYear()} г., ${String(
+    date.getUTCHours(),
+  ).padStart(2, "0")}:${String(date.getUTCMinutes()).padStart(2, "0")}`;
+}
+
+function formatCountValue(value: number | null): string {
+  if (value === null) {
+    return "н/д";
+  }
+
+  return new Intl.NumberFormat("ru-RU", {
+    maximumFractionDigits: Number.isInteger(value) ? 0 : 2,
+  }).format(value);
 }
 
 export function formatHighValueOrderAlert(order: TelegramHighValueOrder): string {
-  const orderLabel = order.number?.trim() ? order.number.trim() : `#${order.retailcrm_id}`;
+  const summary = buildOperationalOrderSummary(order);
+  const orderLabel = formatOperationalOrderLabel(summary);
+  const visibleItems = splitOperationalItems(summary.items, 4);
+  const itemLines =
+    visibleItems.visibleItems.length > 0
+      ? visibleItems.visibleItems.map(
+          (item) => `• ${item.productName} ×${formatCountValue(item.quantity)}`,
+        )
+      : ["• Состав заказа не сохранён в read-model"];
+  const additionalItemsLine =
+    visibleItems.hiddenCount > 0 ? `+ ещё ${visibleItems.hiddenCount}` : null;
 
   return [
-    "High-value order detected",
-    `Order: ${orderLabel}`,
-    `RetailCRM ID: ${order.retailcrm_id}`,
-    `Amount: ${formatStoredAmount(order.total_sum)} ${order.currency}`,
-    `Status: ${order.status ?? "Unspecified"}`,
-    `Created at: ${formatStoredTimestamp(order.created_at)}`,
+    "🛒 Новый крупный заказ!",
+    "",
+    `📦 Заказ: ${orderLabel}`,
+    `💰 Сумма: ${formatStoredAmount(summary.totalSum)} ${summary.currency}`,
+    `👤 Клиент: ${summary.customerName ?? "Не указан"}`,
+    `📞 Телефон: ${summary.phone ?? "Не указан"}`,
+    `🏙 Город: ${summary.city ?? "Не указан"}`,
+    `📣 Источник: ${summary.sourceLabel}`,
+    "🧾 Состав:",
+    ...itemLines,
+    ...(additionalItemsLine ? [additionalItemsLine] : []),
+    "",
+    `📊 Позиций: ${formatCountValue(summary.itemCount)} • Единиц товара: ${formatCountValue(summary.unitsCount)}`,
+    `📅 Дата: ${formatStoredTimestamp(summary.createdAt)} UTC`,
   ].join("\n");
 }
 

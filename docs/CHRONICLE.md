@@ -1,5 +1,22 @@
 # CHRONICLE
 
+## 2026-04-10 — Controlled overview redesign and operational alert alignment
+- Branch: `task/overview-visual-redesign` from `feat/next-stage-baseline`
+- Scope: rebuilt the overview screen into a lighter product-grade analytics dashboard, aligned the order detail drawer with the Telegram operational alert format, and did the minimum honest read-model enrichment required for those views.
+- Implemented scope:
+  - added [order-operational.ts](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/lib/order-operational.ts) as a shared helper that derives customer, phone, city, source, item composition, positions count, and units count from persisted Supabase rows plus stored `raw_json`
+  - extended [dashboard-read.ts](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/lib/dashboard-read.ts) and [dashboard.ts](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/lib/dashboard.ts) to read `customer_name` and `phone` and project richer operational order details without changing the database schema
+  - redesigned [dashboard-view.tsx](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/app/dashboard-view.tsx) and [page.module.css](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/app/page.module.css) into a denser, lighter, Russian-language SaaS-style dashboard while preserving the existing overview information architecture and Supabase-only read path
+  - replaced the old English high-value alert text in [telegram.ts](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/lib/telegram.ts) with a Russian operational alert that uses the same order-summary fields as the detail panel
+  - extended [supabase.ts](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/lib/supabase.ts) high-value order reads so alerts stay Supabase-backed while carrying enough fields for the richer message
+- Verification:
+  - `npm run typecheck`
+  - `npm run lint`
+  - `npm test`
+- Remaining risks / next:
+  - the redesigned UI slice is locally verified but not yet redeployed to the promoted Vercel alias
+  - operational city and item composition still come from stored `raw_json`, so later upstream payload-shape changes must be handled in the shared helper rather than patched in multiple call sites
+
 ## 2026-04-09 — Baseline governance pack created
 - Branch: `integration/test-assignment-retailcrm-dashboard` (suggested)
 - Scope: created the full specification and repository governance baseline for Codex-driven execution.

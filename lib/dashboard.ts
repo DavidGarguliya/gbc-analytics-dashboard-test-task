@@ -1,3 +1,8 @@
+import {
+  buildOperationalOrderSummary,
+  type OperationalOrderItem,
+} from "@/lib/order-operational";
+
 export const DASHBOARD_LARGE_ORDER_THRESHOLD = 50_000;
 export const DASHBOARD_LATEST_ORDERS_LIMIT = 8;
 export const DASHBOARD_SOURCE_COLUMN_LABEL = "Источник / метод";
@@ -45,8 +50,10 @@ export type DashboardTrendGrain = "day" | "month" | "week";
 export type DashboardOrderRow = {
   created_at: string;
   currency: string;
+  customer_name: string | null;
   external_id: string | null;
   number: string | null;
+  phone: string | null;
   raw_json: Record<string, unknown>;
   retailcrm_id: number;
   source: string | null;
@@ -55,25 +62,25 @@ export type DashboardOrderRow = {
   total_sum: number;
 };
 
-export type DashboardOrderItem = {
-  initialPrice: number | null;
-  productName: string;
-  quantity: number | null;
-};
+export type DashboardOrderItem = OperationalOrderItem;
 
 export type DashboardOrder = {
+  city: string | null;
   createdAt: string;
   currency: string;
+  customerName: string | null;
   externalId: string | null;
   isLargeOrder: boolean;
   itemCount: number;
   items: DashboardOrderItem[];
   number: string | null;
+  phone: string | null;
   retailcrmId: number;
   sourceLabel: string;
   status: string | null;
   syncedAt: string;
   totalSum: number;
+  unitsCount: number | null;
 };
 
 export type DashboardMoneyValue = {
@@ -228,43 +235,6 @@ function sortOrdersByCreatedAtDesc(left: DashboardOrderRow, right: DashboardOrde
   }
 
   return right.retailcrm_id - left.retailcrm_id;
-}
-
-function isObject(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null;
-}
-
-function normalizeFiniteNumber(value: unknown): number | null {
-  if (typeof value === "number" && Number.isFinite(value)) {
-    return value;
-  }
-
-  if (typeof value === "string" && value.trim().length > 0) {
-    const normalized = Number(value);
-
-    return Number.isFinite(normalized) ? normalized : null;
-  }
-
-  return null;
-}
-
-function readDashboardOrderItems(rawJson: Record<string, unknown>): DashboardOrderItem[] {
-  const candidateItems = rawJson.items;
-
-  if (!Array.isArray(candidateItems)) {
-    return [];
-  }
-
-  return candidateItems
-    .filter(isObject)
-    .map((item, index) => ({
-      initialPrice: normalizeFiniteNumber(item.initialPrice),
-      productName:
-        typeof item.productName === "string" && item.productName.trim().length > 0
-          ? item.productName.trim()
-          : `Позиция ${index + 1}`,
-      quantity: normalizeFiniteNumber(item.quantity),
-    }));
 }
 
 function readSingleCurrency(orders: readonly Pick<DashboardOrder, "currency">[]): string | null {
@@ -825,22 +795,27 @@ export function buildDashboardReadModel(input: {
   const normalizedOrders = [...input.orders]
     .sort(sortOrdersByCreatedAtDesc)
     .map((order) => {
-      const items = readDashboardOrderItems(order.raw_json);
+      const operationalSummary = buildOperationalOrderSummary(order);
 
       return {
-        createdAt: order.created_at,
-        currency: order.currency,
-        externalId: order.external_id,
+        city: operationalSummary.city,
+        createdAt: operationalSummary.createdAt,
+        currency: operationalSummary.currency,
+        customerName: operationalSummary.customerName,
+        externalId: operationalSummary.externalId,
         isLargeOrder:
-          order.currency === "KZT" && Number(order.total_sum) > DASHBOARD_LARGE_ORDER_THRESHOLD,
-        itemCount: items.length,
-        items,
-        number: order.number,
-        retailcrmId: order.retailcrm_id,
-        sourceLabel: order.source?.trim() || "Не указан",
-        status: order.status,
+          operationalSummary.currency === "KZT" &&
+          operationalSummary.totalSum > DASHBOARD_LARGE_ORDER_THRESHOLD,
+        itemCount: operationalSummary.itemCount,
+        items: operationalSummary.items,
+        number: operationalSummary.number,
+        phone: operationalSummary.phone,
+        retailcrmId: operationalSummary.retailcrmId,
+        sourceLabel: operationalSummary.sourceLabel,
+        status: operationalSummary.status,
         syncedAt: order.synced_at,
-        totalSum: Number(order.total_sum),
+        totalSum: operationalSummary.totalSum,
+        unitsCount: operationalSummary.unitsCount,
       } satisfies DashboardOrder;
     });
   const currencyCode = readSingleCurrency(normalizedOrders);

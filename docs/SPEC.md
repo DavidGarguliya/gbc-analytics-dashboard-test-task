@@ -42,11 +42,31 @@ System behavior:
   - average check,
   - orders by day chart,
   - latest orders list/table.
+- keep the overview screen compact in the first viewport:
+  - compact header,
+  - period/filter control bar,
+  - KPI strip,
+  - top of the trend charts.
+- keep the interface in Russian.
+- keep the screen analytically dense without adding unsupported business entities or fake metrics.
+- provide an operational order-detail panel that prioritizes:
+  - order number,
+  - amount and currency,
+  - customer,
+  - phone,
+  - city,
+  - source / method label,
+  - item composition,
+  - positions count,
+  - units count,
+  - date.
+- avoid showing raw payloads or low-value technical fields by default in the UI.
 
 Constraints:
 - dashboard data source must be Supabase only,
-- UI should be clean and minimal,
+- UI should be clean, modern, and product-grade rather than hero-style or admin-template-style,
 - reviewer must be able to understand it quickly.
+- if city, item composition, or units count are not stored as dedicated columns, they may be derived from the persisted `raw_json` payload as long as the dependency remains explicit and honest.
 
 Expected outcome:
 - working deployed page on Vercel.
@@ -61,6 +81,8 @@ System behavior:
 Operational note:
 - the current live RetailCRM account now returns the imported demo orders with `currency = KZT`,
 - later alert logic must therefore compare the numeric amount field as stored by RetailCRM and include the stored currency in the message,
+- the alert message should use the same operational field set as the dashboard order details where those values are available from Supabase plus persisted `raw_json`,
+- if city, item composition, or units count are not stored as dedicated columns, they may be derived from persisted `raw_json` without introducing a second upstream read path,
 - no implicit currency conversion is part of this assignment unless a later decision introduces it explicitly.
 
 Expected outcome:

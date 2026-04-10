@@ -13,16 +13,23 @@ const sampleOrders: DashboardOrderRow[] = [
     number: "MOCK-0048",
     created_at: "2026-02-17T09:00:00+00:00",
     status: "offer-analog",
+    customer_name: "Алина Ким",
+    phone: "+77070000048",
     total_sum: 105000,
     currency: "KZT",
     source: "shopping-cart",
     synced_at: "2026-04-10T10:00:00+00:00",
     raw_json: {
+      delivery: {
+        address: {
+          city: "Алматы",
+        },
+      },
       items: [
         {
           initialPrice: 55000,
           productName: "Комплект Premium",
-          quantity: 1,
+          quantity: 2,
         },
       ],
     },
@@ -33,11 +40,18 @@ const sampleOrders: DashboardOrderRow[] = [
     number: "MOCK-0050",
     created_at: "2026-02-19T09:00:00+00:00",
     status: "offer-analog",
+    customer_name: "Феруза Юсупова",
+    phone: "+77090123450",
     total_sum: 81000,
     currency: "KZT",
     source: "shopping-cart",
     synced_at: "2026-04-10T10:00:00+00:00",
     raw_json: {
+      delivery: {
+        address: {
+          city: "Шымкент",
+        },
+      },
       items: [
         {
           initialPrice: 31000,
@@ -58,11 +72,18 @@ const sampleOrders: DashboardOrderRow[] = [
     number: "MOCK-0049",
     created_at: "2026-02-18T09:00:00+00:00",
     status: "offer-analog",
+    customer_name: "Карина Осипова",
+    phone: "+77070000049",
     total_sum: 37000,
     currency: "KZT",
     source: "instagram",
     synced_at: "2026-04-10T10:00:00+00:00",
     raw_json: {
+      delivery: {
+        address: {
+          city: "Астана",
+        },
+      },
       items: [
         {
           initialPrice: 37000,
@@ -78,11 +99,18 @@ const sampleOrders: DashboardOrderRow[] = [
     number: "MOCK-0047",
     created_at: "2026-02-17T12:00:00+00:00",
     status: "new",
+    customer_name: null,
+    phone: null,
     total_sum: 12000,
     currency: "KZT",
     source: null,
     synced_at: "2026-04-10T10:00:00+00:00",
     raw_json: {
+      delivery: {
+        address: {
+          city: "Караганда",
+        },
+      },
       items: [],
     },
   },
@@ -106,24 +134,35 @@ describe("buildDashboardReadModel", () => {
         expect.objectContaining({
           retailcrmId: 90,
           itemCount: 2,
+          unitsCount: 2,
+          customerName: "Феруза Юсупова",
+          city: "Шымкент",
           sourceLabel: "shopping-cart",
           isLargeOrder: true,
         }),
         expect.objectContaining({
           retailcrmId: 89,
           itemCount: 1,
+          unitsCount: 1,
+          customerName: "Карина Осипова",
+          city: "Астана",
           sourceLabel: "instagram",
           isLargeOrder: false,
         }),
         expect.objectContaining({
           retailcrmId: 87,
           itemCount: 0,
+          unitsCount: 0,
+          city: "Караганда",
           sourceLabel: "Не указан",
           isLargeOrder: false,
         }),
         expect.objectContaining({
           retailcrmId: 88,
           itemCount: 1,
+          unitsCount: 2,
+          customerName: "Алина Ким",
+          city: "Алматы",
           sourceLabel: "shopping-cart",
           isLargeOrder: true,
         }),

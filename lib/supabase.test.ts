@@ -156,16 +156,38 @@ describe("getUnalertedHighValueOrders", () => {
           number: "MOCK-0050",
           created_at: "2026-02-19T09:00:00.000Z",
           status: "offer-analog",
+          customer_name: "Феруза Юсупова",
+          phone: "+77090123450",
           total_sum: 81000,
           currency: "KZT",
+          source: "shopping-cart",
+          raw_json: {
+            delivery: {
+              address: {
+                city: "Шымкент",
+              },
+            },
+            items: [],
+          },
         },
         {
           retailcrm_id: 91,
           number: "MOCK-0051",
           created_at: "2026-02-20T10:30:00.000Z",
           status: "new",
+          customer_name: "Айгерим Саттарова",
+          phone: "+77090123451",
           total_sum: 91000,
           currency: "KZT",
+          source: "instagram",
+          raw_json: {
+            delivery: {
+              address: {
+                city: "Алматы",
+              },
+            },
+            items: [],
+          },
         },
       ],
       error: null,
@@ -196,14 +218,25 @@ describe("getUnalertedHighValueOrders", () => {
         number: "MOCK-0051",
         created_at: "2026-02-20T10:30:00.000Z",
         status: "new",
+        customer_name: "Айгерим Саттарова",
+        phone: "+77090123451",
         total_sum: 91000,
         currency: "KZT",
+        source: "instagram",
+        raw_json: {
+          delivery: {
+            address: {
+              city: "Алматы",
+            },
+          },
+          items: [],
+        },
       },
     ]);
 
     expect(from).toHaveBeenCalledWith("orders");
     expect(ordersSelect).toHaveBeenCalledWith(
-      "retailcrm_id, number, created_at, status, total_sum, currency",
+      "retailcrm_id, number, created_at, status, customer_name, phone, total_sum, currency, source, raw_json",
     );
     expect(ordersEq).toHaveBeenCalledWith("currency", "KZT");
     expect(ordersGt).toHaveBeenCalledWith("total_sum", 50000);

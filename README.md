@@ -30,6 +30,35 @@ Supabase
 - правило алерта: `total_sum > 50 000` без валютной конвертации
 - дедупликация алертов хранится явно в `alerts_sent`
 
+## Что сейчас показывает dashboard
+
+Текущий overview-экран:
+
+- полностью на русском языке
+- остаётся Supabase-only read screen
+- показывает compact header, control bar, KPI, trends, breakdowns и orders drilldown
+- использует detail panel заказа в том же операционном формате, что и Telegram alert
+
+Операционные поля в detail panel и alert:
+
+- номер заказа
+- сумма и валюта
+- клиент
+- телефон
+- город
+- источник / метод
+- состав заказа
+- количество позиций
+- количество единиц товара
+- дата
+
+Важно:
+
+- `customer_name` и `phone` читаются из сохранённой строки `orders`
+- `city`, `items`, `positions`, `units` сейчас честно выводятся из сохранённого `orders.raw_json`
+- raw payload целиком в UI не показывается
+- full address и email по умолчанию не показываются
+
 ## Технологии
 
 - Next.js 16 App Router
@@ -246,6 +275,7 @@ vercel deploy --prod
 - домашняя страница открывается
 - метрики приходят из Supabase
 - последние заказы приходят из Supabase
+- detail panel заказа открывается из таблицы и показывает операционный набор полей
 - в клиент не утекли RetailCRM / Telegram secrets
 - server-side runtime работает только на обязательных Supabase env vars
 

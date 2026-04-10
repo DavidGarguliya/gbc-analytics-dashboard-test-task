@@ -46,6 +46,8 @@ Guidance:
 - persist only what is needed for the assignment,
 - do not unnecessarily display sensitive fields in the dashboard,
 - do not include private customer details in Telegram beyond what is useful and proportionate.
+- the operational detail panel and Telegram alerts may use customer name, phone, city, and compact item composition because they are operationally useful for this assignment,
+- full address text, email, raw JSON, and non-operational technical fields must not be shown by default in the UI.
 
 ---
 
@@ -60,6 +62,7 @@ Guidance:
 - all privileged writes and sync operations use server-side/service-role context.
 - baseline schema keeps `orders` readable for anon/authenticated roles via explicit read-only policy.
 - `sync_state` and `alerts_sent` remain inaccessible to anon/authenticated roles.
+- if order details or alerts need city/items/units, derive them from the persisted `orders.raw_json` payload inside controlled server/client read-model code rather than exposing raw payloads directly.
 
 ### Telegram
 - server-side only.

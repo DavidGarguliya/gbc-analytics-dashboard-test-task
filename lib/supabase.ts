@@ -30,8 +30,12 @@ export type SupabaseOrderRow = {
 export type SupabaseHighValueOrderRow = {
   created_at: string;
   currency: string;
+  customer_name: string | null;
   number: string | null;
+  phone: string | null;
+  raw_json: Record<string, unknown>;
   retailcrm_id: number;
+  source: string | null;
   status: string | null;
   total_sum: number;
 };
@@ -163,7 +167,9 @@ export async function getUnalertedHighValueOrders(
 ): Promise<SupabaseHighValueOrderRow[]> {
   const ordersResult = (await client
     .from("orders")
-    .select("retailcrm_id, number, created_at, status, total_sum, currency")
+    .select(
+      "retailcrm_id, number, created_at, status, customer_name, phone, total_sum, currency, source, raw_json",
+    )
     .eq("currency", "KZT")
     .gt("total_sum", threshold)
     .order("created_at", {

@@ -32,6 +32,7 @@ Required semantics:
 - `retailcrm_id` must be unique
 - repeat sync must update existing rows instead of inserting duplicates
 - `raw_json` should preserve enough upstream detail for troubleshooting
+- the persisted row plus `raw_json` should be sufficient to build the operational order summary used by both the dashboard detail panel and Telegram alerts
 
 ### 2. `sync_state`
 Purpose:
@@ -91,6 +92,24 @@ Dashboard needs only a compact read model:
 - average of `total_sum`,
 - count grouped by day from `created_at`,
 - latest orders ordered by `created_at` or upstream recency.
+
+The current operational overview also needs one explicit per-order projection for drilldown:
+- `number`
+- `total_sum`
+- `currency`
+- `customer_name`
+- `phone`
+- `source`
+- `status`
+- `external_id`
+- `retailcrm_id`
+- `created_at`
+- derived city from `raw_json.delivery.address.city` when available
+- derived item composition from `raw_json.items`
+- derived positions count from `raw_json.items.length`
+- derived units count from `raw_json.items[*].quantity`
+
+This is still considered one Supabase-backed read model because all derivation happens from persisted rows and persisted `raw_json`, not from secondary upstream requests.
 
 No materialized views are necessary unless later justified.
 
