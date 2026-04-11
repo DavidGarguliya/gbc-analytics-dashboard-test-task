@@ -354,6 +354,56 @@
   gap: 0.5rem;
 }
 
+.lineChartWrap :global(.recharts-surface:focus),
+.lineChartWrap :global(.recharts-wrapper:focus),
+.barChartWrap :global(.recharts-surface:focus),
+.barChartWrap :global(.recharts-wrapper:focus) {
+  outline: none;
+}
+
+.chartTooltip {
+  min-width: 13rem;
+  padding: 0.85rem 0.95rem;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid var(--line);
+  border-radius: 0.85rem;
+  box-shadow: 0 8px 24px rgba(21, 31, 42, 0.08);
+}
+
+.chartTooltipLabel {
+  margin-bottom: 0.55rem;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  line-height: 1.35;
+}
+
+.chartTooltipRows {
+  display: grid;
+  gap: 0.34rem;
+}
+
+.chartTooltipRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.chartTooltipKey {
+  color: var(--text-muted);
+  font-size: 0.82rem;
+}
+
+.chartTooltipValue {
+  color: var(--text-strong);
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-align: right;
+}
+
+.chartTooltipValueEmphasis {
+  color: var(--accent);
+}
+
 
 .barChartFootnote {
   color: var(--text-muted);
