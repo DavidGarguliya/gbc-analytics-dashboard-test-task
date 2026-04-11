@@ -55,7 +55,7 @@ Overview-экран:
 - полностью на русском языке
 - остаётся Supabase-only read screen
 - показывает header, фильтры, KPI, trends, breakdown-блоки и drilldown-таблицу
-- breakdown-блоки расположены в controlled `2x2` layout:
+- breakdown-блоки на широком desktop располагаются в один ряд из четырёх карточек:
   - `Источник заказа`
   - `Распределение по сумме заказа`
   - `Заказы по статусам`
@@ -334,7 +334,7 @@ vercel deploy --prod
 | В live RetailCRM account вообще не было order custom field `utm_source` | source analytics live verification | custom field `utm_source` был создан через официальный RetailCRM API |
 | После этого все старые 50 заказов всё ещё оставались без `utm_source` в Supabase | live data backfill | был выполнен bulk backfill существующих заказов из `mock_orders.json` в RetailCRM и затем повторный sync в Supabase |
 | Из-за отсутствия `utm_source` dashboard и Telegram честно показывали `Источник: Не указан`, хотя fixture содержал `instagram`, `google`, `tiktok`, `direct`, `referral` | source analytics UI и Telegram | после создания поля и backfill каналы снова появились в live pipeline и в Supabase read model |
-| Breakdown-карточки на overview были логически перегружены и неудачно располагались по сетке | UI refinement | карточки были переставлены в controlled `2x2` grid, а лишние поясняющие подписи убраны без изменения данных |
+| Breakdown-карточки на overview сначала были логически перегружены, а затем оказались не в том desktop-layout, который нужен для финальной подачи | UI refinement | карточки были сначала упорядочены и очищены от лишних подписей, а затем переведены в один ряд из четырёх карточек на широком desktop с responsive fallback для более узких экранов |
 
 ## Известные ограничения
 
