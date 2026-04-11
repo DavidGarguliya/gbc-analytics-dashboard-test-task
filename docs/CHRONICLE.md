@@ -1,4 +1,19 @@
 # CHRONICLE
+## 2026-04-11 — README closeout context refinement
+- Branch: `task/readme-context-closeout`
+- Scope: expanded the root README with a stricter chronological closeout that incorporates the verified redesign, alert-refinement, and source-model context from prior work without introducing stale or unreachable historical commit references.
+- Implemented scope:
+  - updated [README.md](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/README.md) so it now explicitly documents the shared `lib/order-operational.ts` summary, the secondary technical block in order details, the redesign-to-alert-to-source-model evolution sequence, and the generic-item-name alert issue that was resolved through live payload parsing plus safe manual alert resend
+  - synchronized [STATE.md](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/docs/STATE.md) and [CHRONICLE.md](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/docs/CHRONICLE.md) with the documentation-only refinement
+- Verification:
+  - `npm run docs:golden`
+  - `npm run lint`
+  - `npm run typecheck`
+  - `npm test`
+- Remaining risks / next:
+  - the historical Gemini commit hashes from the supplied external closeout are not present in the current git history of this checkout, so the README deliberately documents verified outcomes rather than unreachable commit references
+  - the accepted Telegram screenshot still remains an external artifact outside the repository
+
 ## 2026-04-11 — Single-row overview breakdown layout
 - Branch: `task/slices-single-row`
 - Scope: adjusted the overview breakdown cards so all four cards render in a single desktop row while preserving the existing metrics, honest source semantics, and responsive fallback.

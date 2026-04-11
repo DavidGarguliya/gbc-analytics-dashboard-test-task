@@ -90,12 +90,25 @@ Telegram alert дополнительно показывает:
 Важно:
 
 - `customer_name` и `phone` читаются из сохранённой строки `orders`
+- общий operational summary для detail panel и Telegram alerts собирается через `lib/order-operational.ts` из persisted row + `raw_json`
 - `marketingSource` строится только из `orders.raw_json.customFields.utm_source`
 - `orderMethod` строится только из `orders.raw_json.orderMethod`
 - сохранённый `orders.source` не используется как честный маркетинговый источник, потому что исторически смешивал `utm_source` и `orderMethod`
 - `city`, `items`, `positions`, `units` выводятся из сохранённого `orders.raw_json`
 - реальные названия позиций читаются из live item payload, включая `items[*].offer.displayName` и `items[*].offer.name`
+- detail panel намеренно держит secondary technical block с `RetailCRM ID` и `External ID`
 - raw payload, полный адрес и email по умолчанию в UI не показываются
+
+## Как система эволюционировала
+
+Ниже зафиксирована строгая последовательность именно verified outcomes, которые подтверждаются текущей реализацией, а не попытка восстановить все промежуточные рабочие ветки и черновые коммиты.
+
+1. Сначала был сделан controlled redesign overview-экрана без смены бизнес-логики и без смены Supabase-only read path.
+2. Затем order details и Telegram alerts были выровнены через единый shared helper `lib/order-operational.ts`, чтобы UI и server-side alerting опирались на один operational summary.
+3. После live-проверки synced payload был сделан follow-up alert refinement: реальные названия товаров стали читаться не только из `productName`, но и из `items[*].offer.displayName` / `items[*].offer.name`, а `email` был добавлен только в Telegram alert под телефоном.
+4. После этого projection layer был очищен от смешения source semantics: `marketingSource` и `orderMethod` были разделены, а legacy `orders.source` перестал использоваться как честный marketing dimension.
+5. Затем был восстановлен live marketing-source contract: в RetailCRM создали custom field `utm_source`, сделали backfill 50 заказов из `mock_orders.json` и повторно синхронизировали Supabase.
+6. В финале были доведены presentation-layer и handoff docs: breakdown-карточки получили single-row desktop layout, subtitles у `Источник заказа` и `Способ оформления` были убраны, а README-пакет был полностью переведён на русский.
 
 ## Технологии
 
@@ -329,6 +342,7 @@ vercel deploy --prod
 | Telegram delivery был заблокирован, потому что `TELEGRAM_CHAT_ID` не был задан явно | live verification alerts | chat id был извлечён через bot updates flow после сообщения боту |
 | Pipeline script не мог импортировать Next.js `server-only` dashboard module | pipeline implementation | reusable Supabase read path был вынесен в `lib/dashboard-read.ts`, а App Router wrapper остался тонким |
 | `npm run pipeline` изначально не поднимал `.env.local` автоматически | pipeline live verification | entrypoint был переведён на Node `--env-file=.env.local` |
+| Изначально тестовый Telegram alert показывал generic позиции вроде `Позиция 1`, потому что formatter смотрел только в `productName` | live alert preview | shared operational projection был доработан под `productName` и nested `offer.displayName` / `offer.name`, после чего тестовый alert был безопасно переслан вручную без записи в `alerts_sent` |
 | В live payload реальные названия товаров лежали не только в `productName`, но и в `items[*].offer.displayName` / `items[*].offer.name` | details panel и Telegram alert | shared operational projection был обновлён под фактическую форму live item payload |
 | Исторически поле `orders.source` смешивало маркетинговый источник и операционный способ оформления | source analytics review | projection layer был разделён на `marketingSource` и `orderMethod`, а legacy `orders.source` перестал использоваться как честный marketing dimension |
 | В live RetailCRM account вообще не было order custom field `utm_source` | source analytics live verification | custom field `utm_source` был создан через официальный RetailCRM API |
