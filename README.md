@@ -77,10 +77,9 @@ npm run pipeline
 В процессе пришлось решить несколько реальных интеграционных проблем:
 
 - live RetailCRM API возвращал не совсем ту форму данных, которую ожидал адаптер;
-- повторный import работает как seed-import с duplicate rejection по `externalId`, а не как update path;
+- повторный import работал как seed-import с duplicate rejection по `externalId`, а не как update path;
 - live account сначала сохранял валюту как `RUB`, затем upstream-контракт был приведён к `KZT`;
-- Telegram live verification потребовал явного `TELEGRAM_CHAT_ID`;
-- `orders.source` исторически смешивал `utm_source` и `orderMethod`, поэтому source analytics пришлось разделить на:
+- `orders.source` смешивал `utm_source` и `orderMethod`, поэтому source analytics пришлось разделить на:
   - `marketingSource`
   - `orderMethod`
 - для полноценной source analytics пришлось создать `utm_source` в live RetailCRM account, затем сделать backfill и повторный sync
@@ -108,7 +107,7 @@ npm run build
 
 Это не просто демо-экран, а рабочая цепочка:
 
-`mock_orders.json → RetailCRM → Supabase → Dashboard → Telegram alerts → Vercel`
+`mock_orders.json → RetailCRM → Supabase → Vercel Dashboard → Telegram alerts`
 
 ---
 
