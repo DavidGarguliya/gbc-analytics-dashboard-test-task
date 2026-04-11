@@ -117,7 +117,7 @@ npm run build
 
 ## Скриншоты
 
-<img src="./screenshots/Dashboard.png" alt="Дашборд" width="600" />    <img src="./screenshots/Telegram_alerts.png" alt="Уведомление в телеграм" width="237" />
+<img src="./screenshots/Dashboard.png" alt="Дашборд" width="550" />    <img src="./screenshots/Telegram_alerts.png" alt="Уведомление в телеграм" width="217" />
 
 
 
