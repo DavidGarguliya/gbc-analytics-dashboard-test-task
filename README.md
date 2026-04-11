@@ -73,6 +73,7 @@ Overview-экран:
 - полностью на русском языке
 - остаётся Supabase-only read screen
 - показывает header, фильтры, KPI, trends, breakdown-блоки и drilldown-таблицу
+- время последней синхронизации показывается прямо в header, поэтому отдельная KPI-карточка свежести больше не дублирует этот статус
 - breakdown-блоки на широком desktop располагаются в один ряд из четырёх карточек:
   - `Источник заказа`
   - `Распределение по сумме заказа`
@@ -86,6 +87,7 @@ Overview-экран:
   - число крупных заказов
   - долю выручки
   - comparison-period context
+- trend tooltips по периоду показывают count/revenue вместе со `средним чеком` и числом `крупных заказов`, а служебная синяя focus-рамка Recharts убрана
 
 Order details по умолчанию показывают:
 
@@ -126,7 +128,8 @@ Telegram alert дополнительно показывает:
 3. После live-проверки synced payload был сделан follow-up alert refinement: реальные названия товаров стали читаться не только из `productName`, но и из `items[*].offer.displayName` / `items[*].offer.name`, а `email` был добавлен только в Telegram alert под телефоном.
 4. После этого projection layer был очищен от смешения source semantics: `marketingSource` и `orderMethod` были разделены, а legacy `orders.source` перестал использоваться как честный marketing dimension.
 5. Затем был восстановлен live marketing-source contract: в RetailCRM создали custom field `utm_source`, сделали backfill 50 заказов из `mock_orders.json` и повторно синхронизировали Supabase.
-6. В финале были доведены presentation-layer и handoff docs: breakdown-карточки получили single-row desktop layout, subtitles у `Источник заказа` и `Способ оформления` были убраны, а README-пакет был полностью переведён на русский.
+6. Затем были доведены presentation-layer и handoff docs: breakdown-карточки получили single-row desktop layout, subtitles у `Источник заказа` и `Способ оформления` были убраны, а README-пакет был полностью переведён на русский.
+7. Последним overview cleanup-срезом были уточнены trend tooltips, убран лишний Recharts focus-ring, а дублирующая KPI-карточка актуальности данных удалена, потому что время последней синхронизации уже показано в header.
 
 ## Технологии
 

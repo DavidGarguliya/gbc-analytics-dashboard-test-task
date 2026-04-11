@@ -235,7 +235,7 @@
 
 .metricsGrid {
   display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 0.72rem;
 }
 
@@ -247,7 +247,12 @@
   border-radius: 0.75rem;
 }
 
-.metricLabel,
+.metricLabel {
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
 .chartLabel,
 .panelLabel {
   color: var(--text-muted);

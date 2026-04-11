@@ -1,4 +1,20 @@
 # CHRONICLE
+## 2026-04-11 — KPI freshness-card cleanup
+- Branch: `task/kpi-layout-cleanup`
+- Scope: removed the duplicate freshness KPI because the same last-sync status is already shown in the dashboard header, and slightly increased KPI title size without changing any analytics semantics.
+- Implemented scope:
+  - removed the `Актуальность данных` KPI card from the overview row in [dashboard-view.tsx](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/app/dashboard-view.tsx)
+  - updated [page.module.css](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/app/page.module.css) so the KPI grid is now five columns on wide desktop and KPI titles are one visual step larger
+  - refreshed [README.md](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/README.md), [STATE.md](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/docs/STATE.md), and [CHRONICLE.md](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/docs/CHRONICLE.md) so the handoff matches the cleaned overview surface
+- Verification:
+  - `npm run docs:golden`
+  - `npm run lint`
+  - `npm run typecheck`
+  - `npm test`
+  - `npm run build`
+- Remaining risks / next:
+  - if a later slice restores a separate freshness card, it should carry a distinct operational purpose rather than repeat the header timestamp
+
 ## 2026-04-11 — Chart UX refinement
 - Branch: `task/chart-ux-refinement`
 - Scope: improved the trend-chart interaction quality by removing the distracting focus ring and enriching the hover tooltips without changing the Supabase-only read path or inventing fake order-level drilldown.

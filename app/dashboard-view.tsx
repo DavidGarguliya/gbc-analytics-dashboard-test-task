@@ -993,12 +993,6 @@ export function DashboardView({ dashboard, renderedAt }: DashboardViewProps) {
           title="Доля крупных заказов в выручке"
           value={formatPercentValue(analytics.currentSummary.largeOrdersRevenueShare)}
         />
-        <MetricCard
-          delta={null}
-          subtitle="по времени последней синхронизации"
-          title="Актуальность данных"
-          value={`обновлено ${analytics.freshness.label}`}
-        />
       </section>
 
       <section className={styles.trendsGrid}>
