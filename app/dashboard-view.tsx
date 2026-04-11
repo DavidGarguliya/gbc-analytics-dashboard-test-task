@@ -14,6 +14,7 @@ import {
 import {
   buildDashboardAnalytics,
   DASHBOARD_PERIOD_OPTIONS,
+  isOrderWithinTrendPoint,
   type DashboardBreakdownRow,
   type DashboardOrder,
   type DashboardPeriodKey,
@@ -35,6 +36,9 @@ type DashboardViewProps = {
 };
 
 type DeltaTone = "down" | "flat" | "muted" | "up";
+type TrendChartPayload = {
+  activePayload?: Array<{ payload: DashboardTrendPoint }>;
+};
 
 function formatNumberValue(value: number): string {
   return new Intl.NumberFormat("ru-RU", {
@@ -307,9 +311,21 @@ function TrendTooltip(props: {
   );
 }
 
+function readTrendPointFromChartState(state: unknown): DashboardTrendPoint | null {
+  if (!state || typeof state !== "object" || !("activePayload" in state)) {
+    return null;
+  }
+
+  const payloadState = state as TrendChartPayload;
+
+  return payloadState.activePayload?.[0]?.payload ?? null;
+}
+
 function RevenueTrendChart(props: {
   currencyCode: string | null;
+  onSelectPoint: (point: DashboardTrendPoint | null) => void;
   points: DashboardTrendPoint[];
+  selectedPointKey: string | null;
 }) {
   if (props.points.length === 0) {
     return (
@@ -347,7 +363,12 @@ function RevenueTrendChart(props: {
 
       <div className={styles.lineChartWrap} style={{ height: 280, marginTop: 16 }}>
         <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={props.points} margin={{ top: 10, right: 0, left: 0, bottom: 0 }}>
+          <AreaChart
+            accessibilityLayer={false}
+            data={props.points}
+            margin={{ top: 10, right: 0, left: 0, bottom: 0 }}
+            onClick={(state) => props.onSelectPoint(readTrendPointFromChartState(state))}
+          >
             <defs>
               <linearGradient id="revenueGradient" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="5%" stopColor="var(--accent)" stopOpacity={0.25} />
@@ -364,9 +385,11 @@ function RevenueTrendChart(props: {
               minTickGap={30} 
             />
             <Tooltip
+              cursor={{ stroke: "rgba(24, 33, 43, 0.14)", strokeWidth: 1 }}
               content={<TrendTooltip currencyCode={props.currencyCode} variant="revenue" />}
             />
             <Area 
+              activeDot={{ r: 6, stroke: "white", strokeWidth: 3 }}
               type="monotone" 
               dataKey="revenueAmount" 
               stroke="var(--accent)" 
@@ -377,13 +400,20 @@ function RevenueTrendChart(props: {
           </AreaChart>
         </ResponsiveContainer>
       </div>
+      <p className={styles.chartFootnote}>
+        {props.selectedPointKey
+          ? "Клик по выбранному периоду сбрасывает фильтр таблицы."
+          : "Клик по периоду фильтрует таблицу заказов ниже."}
+      </p>
     </div>
   );
 }
 
 function OrdersTrendChart(props: {
   currencyCode: string | null;
+  onSelectPoint: (point: DashboardTrendPoint | null) => void;
   points: DashboardTrendPoint[];
+  selectedPointKey: string | null;
 }) {
   if (props.points.length === 0) {
     return (
@@ -415,7 +445,12 @@ function OrdersTrendChart(props: {
 
       <div className={styles.barChartWrap} style={{ height: 280, marginTop: 16 }}>
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={props.points} margin={{ top: 10, right: 0, left: 0, bottom: 0 }}>
+          <BarChart
+            accessibilityLayer={false}
+            data={props.points}
+            margin={{ top: 10, right: 0, left: 0, bottom: 0 }}
+            onClick={(state) => props.onSelectPoint(readTrendPointFromChartState(state))}
+          >
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
             <XAxis 
               dataKey="label" 
@@ -426,7 +461,7 @@ function OrdersTrendChart(props: {
               minTickGap={30} 
             />
             <Tooltip
-              cursor={{ fill: 'var(--accent)', opacity: 0.1 }}
+              cursor={{ fill: "var(--accent)", opacity: 0.1, stroke: "none" }}
               content={<TrendTooltip currencyCode={props.currencyCode} variant="orders" />}
             />
             <Bar 
@@ -440,6 +475,11 @@ function OrdersTrendChart(props: {
           </BarChart>
         </ResponsiveContainer>
       </div>
+      <p className={styles.chartFootnote}>
+        {props.selectedPointKey
+          ? "Клик по выбранному периоду сбрасывает фильтр таблицы."
+          : "Клик по периоду фильтрует таблицу заказов ниже."}
+      </p>
     </div>
   );
 }
@@ -736,6 +776,7 @@ export function DashboardView({ dashboard, renderedAt }: DashboardViewProps) {
   const [customEnd, setCustomEnd] = useState("");
   const [sortKey, setSortKey] = useState<"createdAt" | "totalSum">("createdAt");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
+  const [selectedTrendKey, setSelectedTrendKey] = useState<string | null>(null);
   const [selectedOrderId, setSelectedOrderId] = useState<number | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(25);
@@ -775,8 +816,21 @@ export function DashboardView({ dashboard, renderedAt }: DashboardViewProps) {
     ],
   );
 
-  const selectedOrder =
-    analytics.filteredOrders.find((order) => order.retailcrmId === selectedOrderId) ?? null;
+  const selectedTrendPoint =
+    analytics.trendSeries.find((point) => point.key === selectedTrendKey) ?? null;
+  const tableOrders = useMemo(() => {
+    if (selectedTrendPoint === null) {
+      return analytics.filteredOrders;
+    }
+
+    return analytics.filteredOrders.filter((order) =>
+      isOrderWithinTrendPoint({
+        createdAt: order.createdAt,
+        point: selectedTrendPoint,
+      }),
+    );
+  }, [analytics.filteredOrders, selectedTrendPoint]);
+  const selectedOrder = tableOrders.find((order) => order.retailcrmId === selectedOrderId) ?? null;
   const summaryDeltas = getSummaryDeltas({
     current: analytics.currentSummary,
     previous: analytics.previousSummary,
@@ -793,6 +847,18 @@ export function DashboardView({ dashboard, renderedAt }: DashboardViewProps) {
     setCustomEnd("");
     setSortKey("createdAt");
     setSortDirection("desc");
+    setSelectedTrendKey(null);
+    setSelectedOrderId(null);
+    setCurrentPage(1);
+  }
+
+  function handleTrendPointSelect(point: DashboardTrendPoint | null) {
+    if (point === null) {
+      return;
+    }
+
+    setSelectedTrendKey((current) => (current === point.key ? null : point.key));
+    setSelectedOrderId(null);
     setCurrentPage(1);
   }
 
@@ -806,12 +872,12 @@ export function DashboardView({ dashboard, renderedAt }: DashboardViewProps) {
     setSortDirection(nextKey === "createdAt" ? "desc" : "asc");
   }
 
-  const totalItems = analytics.filteredOrders.length;
+  const totalItems = tableOrders.length;
   const totalPages = Math.ceil(totalItems / rowsPerPage) || 1;
   const safeCurrentPage = Math.min(Math.max(1, currentPage), totalPages);
 
   const startIndex = (safeCurrentPage - 1) * rowsPerPage;
-  const paginatedOrders = analytics.filteredOrders.slice(startIndex, startIndex + rowsPerPage);
+  const paginatedOrders = tableOrders.slice(startIndex, startIndex + rowsPerPage);
 
   // Helper function to reset page to 1 when filter changes
   function updateFilterAndResetPage<T>(updater: (val: T) => void, val: T) {
@@ -998,11 +1064,15 @@ export function DashboardView({ dashboard, renderedAt }: DashboardViewProps) {
       <section className={styles.trendsGrid}>
         <RevenueTrendChart
           currencyCode={analytics.currentSummary.revenue.currencyCode ?? dashboard.currencyCode}
+          onSelectPoint={handleTrendPointSelect}
           points={analytics.trendSeries}
+          selectedPointKey={selectedTrendPoint?.key ?? null}
         />
         <OrdersTrendChart
           currencyCode={analytics.currentSummary.revenue.currencyCode ?? dashboard.currencyCode}
+          onSelectPoint={handleTrendPointSelect}
           points={analytics.trendSeries}
+          selectedPointKey={selectedTrendPoint?.key ?? null}
         />
       </section>
 
@@ -1040,18 +1110,45 @@ export function DashboardView({ dashboard, renderedAt }: DashboardViewProps) {
             <div>
               <p className={styles.panelLabel}>Заказы</p>
               <h2 className={styles.panelTitle}>Последние или отфильтрованные записи</h2>
+              {selectedTrendPoint ? (
+                <div className={styles.tableScopeRow}>
+                  <span className={styles.subtleBadge}>
+                    Период из графика: {selectedTrendPoint.label}
+                  </span>
+                  <button
+                    className={styles.inlineClearButton}
+                    onClick={() => {
+                      setSelectedTrendKey(null);
+                      setSelectedOrderId(null);
+                      setCurrentPage(1);
+                    }}
+                    type="button"
+                  >
+                    Показать весь период
+                  </button>
+                </div>
+              ) : null}
             </div>
             <div className={styles.tableMeta}>
               <span>{formatDateRangeLabel({ end: analytics.range.end, start: analytics.range.start })}</span>
-              <span>Показано: {formatNumberValue(totalItems)}</span>
+              <span>
+                Показано: {formatNumberValue(totalItems)}
+                {selectedTrendPoint ? ` из ${formatNumberValue(analytics.filteredOrders.length)}` : ""}
+              </span>
             </div>
           </div>
 
-          {analytics.filteredOrders.length === 0 ? (
+          {tableOrders.length === 0 ? (
             <div className={styles.emptyState}>
-              <p className={styles.emptyTitle}>По текущим фильтрам записи не найдены</p>
+              <p className={styles.emptyTitle}>
+                {selectedTrendPoint
+                  ? "В выбранном периоде графика записей не найдено"
+                  : "По текущим фильтрам записи не найдены"}
+              </p>
               <p className={styles.emptyDescription}>
-                Измените период, снимите часть ограничений или очистите поисковый запрос.
+                {selectedTrendPoint
+                  ? "Выберите другой период на графике или сбросьте фильтр таблицы."
+                  : "Измените период, снимите часть ограничений или очистите поисковый запрос."}
               </p>
             </div>
           ) : (
