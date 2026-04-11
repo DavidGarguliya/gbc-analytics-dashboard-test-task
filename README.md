@@ -110,4 +110,6 @@ npm run build
 
 `mock_orders.json → RetailCRM → Supabase → Dashboard → Telegram alerts → Vercel`
 
-Полная версия README — в отдельном файле с подробным описанием архитектуры, проблем и решений.
+---
+
+Подробнее: [полная инженерная версия README](./README_full.md)
