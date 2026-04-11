@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   buildDashboardAnalytics,
   buildDashboardReadModel,
+  isOrderWithinTrendPoint,
   type DashboardOrderRow,
 } from "@/lib/dashboard";
 
@@ -377,27 +378,33 @@ describe("buildDashboardAnalytics", () => {
       trendSeries: [
         {
           averageOrderValue: 58500,
+          endDate: "2026-02-17",
           key: "2026-02-17",
           largeOrdersCount: 1,
           label: "17 февр.",
           ordersCount: 2,
           revenueAmount: 117000,
+          startDate: "2026-02-17",
         },
         {
           averageOrderValue: 37000,
+          endDate: "2026-02-18",
           key: "2026-02-18",
           largeOrdersCount: 0,
           label: "18 февр.",
           ordersCount: 1,
           revenueAmount: 37000,
+          startDate: "2026-02-18",
         },
         {
           averageOrderValue: 81000,
+          endDate: "2026-02-19",
           key: "2026-02-19",
           largeOrdersCount: 1,
           label: "19 февр.",
           ordersCount: 1,
           revenueAmount: 81000,
+          startDate: "2026-02-19",
         },
       ],
     });
@@ -593,5 +600,39 @@ describe("buildDashboardAnalytics", () => {
         share: 0.5,
       },
     ]);
+  });
+
+  it("detects whether an order belongs to a selected trend bucket", () => {
+    expect(
+      isOrderWithinTrendPoint({
+        createdAt: "2026-02-18T09:00:00+00:00",
+        point: {
+          averageOrderValue: 49020,
+          endDate: "2026-02-23",
+          key: "2026-02-17",
+          largeOrdersCount: 2,
+          label: "17 февр. – 23 февр.",
+          ordersCount: 4,
+          revenueAmount: 196080,
+          startDate: "2026-02-17",
+        },
+      }),
+    ).toBe(true);
+
+    expect(
+      isOrderWithinTrendPoint({
+        createdAt: "2026-02-24T09:00:00+00:00",
+        point: {
+          averageOrderValue: 49020,
+          endDate: "2026-02-23",
+          key: "2026-02-17",
+          largeOrdersCount: 2,
+          label: "17 февр. – 23 февр.",
+          ordersCount: 4,
+          revenueAmount: 196080,
+          startDate: "2026-02-17",
+        },
+      }),
+    ).toBe(false);
   });
 });

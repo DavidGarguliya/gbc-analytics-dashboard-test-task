@@ -99,11 +99,13 @@ export type DashboardSummary = {
 
 export type DashboardTrendPoint = {
   averageOrderValue: number | null;
+  endDate: string;
   key: string;
   largeOrdersCount: number;
   label: string;
   ordersCount: number;
   revenueAmount: number | null;
+  startDate: string;
 };
 
 export type DashboardBreakdownRow = {
@@ -203,6 +205,10 @@ function addUtcMonths(value: string, amount: number): string {
   date.setUTCDate(1);
 
   return buildIsoDateFromUtcDate(date);
+}
+
+function subtractUtcDays(value: string, amount: number): string {
+  return addUtcDays(value, -amount);
 }
 
 function normalizeWeekStartDate(value: string): string {
@@ -621,21 +627,23 @@ function buildTrendBuckets(input: {
   end: string;
   grain: DashboardTrendGrain;
   start: string;
-}): Array<{ key: string; label: string }> {
+}): Array<{ endDate: string; key: string; label: string; startDate: string }> {
   const { end, grain, start } = input;
 
   if (grain === "day") {
-    const buckets: Array<{ key: string; label: string }> = [];
+    const buckets: Array<{ endDate: string; key: string; label: string; startDate: string }> = [];
     let current = start;
 
     while (current.localeCompare(end) <= 0) {
       buckets.push({
+        endDate: current,
         key: current,
         label: new Intl.DateTimeFormat("ru-RU", {
           day: "numeric",
           month: "short",
           timeZone: "UTC",
         }).format(new Date(`${current}T00:00:00.000Z`)),
+        startDate: current,
       });
       current = addUtcDays(current, 1);
     }
@@ -644,13 +652,14 @@ function buildTrendBuckets(input: {
   }
 
   if (grain === "week") {
-    const buckets: Array<{ key: string; label: string }> = [];
+    const buckets: Array<{ endDate: string; key: string; label: string; startDate: string }> = [];
     let current = normalizeWeekStartDate(start);
     const lastWeek = normalizeWeekStartDate(end);
 
     while (current.localeCompare(lastWeek) <= 0) {
       const weekEnd = addUtcDays(current, 6);
       buckets.push({
+        endDate: weekEnd,
         key: current,
         label: `${new Intl.DateTimeFormat("ru-RU", {
           day: "numeric",
@@ -661,6 +670,7 @@ function buildTrendBuckets(input: {
           month: "short",
           timeZone: "UTC",
         }).format(new Date(`${weekEnd}T00:00:00.000Z`))}`,
+        startDate: current,
       });
       current = addUtcDays(current, 7);
     }
@@ -668,18 +678,21 @@ function buildTrendBuckets(input: {
     return buckets;
   }
 
-  const buckets: Array<{ key: string; label: string }> = [];
+  const buckets: Array<{ endDate: string; key: string; label: string; startDate: string }> = [];
   let current = normalizeMonthStartDate(start);
   const lastMonth = normalizeMonthStartDate(end);
 
   while (current.localeCompare(lastMonth) <= 0) {
+    const monthEnd = subtractUtcDays(addUtcMonths(current, 1), 1);
     buckets.push({
+      endDate: monthEnd,
       key: current,
       label: new Intl.DateTimeFormat("ru-RU", {
         month: "short",
         timeZone: "UTC",
         year: "numeric",
       }).format(new Date(`${current}T00:00:00.000Z`)),
+      startDate: current,
     });
     current = addUtcMonths(current, 1);
   }
@@ -724,11 +737,13 @@ function buildTrendSeries(input: {
     buckets.map((bucket) => [
       bucket.key,
       {
+        endDate: bucket.endDate,
         largeOrdersCount: 0,
         key: bucket.key,
         label: bucket.label,
         ordersCount: 0,
         revenueAmount: 0,
+        startDate: bucket.startDate,
       },
     ]),
   );
@@ -759,6 +774,7 @@ function buildTrendSeries(input: {
         allowRevenue && singleCurrency !== null && (resolved?.ordersCount ?? 0) > 0
           ? roundValue((resolved?.revenueAmount ?? 0) / (resolved?.ordersCount ?? 0))
           : null,
+      endDate: bucket.endDate,
       key: bucket.key,
       largeOrdersCount: resolved?.largeOrdersCount ?? 0,
       label: bucket.label,
@@ -767,6 +783,7 @@ function buildTrendSeries(input: {
         allowRevenue && singleCurrency !== null
           ? roundValue(resolved?.revenueAmount ?? 0)
           : null,
+      startDate: bucket.startDate,
     };
   });
 }
@@ -1077,4 +1094,16 @@ export function buildDashboardAnalytics(input: {
       start: range.start,
     }),
   };
+}
+
+export function isOrderWithinTrendPoint(input: {
+  createdAt: string;
+  point: DashboardTrendPoint;
+}): boolean {
+  const orderDate = normalizeOrderDateKey(input.createdAt);
+
+  return (
+    orderDate.localeCompare(input.point.startDate) >= 0 &&
+    orderDate.localeCompare(input.point.endDate) <= 0
+  );
 }

@@ -359,11 +359,25 @@
   gap: 0.5rem;
 }
 
+.lineChartWrap :global(.recharts-wrapper),
+.barChartWrap :global(.recharts-wrapper) {
+  cursor: pointer;
+}
+
 .lineChartWrap :global(.recharts-surface:focus),
+.lineChartWrap :global(.recharts-surface:focus-visible),
 .lineChartWrap :global(.recharts-wrapper:focus),
+.lineChartWrap :global(.recharts-wrapper:focus-visible),
+.lineChartWrap :global(svg:focus),
+.lineChartWrap :global(svg:focus-visible),
 .barChartWrap :global(.recharts-surface:focus),
-.barChartWrap :global(.recharts-wrapper:focus) {
-  outline: none;
+.barChartWrap :global(.recharts-surface:focus-visible),
+.barChartWrap :global(.recharts-wrapper:focus),
+.barChartWrap :global(.recharts-wrapper:focus-visible),
+.barChartWrap :global(svg:focus),
+.barChartWrap :global(svg:focus-visible) {
+  outline: none !important;
+  box-shadow: none !important;
 }
 
 .chartTooltip {
@@ -409,8 +423,7 @@
   color: var(--accent);
 }
 
-
-.barChartFootnote {
+.chartFootnote {
   color: var(--text-muted);
   font-size: 0.8rem;
   line-height: 1.4;
@@ -565,6 +578,28 @@
   color: var(--text-muted);
   font-size: 0.88rem;
   line-height: 1.45;
+}
+
+.tableScopeRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.55rem;
+  margin-top: 0.5rem;
+}
+
+.inlineClearButton {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--accent);
+  cursor: pointer;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.inlineClearButton:hover {
+  color: var(--text-strong);
 }
 
 .tableWrap {

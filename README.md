@@ -87,7 +87,9 @@ Overview-экран:
   - число крупных заказов
   - долю выручки
   - comparison-period context
-- trend tooltips по периоду показывают count/revenue вместе со `средним чеком` и числом `крупных заказов`, а служебная синяя focus-рамка Recharts убрана
+- trend tooltips по периоду показывают count/revenue вместе со `средним чеком` и числом `крупных заказов`
+- клик по точке или столбцу периода теперь фильтрует таблицу заказов ниже только до этого bucket
+- Recharts accessibility-layer focus ring и остаточные синие рамки вокруг charts отключены
 
 Order details по умолчанию показывают:
 
@@ -129,7 +131,8 @@ Telegram alert дополнительно показывает:
 4. После этого projection layer был очищен от смешения source semantics: `marketingSource` и `orderMethod` были разделены, а legacy `orders.source` перестал использоваться как честный marketing dimension.
 5. Затем был восстановлен live marketing-source contract: в RetailCRM создали custom field `utm_source`, сделали backfill 50 заказов из `mock_orders.json` и повторно синхронизировали Supabase.
 6. Затем были доведены presentation-layer и handoff docs: breakdown-карточки получили single-row desktop layout, subtitles у `Источник заказа` и `Способ оформления` были убраны, а README-пакет был полностью переведён на русский.
-7. Последним overview cleanup-срезом были уточнены trend tooltips, убран лишний Recharts focus-ring, а дублирующая KPI-карточка актуальности данных удалена, потому что время последней синхронизации уже показано в header.
+7. Затем trend tooltips были уточнены до полноценного period summary, а лишний Recharts focus-ring был убран.
+8. После этого overview был дополнен честным chart drilldown: клик по point/bar фильтрует orders table по выбранному периоду, а дублирующая KPI-карточка актуальности данных была удалена, потому что время последней синхронизации уже показано в header.
 
 ## Технологии
 

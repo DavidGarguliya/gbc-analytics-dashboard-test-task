@@ -1,4 +1,22 @@
 # CHRONICLE
+## 2026-04-11 — Chart drilldown and focus-ring removal
+- Branch: `task/chart-drilldown-filter`
+- Scope: upgraded trend charts from passive hover surfaces into honest period drilldown controls, and removed the remaining blue Recharts accessibility frame that still appeared around the charts.
+- Implemented scope:
+  - extended [dashboard.ts](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/lib/dashboard.ts) so each trend bucket now carries explicit `startDate` and `endDate` metadata, plus an exported helper for checking whether an order belongs to the selected trend bucket
+  - updated [dashboard-view.tsx](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/app/dashboard-view.tsx) so clicking a point or bar filters the orders table to that selected period, shows a visible “period from chart” chip above the table, and allows the chart filter to be cleared explicitly
+  - updated [page.module.css](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/app/page.module.css) to disable Recharts accessibility-layer focus outlines more aggressively and to style the new chart/table drilldown controls
+  - refreshed [dashboard.test.ts](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/lib/dashboard.test.ts), [README.md](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/README.md), [STATE.md](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/docs/STATE.md), and [CHRONICLE.md](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/docs/CHRONICLE.md) so tests and handoff docs match the new interaction model
+- Verification:
+  - `npm run docs:golden`
+  - `npm run lint`
+  - `npm run typecheck`
+  - `npm test`
+  - `npm run build`
+- Remaining risks / next:
+  - the charts still operate on aggregate period buckets and intentionally do not pretend to reveal specific orders inside the tooltip itself
+  - if later needed, the next honest UX step is a bucket-specific side panel or richer table preset, not order-level tooltip fabrication
+
 ## 2026-04-11 — KPI freshness-card cleanup
 - Branch: `task/kpi-layout-cleanup`
 - Scope: removed the duplicate freshness KPI because the same last-sync status is already shown in the dashboard header, and slightly increased KPI title size without changing any analytics semantics.
