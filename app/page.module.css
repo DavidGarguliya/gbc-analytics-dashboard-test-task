@@ -128,8 +128,8 @@
 }
 
 .periodTabActive:hover {
-  background: color-mix(in srgb, var(--accent) 85%, black);
-  border-color: color-mix(in srgb, var(--accent) 85%, black);
+  background: #1a1a1a;
+  border-color: #1a1a1a;
 }
 
 .controlRow {
@@ -815,6 +815,24 @@
   font-size: 0.86rem;
   font-weight: 600;
   line-height: 1.35;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-break: break-all;
+}
+
+.orderDetailLink {
+  color: var(--accent);
+  font-size: 0.86rem;
+  font-weight: 600;
+  line-height: 1.35;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-break: break-all;
+  text-decoration: none;
+}
+
+.orderDetailLink:hover {
+  text-decoration: underline;
 }
 
 .orderItemsBlock,

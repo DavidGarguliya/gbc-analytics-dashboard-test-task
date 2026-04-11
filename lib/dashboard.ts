@@ -570,11 +570,18 @@ function formatAbsoluteFreshness(value: string | null): string | null {
     return null;
   }
 
-  return new Intl.DateTimeFormat("ru-RU", {
+  const date = new Date(value);
+  const msk = new Intl.DateTimeFormat("ru-RU", {
     dateStyle: "medium",
     timeStyle: "short",
-    timeZone: "UTC",
-  }).format(new Date(value));
+    timeZone: "Europe/Moscow",
+  }).format(date);
+  const almaty = new Intl.DateTimeFormat("ru-RU", {
+    timeStyle: "short",
+    timeZone: "Asia/Almaty",
+  }).format(date);
+
+  return `${msk} МСК / ${almaty} Алматы`;
 }
 
 function buildFreshness(input: {

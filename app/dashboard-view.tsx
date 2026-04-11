@@ -671,13 +671,20 @@ function BreakdownRows(props: {
 }
 
 function DetailField(props: {
+  href?: string;
   label: string;
   value: string;
 }) {
   return (
     <div className={styles.orderDetailField}>
       <span className={styles.orderDetailLabel}>{props.label}</span>
-      <span className={styles.orderDetailValue}>{props.value}</span>
+      {props.href ? (
+        <a className={styles.orderDetailLink} href={props.href} title={props.value}>
+          {props.value}
+        </a>
+      ) : (
+        <span className={styles.orderDetailValue}>{props.value}</span>
+      )}
     </div>
   );
 }
@@ -742,7 +749,7 @@ function OrderDetailsPanel(props: {
       <div className={styles.orderDetailsGrid}>
         <DetailField label="Клиент" value={props.order.customerName ?? "Не указан"} />
         <DetailField label="Телефон" value={props.order.phone ?? "Не указан"} />
-        <DetailField label="Email" value={props.order.email ?? "Не указан"} />
+        <DetailField label="Email" value={props.order.email ?? "Не указан"} href={props.order.email ? `mailto:${props.order.email}` : undefined} />
         <DetailField label="Город" value={props.order.city ?? "Не указан"} />
         <DetailField label="Маркетинговый источник" value={props.order.marketingSource || "Не указан"} />
         <DetailField label="Способ оформления" value={props.order.orderMethod ? formatOrderMethod(props.order.orderMethod) : "Не указан"} />

@@ -278,7 +278,7 @@ describe("buildDashboardAnalytics", () => {
         expect.objectContaining({ retailcrmId: 88 }),
       ],
       freshness: {
-        absoluteLabel: "10 апр. 2026 г., 12:00",
+        absoluteLabel: "10 апр. 2026 г., 15:00 МСК / 17:00 Алматы",
         label: "5 мин назад",
         lastSyncedAt: "2026-04-10T12:00:00.000Z",
       },
