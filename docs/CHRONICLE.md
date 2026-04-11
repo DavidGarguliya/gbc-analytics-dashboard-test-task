@@ -1,4 +1,19 @@
 # CHRONICLE
+## 2026-04-11 — README governance-first context
+- Branch: `task/readme-governance-context`
+- Scope: refined the root README so it explicitly records that the repository governance package, invariants, ADR baseline, and full specification were created before implementation started.
+- Implemented scope:
+  - updated [README.md](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/README.md) with a dedicated governance-first section that explains the pre-development setup of `AGENTS.md`, governing docs, ADRs, and the spec package
+  - synchronized [STATE.md](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/docs/STATE.md) and [CHRONICLE.md](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/docs/CHRONICLE.md) with the documentation-only refinement
+- Verification:
+  - `npm run docs:golden`
+  - `npm run lint`
+  - `npm run typecheck`
+  - `npm test`
+- Remaining risks / next:
+  - the governance-first statement must remain aligned with the actual bootstrap chronology recorded in the repository history and milestone documents
+  - the accepted Telegram screenshot still remains an external artifact outside the repository
+
 ## 2026-04-11 — README closeout context refinement
 - Branch: `task/readme-context-closeout`
 - Scope: expanded the root README with a stricter chronological closeout that incorporates the verified redesign, alert-refinement, and source-model context from prior work without introducing stale or unreachable historical commit references.
