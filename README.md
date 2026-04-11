@@ -1,44 +1,34 @@
-# RetailCRM -> Supabase -> Dashboard
+# RetailCRM → Supabase → Dashboard
 
-Компактная, но production-shaped реализация тестового задания со следующей целевой цепочкой:
+Тестовое задание, в котором реализована полная рабочая цепочка:
 
-- импортировать 50 заказов из `mock_orders.json` в RetailCRM
-- синхронизировать заказы из RetailCRM в Supabase
-- строить dashboard только поверх Supabase read model
-- отправлять серверные Telegram-уведомления по заказам выше `50 000 KZT`
-- опубликовать dashboard на Vercel
+1. импорт 50 заказов из `mock_orders.json` в RetailCRM  
+2. синхронизация заказов из RetailCRM в Supabase  
+3. построение дашборда только на данных из Supabase  
+4. Telegram-уведомления по крупным заказам  
+5. публикация дашборда на Vercel  
 
-## Что в итоге реализовано
+---
 
-- live import `mock_orders.json -> RetailCRM`
-- idempotent sync `RetailCRM -> Supabase`
-- Supabase-only dashboard на Next.js
-- server-side Telegram alert runner c дедупликацией в `alerts_sent`
-- локальный one-command pipeline
-- production deployment dashboard на Vercel
+## Что в итоге сделано
 
-## Как была организована разработка
+Проект доведён до рабочего состояния и покрывает весь основной сценарий задания:
 
-Разработка шла не ad hoc. До начала любой продуктовой реализации в репозиторий был добавлен полный governance/spec пакет, чтобы работа шла управляемо, с явными инвариантами и без потери контекста между итерациями.
+- загружает тестовые заказы из `mock_orders.json` в RetailCRM;
+- синхронизирует заказы из RetailCRM в Supabase;
+- строит дашборд только поверх Supabase read model;
+- отправляет Telegram-уведомления по заказам с суммой выше `50 000 KZT`;
+- разворачивает дашборд на Vercel;
+- поддерживает единый локальный pipeline-запуск всей цепочки.
 
-Что было подготовлено до старта разработки:
+---
 
-- `AGENTS.md` как основной operating contract для AI-assisted development
-- полный пакет governing docs в `docs/`
-- baseline ADR package в `docs/ADR/`
-- спецификация, архитектура, модель данных, security model, deployment notes, test strategy, plan, state и chronicle
+## Публичные ссылки
 
-Практически это означало следующее:
+- **Vercel:** `https://gbc-analytics-dashboard-test-task.vercel.app`
+- **GitHub:** `https://github.com/DavidGarguliya/gbc-analytics-dashboard-test-task`
 
-- инварианты системы были зафиксированы до начала кодинга
-- архитектурные решения начали документироваться через ADR до наращивания реализации
-- разработка велась milestone-by-milestone, а не через один большой неуправляемый проход
-- agent/governance files были добавлены в репозиторий до начала основной разработки, поэтому последующие изменения делались уже в зафиксированном контексте, а не “с листа”
-
-Публичные артефакты:
-
-- Vercel URL: `https://gbc-analytics-dashboard-test-task.vercel.app`
-- GitHub URL: `https://github.com/DavidGarguliya/gbc-analytics-dashboard-test-task`
+---
 
 ## Архитектура
 
@@ -54,128 +44,192 @@ Supabase
   -> Telegram alert runner
 ```
 
-Актуальный контракт системы:
+### Ключевые принципы
 
-- RetailCRM — единственный upstream-источник заказов
-- Supabase — единственный источник данных для dashboard и alert-check
-- dashboard не читает RetailCRM напрямую
-- Telegram alerting остаётся только server-side
-- валюта в сохранённых данных сейчас `KZT`
-- маркетинговая атрибуция читается только из `raw_json.customFields.utm_source`
-- операционный способ оформления читается только из `raw_json.orderMethod`
-- правило алерта: `total_sum > 50 000` без валютной конвертации
-- дедупликация алертов хранится явно в `alerts_sent`
+- **RetailCRM** — единственный upstream-источник заказов  
+- **Supabase** — единственный источник данных для dashboard и alert-check  
+- дашборд **не читает RetailCRM напрямую**  
+- Telegram alerting работает **только server-side**  
+- дедупликация уведомлений хранится явно в таблице `alerts_sent`  
+- правило для алерта: `total_sum > 50 000 KZT`  
+- валюта в текущем live-контракте — **KZT**
 
-## Что сейчас показывает dashboard
+---
 
-Overview-экран:
+## Как была организована разработка
 
-- полностью на русском языке
-- остаётся Supabase-only read screen
-- показывает header, фильтры, KPI, trends, breakdown-блоки и drilldown-таблицу
-- время последней синхронизации показывается прямо в header, поэтому отдельная KPI-карточка свежести больше не дублирует этот статус
-- breakdown-блоки на широком desktop располагаются в один ряд из четырёх карточек:
-  - `Источник заказа`
-  - `Распределение по сумме заказа`
-  - `Заказы по статусам`
-  - `Способ оформления`
-- блок `Источник заказа` считает источник только по `utm_source`
-- блок `Источник заказа` показывает по каналу:
-  - число заказов
-  - выручку
-  - средний чек
-  - число крупных заказов
-  - долю выручки
-  - comparison-period context
-- trend tooltips по периоду показывают count/revenue вместе со `средним чеком` и числом `крупных заказов`
-- клик по реальной точке line-chart или по реальному столбцу bar-chart теперь фильтрует таблицу заказов ниже только до этого bucket
-- chart drilldown больше не висит на корневом `AreaChart/BarChart`, а привязан к самим `point/bar` элементам, поэтому фильтр реально срабатывает в браузере
-- Recharts internal focus layers дополнительно гасятся и после chart-click принудительно blur'ятся, поэтому остаточные синие рамки вокруг charts больше не остаются
+Разработка шла не как один большой “проход агентом”, а по этапам, с заранее зафиксированными правилами и артефактами.
 
-Order details по умолчанию показывают:
+До начала основной реализации в репозиторий были добавлены:
+
+- `AGENTS.md` — правила работы для AI-assisted development
+- `docs/` — спецификация, архитектура, план, состояние, журнал изменений
+- `docs/ADR/` — архитектурные решения
+
+На практике это позволило:
+
+- зафиксировать инварианты до начала кодинга;
+- не потерять контекст между итерациями;
+- вести работу milestone-by-milestone;
+- документировать важные решения не задним числом, а по ходу реализации.
+
+---
+
+## Что сейчас умеет система
+
+### 1. Импорт заказов в RetailCRM
+
+Проект импортирует 50 тестовых заказов из `mock_orders.json` в RetailCRM.
+
+### 2. Синхронизация RetailCRM → Supabase
+
+Синхронизация выполнена через upsert-модель, поэтому повторный запуск безопасен и не создаёт дублей в Supabase.
+
+### 3. Дашборд
+
+Дашборд полностью построен на Supabase и не обращается к RetailCRM напрямую.
+
+Сейчас overview-экран показывает:
+
+- заголовок и время последней синхронизации;
+- фильтры;
+- KPI;
+- графики динамики;
+- breakdown-блоки;
+- таблицу заказов;
+- детализацию выбранного заказа.
+
+### 4. Telegram alerts
+
+Telegram alert runner:
+
+- работает только server-side;
+- берёт данные только из Supabase;
+- отправляет уведомления по заказам выше `50 000 KZT`;
+- не отправляет дубли за счёт таблицы `alerts_sent`.
+
+### 5. Единый pipeline
+
+Есть единая точка входа для локального запуска всей цепочки:
+
+```bash
+npm run pipeline
+```
+
+Также есть wrapper-скрипты:
+
+- macOS: `./scripts/run-pipeline.command`
+- Windows: `scripts\run-pipeline.cmd`
+
+---
+
+## Что показывает дашборд
+
+Экран дашборда полностью русскоязычный и строится только на синхронизированных данных из Supabase.
+
+### Overview
+
+На экране есть:
+
+- KPI по заказам и выручке;
+- динамика заказов и выручки по периоду;
+- breakdown по статусам;
+- breakdown по маркетинговым источникам;
+- breakdown по способу оформления;
+- распределение по сумме заказа;
+- таблицу заказов с drilldown.
+
+### Детали заказа
+
+В панели деталей заказа по умолчанию показываются только операционно полезные поля:
 
 - номер заказа
-- сумму и валюту
-- клиента
+- сумма и валюта
+- клиент
 - телефон
+- email
 - город
 - маркетинговый источник
 - способ оформления
 - состав заказа
 - количество позиций
 - количество единиц товара
+- дата
+
+Дополнительно есть вторичный технический блок с:
+
+- `RetailCRM ID`
+- `External ID`
+
+### Telegram alert
+
+Формат уведомления был доработан так, чтобы менеджер сразу видел:
+
+- номер заказа
+- сумму
+- клиента
+- телефон
+- город
+- источник
+- состав заказа
+- количество позиций / единиц товара
 - дату
 
-Telegram alert дополнительно показывает:
+Если в `raw_json` сохранён email, он также может быть показан в alert.
 
-- email сразу под телефоном, если он уже есть в сохранённом `raw_json`
+---
 
-Важно:
+## Важная особенность source analytics
 
-- `customer_name` и `phone` читаются из сохранённой строки `orders`
-- общий operational summary для detail panel и Telegram alerts собирается через `lib/order-operational.ts` из persisted row + `raw_json`
-- `marketingSource` строится только из `orders.raw_json.customFields.utm_source`
-- `orderMethod` строится только из `orders.raw_json.orderMethod`
-- сохранённый `orders.source` не используется как честный маркетинговый источник, потому что исторически смешивал `utm_source` и `orderMethod`
-- `city`, `items`, `positions`, `units` выводятся из сохранённого `orders.raw_json`
-- реальные названия позиций читаются из live item payload, включая `items[*].offer.displayName` и `items[*].offer.name`
-- detail panel намеренно держит secondary technical block с `RetailCRM ID` и `External ID`
-- raw payload, полный адрес и email по умолчанию в UI не показываются
+В процессе разработки пришлось развести две разные сущности:
 
-## Как система эволюционировала
+- **marketing source** — источник привлечения (`utm_source`)
+- **order method** — способ оформления заказа (`orderMethod`)
 
-Ниже зафиксирована строгая последовательность именно verified outcomes, которые подтверждаются текущей реализацией, а не попытка восстановить все промежуточные рабочие ветки и черновые коммиты.
+Изначально историческое поле `orders.source` смешивало эти значения, что делало аналитику нечестной.  
+В финальной версии:
 
-1. Сначала был сделан controlled redesign overview-экрана без смены бизнес-логики и без смены Supabase-only read path.
-2. Затем order details и Telegram alerts были выровнены через единый shared helper `lib/order-operational.ts`, чтобы UI и server-side alerting опирались на один operational summary.
-3. После live-проверки synced payload был сделан follow-up alert refinement: реальные названия товаров стали читаться не только из `productName`, но и из `items[*].offer.displayName` / `items[*].offer.name`, а `email` был добавлен только в Telegram alert под телефоном.
-4. После этого projection layer был очищен от смешения source semantics: `marketingSource` и `orderMethod` были разделены, а legacy `orders.source` перестал использоваться как честный marketing dimension.
-5. Затем был восстановлен live marketing-source contract: в RetailCRM создали custom field `utm_source`, сделали backfill 50 заказов из `mock_orders.json` и повторно синхронизировали Supabase.
-6. Затем были доведены presentation-layer и handoff docs: breakdown-карточки получили single-row desktop layout, subtitles у `Источник заказа` и `Способ оформления` были убраны, а README-пакет был полностью переведён на русский.
-7. Затем trend tooltips были уточнены до полноценного period summary, а лишний Recharts focus-ring был убран.
-8. После этого overview был дополнен честным chart drilldown: клик по point/bar фильтрует orders table по выбранному периоду, а дублирующая KPI-карточка актуальности данных была удалена, потому что время последней синхронизации уже показано в header.
-9. Последним follow-up slice было исправление реального browser-behavior: chart drilldown был переведён с ненадёжного root-level click на реальные point/bar элементы, а blur/focus suppression был расширен до внутренних SVG-layer Recharts, чтобы исчезли оставшиеся синие рамки.
+- `marketingSource` строится только из `raw_json.customFields.utm_source`
+- `orderMethod` строится только из `raw_json.orderMethod`
 
-## Технологии
+Это позволило отдельно анализировать:
+
+- `instagram`
+- `google`
+- `tiktok`
+- `direct`
+- `referral`
+
+и не смешивать их с `shopping-cart`.
+
+---
+
+## Стек
 
 - Next.js 16 App Router
 - React 19
 - TypeScript
-- Supabase Postgres через `@supabase/supabase-js`
+- Supabase Postgres
+- `@supabase/supabase-js`
 - RetailCRM HTTP API
 - Telegram Bot API
-- Vercel для хостинга dashboard
+- Vercel
 
-## Структура репозитория
+---
 
-- `app/` — Next.js UI и dashboard surface
-- `lib/` — тонкие адаптеры, read-model builders и shared helpers
-- `scripts/` — operator commands для import / sync / alerts / pipeline
-- `supabase/schema.sql` — авторитетная базовая схема
-- `docs/` — governing docs, ADR, текущее состояние и журнал milestone-изменений
+## Структура проекта
 
-## Принятая схема deployment
+- `app/` — Next.js UI
+- `lib/` — адаптеры, read-model builders, shared helpers
+- `scripts/` — import / sync / alerts / pipeline
+- `supabase/schema.sql` — базовая схема
+- `docs/` — спецификация, ADR, состояние проекта, журнал изменений
 
-На Vercel развёрнут только dashboard.
-
-Import, sync, alerts и полный pipeline остаются server-side командами, которые запускаются локально оператором. Это сохраняет корректные client/server границы:
-
-- RetailCRM не выводится в публичный веб-контур
-- Telegram не выводится в публичный веб-контур
-- не добавляются лишние admin routes, scheduler и orchestration layers
-
-## Обязательные prerequisites
-
-- Node.js `>=20.9.0`
-- npm `>=10.0.0`
-- Supabase project с применённой схемой из `supabase/schema.sql`
-- RetailCRM credentials для локального import/sync
-- Telegram bot token и chat id для локального alert run
-- Vercel account для dashboard deployment
+---
 
 ## Переменные окружения
 
-### Локальный полный pipeline
+### Локальный запуск
 
 Скопируйте `.env.example` в `.env.local`:
 
@@ -187,69 +241,51 @@ cp .env.example .env.local
 
 | Переменная | Где нужна | Комментарий |
 | --- | --- | --- |
-| `RETAILCRM_BASE_URL` | local import, sync, pipeline | только server-side |
-| `RETAILCRM_API_KEY` | local import, sync, pipeline | только server-side |
-| `RETAILCRM_SITE_CODE` | optional local import, sync | фиксирует site code |
-| `SUPABASE_URL` | dashboard server read, sync, alerts, pipeline | тот же проект, где применена схема |
+| `RETAILCRM_BASE_URL` | import, sync, pipeline | только server-side |
+| `RETAILCRM_API_KEY` | import, sync, pipeline | только server-side |
+| `RETAILCRM_SITE_CODE` | optional import, sync | если нужно явно задать site |
+| `SUPABASE_URL` | dashboard server read, sync, alerts, pipeline | |
 | `SUPABASE_SERVICE_ROLE_KEY` | dashboard server read, sync, alerts, pipeline | только server-side |
-| `SUPABASE_ANON_KEY` | optional future browser-safe parity | текущий dashboard не использует |
-| `NEXT_PUBLIC_SUPABASE_URL` | optional future browser-safe parity | текущий dashboard не использует |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | optional future browser-safe parity | текущий dashboard не использует |
-| `TELEGRAM_BOT_TOKEN` | local alerts, pipeline | только server-side |
-| `TELEGRAM_CHAT_ID` | local alerts, pipeline | только server-side |
-| `NEXT_PUBLIC_APP_URL` | optional public URL | полезно для handoff и публичных ссылок |
+| `TELEGRAM_BOT_TOKEN` | alerts, pipeline | только server-side |
+| `TELEGRAM_CHAT_ID` | alerts, pipeline | только server-side |
+| `NEXT_PUBLIC_APP_URL` | optional | удобно для handoff |
 
-### Vercel: текущий dashboard-only runtime
+### Для Vercel
 
-Для текущего deployment shape обязательны только:
+В текущей production-схеме на Vercel нужен только dashboard, поэтому обязательны:
 
-| Переменная | Нужна на Vercel | Почему |
-| --- | --- | --- |
-| `SUPABASE_URL` | да | server-side read path dashboard |
-| `SUPABASE_SERVICE_ROLE_KEY` | да | server-side read path dashboard |
+- `SUPABASE_URL`
+- `SUPABASE_SERVICE_ROLE_KEY`
 
-Опционально:
-
-- `NEXT_PUBLIC_SUPABASE_URL`
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-- `NEXT_PUBLIC_APP_URL`
-
-Не нужны на Vercel при текущем контракте:
-
-- `RETAILCRM_BASE_URL`
-- `RETAILCRM_API_KEY`
-- `RETAILCRM_SITE_CODE`
-- `SUPABASE_ANON_KEY`
-- `TELEGRAM_BOT_TOKEN`
-- `TELEGRAM_CHAT_ID`
+---
 
 ## Локальный запуск
 
-### 1. Установить зависимости
+### 1. Установка зависимостей
 
 ```bash
 npm install
 ```
 
-### 2. Подготовить `.env.local`
+### 2. Подготовка `.env.local`
 
 ```bash
 cp .env.example .env.local
 ```
 
-### 3. Применить схему Supabase
+### 3. Применение схемы Supabase
 
-До первого sync, локальной проверки dashboard или Vercel deployment нужно применить:
+Перед первым sync и запуском dashboard нужно применить:
 
 - `supabase/schema.sql`
 
-Схема создаёт:
+Схема создаёт таблицы:
 
 - `orders`
 - `sync_state`
 - `alerts_sent`
 
-### 4. Прогнать quality gates
+### 4. Проверка проекта
 
 ```bash
 npm run docs:golden
@@ -259,73 +295,51 @@ npm run test
 npm run build
 ```
 
-## Операторские команды
+---
 
-Импорт fixture-заказов в RetailCRM:
+## Основные команды
+
+Импорт заказов в RetailCRM:
 
 ```bash
 npm run import:retailcrm
 ```
 
-Синхронизация RetailCRM -> Supabase:
+Синхронизация в Supabase:
 
 ```bash
 npm run sync:retailcrm
 ```
 
-Telegram alerts по high-value orders:
+Telegram alerts:
 
 ```bash
 npm run alerts:telegram
 ```
 
-Полная локальная цепочка:
+Полный локальный pipeline:
 
 ```bash
 npm run pipeline
 ```
 
-Wrapper scripts:
-
-- macOS: `./scripts/run-pipeline.command`
-- Windows: `scripts\\run-pipeline.cmd`
-
-Наблюдаемое поведение при rerun:
-
-- import может честно закончиться `Uploaded orders: 0` из-за duplicate-safe rejection по `externalId`
-- sync остаётся upsert-based и rerun-safe
-- dashboard остаётся полностью Supabase-backed
-- alerts остаются дедуплицированными и могут честно вернуть `Pending alerts found: 0`
+---
 
 ## Развёртывание на Vercel
 
-Текущая production-схема: dashboard-only deployment.
-
-### 1. Авторизация и линковка проекта
+### 1. Авторизация и линковка
 
 ```bash
 vercel login
 vercel link
 ```
 
-Если нужен browser/device flow:
+### 2. Настройка env vars
 
-```bash
-vercel login --github --oob
-```
-
-### 2. Настроить env vars на Vercel
-
-Добавьте production env:
+Добавьте на Vercel:
 
 - `SUPABASE_URL`
 - `SUPABASE_SERVICE_ROLE_KEY`
-
-При необходимости:
-
-- `NEXT_PUBLIC_SUPABASE_URL`
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-- `NEXT_PUBLIC_APP_URL`
 
 ### 3. Production deploy
 
@@ -333,77 +347,110 @@ vercel login --github --oob
 vercel deploy --prod
 ```
 
-### 4. Что проверить после deploy
+### 4. Что нужно проверить после деплоя
 
-- домашняя страница открывается
-- метрики приходят из Supabase
-- последние заказы приходят из Supabase
-- detail panel заказа открывается из таблицы и показывает операционный набор полей
-- в клиент не утекли RetailCRM / Telegram secrets
-- server-side runtime работает только на обязательных Supabase env vars
+- открывается главная страница;
+- KPI и таблица читаются из Supabase;
+- detail panel работает;
+- в браузер не утекают секреты RetailCRM / Telegram.
 
-## Какие промпты использовались с Codex
+---
 
-Работа шла milestone-by-milestone с жёсткими scope-ограничениями. Ключевые рабочие промпты были такими:
+## Какие проблемы возникли и как они решались
 
-1. Построить foundation для импорта `mock_orders.json` в RetailCRM, сохранить deterministic behavior и остановиться на live-checkpoint.
-2. Примирить фактический live-контракт RetailCRM с ожидаемым контрактом до любого downstream development.
-3. Реализовать RetailCRM -> Supabase sync с явным `sync_state` и безопасными rerun.
-4. Реализовать dashboard, который читает только Supabase и не переинтерпретирует валюту на UI.
-5. Переоткрыть currency contract, сначала исправить upstream account на `KZT`, затем повторно синхронизировать Supabase.
-6. Реализовать Telegram alerts для сохранённых заказов выше `50 000 KZT`, с явной дедупликацией и только server-side.
-7. Добавить один исполняемый локальный pipeline runner для цепочки import -> sync -> dashboard read -> alerts.
-8. Развести `marketing_source` и `order_method` в projection layer без schema migration и без смешивания семантик.
-9. Вернуть честную source analytics по каналам после проверки live RetailCRM contract для `utm_source`.
-10. Довести Vercel deployment, README и handoff materials до reviewer-ready состояния без расширения product scope.
+### 1. RetailCRM reference endpoints вернули payload не в ожидаемом формате
 
-## Проблемы, которые встретились, и как они были решены
+**Проблема:** import-адаптер ожидал массив, а live payload пришёл в object-shaped виде.  
+**Решение:** адаптер был обновлён под фактический контракт live API.
 
-| Проблема | Где проявилась | Как была решена |
-| --- | --- | --- |
-| RetailCRM reference endpoints вернули object-shaped payload вместо ожидаемого массива | live import | адаптер был обновлён так, чтобы принимать фактическую форму live payload |
-| В live account оказался только один поддерживаемый `orderType`: `main` | live import | добавлена deterministic reconciliation логика для `orderType` в import mapping |
-| Повторный import не шёл по update-path и возвращал duplicate rejection по `externalId` | rerun import | это было зафиксировано как честное seed-import поведение; uncontrolled duplicates не создаются |
-| Изначально live RetailCRM account сохранял imported demo orders как `RUB`, а не `KZT` | currency contract review | сначала исправлен upstream account, затем повторно выполнен sync, чтобы Supabase и dashboard оставались truthful |
-| Telegram delivery был заблокирован, потому что `TELEGRAM_CHAT_ID` не был задан явно | live verification alerts | chat id был извлечён через bot updates flow после сообщения боту |
-| Pipeline script не мог импортировать Next.js `server-only` dashboard module | pipeline implementation | reusable Supabase read path был вынесен в `lib/dashboard-read.ts`, а App Router wrapper остался тонким |
-| `npm run pipeline` изначально не поднимал `.env.local` автоматически | pipeline live verification | entrypoint был переведён на Node `--env-file=.env.local` |
-| Изначально тестовый Telegram alert показывал generic позиции вроде `Позиция 1`, потому что formatter смотрел только в `productName` | live alert preview | shared operational projection был доработан под `productName` и nested `offer.displayName` / `offer.name`, после чего тестовый alert был безопасно переслан вручную без записи в `alerts_sent` |
-| В live payload реальные названия товаров лежали не только в `productName`, но и в `items[*].offer.displayName` / `items[*].offer.name` | details panel и Telegram alert | shared operational projection был обновлён под фактическую форму live item payload |
-| Исторически поле `orders.source` смешивало маркетинговый источник и операционный способ оформления | source analytics review | projection layer был разделён на `marketingSource` и `orderMethod`, а legacy `orders.source` перестал использоваться как честный marketing dimension |
-| В live RetailCRM account вообще не было order custom field `utm_source` | source analytics live verification | custom field `utm_source` был создан через официальный RetailCRM API |
-| После этого все старые 50 заказов всё ещё оставались без `utm_source` в Supabase | live data backfill | был выполнен bulk backfill существующих заказов из `mock_orders.json` в RetailCRM и затем повторный sync в Supabase |
-| Из-за отсутствия `utm_source` dashboard и Telegram честно показывали `Источник: Не указан`, хотя fixture содержал `instagram`, `google`, `tiktok`, `direct`, `referral` | source analytics UI и Telegram | после создания поля и backfill каналы снова появились в live pipeline и в Supabase read model |
-| Breakdown-карточки на overview сначала были логически перегружены, а затем оказались не в том desktop-layout, который нужен для финальной подачи | UI refinement | карточки были сначала упорядочены и очищены от лишних подписей, а затем переведены в один ряд из четырёх карточек на широком desktop с responsive fallback для более узких экранов |
+### 2. В live account был только один поддерживаемый `orderType`
 
-## Известные ограничения
+**Проблема:** ожидаемое значение из fixture не поддерживалось аккаунтом.  
+**Решение:** была добавлена deterministic reconciliation логика для `orderType`.
 
-- На Vercel развёрнут только dashboard. Import, sync, alerts и полный pipeline остаются локальными operator commands.
-- Текущий deployed dashboard server-rendered из Supabase и пока не использует browser-safe Supabase env vars.
-- Alert runner работает по модели send-then-mark. Если процесс упадёт после успешной отправки и до записи в `alerts_sent`, при следующем rerun один и тот же заказ может уйти повторно.
-- Import path остаётся seed-import сценарием. На rerun duplicate rejection по `externalId` считается честным безопасным результатом, а не update path.
-- Windows launcher присутствует и документирован, но live-verified в этой сессии был только macOS launcher.
-- Финальная submission package всё ещё требует приложить внешний Telegram screenshot из принятой live-verification.
+### 3. Повторный import не работает как update-path
 
-## Финальный checklist handoff
+**Проблема:** повторный импорт возвращал duplicate rejection по `externalId`.  
+**Решение:** это было зафиксировано как честное seed-import поведение. Повторный запуск не создаёт неконтролируемых дублей.
 
-- [x] Vercel dashboard URL зафиксирован
-- [x] GitHub repository URL зафиксирован
-- [ ] Telegram screenshot приложен
-- [x] Требование применить Supabase schema задокументировано
-- [x] Локальные env requirements задокументированы
-- [x] Vercel env requirements задокументированы
-- [x] Локальные pipeline instructions задокументированы
-- [x] Реальные проблемы и способы их решения задокументированы
-- [x] Known limitations задокументированы
+### 4. Валюта в live RetailCRM сначала сохранялась как `RUB`, а не `KZT`
 
-## Evidence inventory
+**Проблема:** это ломало честность downstream-аналитики.  
+**Решение:** сначала был исправлен upstream-контракт в RetailCRM, затем выполнен повторный sync в Supabase.
 
-- Vercel URL: `https://gbc-analytics-dashboard-test-task.vercel.app`
-- GitHub repo URL: `https://github.com/DavidGarguliya/gbc-analytics-dashboard-test-task`
-- Telegram screenshot: нужно приложить screenshot из принятой live alert verification
-- Submission-ready summary: репозиторий реализует полную цепочку `mock_orders.json -> RetailCRM -> Supabase -> Dashboard -> Telegram alerts -> Vercel`, с live-контрактом `KZT`, правилом алерта `total_sum > 50 000 KZT`, явной дедупликацией в `alerts_sent`, честным разделением `marketingSource` и `orderMethod`, а также one-command локальным pipeline runner для повторяемого operator execution
+### 5. Telegram alerts сначала не проходили live verification
 
-## Личное замечание
+**Проблема:** не был задан `TELEGRAM_CHAT_ID`.  
+**Решение:** chat id был извлечён через bot updates flow после сообщения боту.
 
-Выполняя эту задачу, я получил колоссальное удовольствие от поставленной задачи: в ней было достаточно реальной интеграционной сложности, чтобы приходилось не «рисовать демо», а аккуратно разбирать живые контракты, устранять несовпадения данных и доводить систему до честного рабочего состояния без лишнего переусложнения.
+### 6. Pipeline runner не мог использовать Next.js `server-only` module
+
+**Проблема:** общий pipeline не мог импортировать dashboard read path напрямую.  
+**Решение:** reusable Supabase read layer был вынесен в отдельный `lib/dashboard-read.ts`.
+
+### 7. `.env.local` не подхватывался автоматически в pipeline
+
+**Проблема:** локальный pipeline запускался не всегда предсказуемо.  
+**Решение:** entrypoint был переведён на запуск через `--env-file=.env.local`.
+
+### 8. Telegram alert сначала показывал слишком бедный состав заказа
+
+**Проблема:** formatter читал не все реальные поля live item payload.  
+**Решение:** operational projection был расширен под `productName`, `offer.displayName` и `offer.name`.
+
+### 9. Source analytics сначала была нечестной
+
+**Проблема:** поле `orders.source` смешивало marketing source и order method.  
+**Решение:** projection layer был разделён на `marketingSource` и `orderMethod`.
+
+### 10. В live RetailCRM не было custom field `utm_source`
+
+**Проблема:** невозможно было честно восстановить маркетинговые источники из live-заказов.  
+**Решение:** custom field был создан через RetailCRM API, после чего был сделан backfill 50 заказов и повторный sync.
+
+---
+
+## Что использовалось при AI-assisted разработке
+
+Работа велась поэтапно, с жёсткими scope-ограничениями. Основные запросы к агенту сводились к таким шагам:
+
+1. подготовить foundation для controlled development;
+2. реализовать import в RetailCRM;
+3. зафиксировать и примирить live-контракт RetailCRM;
+4. реализовать sync в Supabase;
+5. построить dashboard только на Supabase;
+6. исправить live currency contract до `KZT`;
+7. реализовать Telegram alerts с дедупликацией;
+8. добавить единый pipeline runner;
+9. развести `marketingSource` и `orderMethod`;
+10. довести dashboard, deployment и handoff до reviewer-ready состояния.
+
+---
+
+## Финальный checklist
+
+- [x] Есть Vercel URL
+- [x] Есть GitHub URL
+- [x] Приложен Telegram screenshot
+- [x] Задокументированы требования к Supabase schema
+- [x] Задокументированы локальные env
+- [x] Задокументированы Vercel env
+- [x] Есть pipeline instructions
+- [x] Описаны реальные проблемы и решения
+
+---
+
+## Итог
+
+В репозитории реализована полная рабочая цепочка:
+
+`mock_orders.json → RetailCRM → Supabase → Dashboard → Telegram alerts → Vercel`
+
+Система доведена до честного рабочего состояния с такими свойствами:
+
+- live-контракт по валюте — `KZT`
+- правило alert: `total_sum > 50 000 KZT`
+- dashboard строится только на Supabase
+- Telegram alerts дедуплицируются через `alerts_sent`
+- marketing source и order method разделены честно
+- вся цепочка может запускаться одной локальной командой через pipeline runner
