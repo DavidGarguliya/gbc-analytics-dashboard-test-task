@@ -98,7 +98,9 @@ export type DashboardSummary = {
 };
 
 export type DashboardTrendPoint = {
+  averageOrderValue: number | null;
   key: string;
+  largeOrdersCount: number;
   label: string;
   ordersCount: number;
   revenueAmount: number | null;
@@ -722,6 +724,7 @@ function buildTrendSeries(input: {
     buckets.map((bucket) => [
       bucket.key,
       {
+        largeOrdersCount: 0,
         key: bucket.key,
         label: bucket.label,
         ordersCount: 0,
@@ -744,6 +747,7 @@ function buildTrendSeries(input: {
     }
 
     bucket.ordersCount += 1;
+    bucket.largeOrdersCount += order.isLargeOrder ? 1 : 0;
     bucket.revenueAmount += order.totalSum;
   }
 
@@ -751,7 +755,12 @@ function buildTrendSeries(input: {
     const resolved = index.get(bucket.key);
 
     return {
+      averageOrderValue:
+        allowRevenue && singleCurrency !== null && (resolved?.ordersCount ?? 0) > 0
+          ? roundValue((resolved?.revenueAmount ?? 0) / (resolved?.ordersCount ?? 0))
+          : null,
       key: bucket.key,
+      largeOrdersCount: resolved?.largeOrdersCount ?? 0,
       label: bucket.label,
       ordersCount: resolved?.ordersCount ?? 0,
       revenueAmount:

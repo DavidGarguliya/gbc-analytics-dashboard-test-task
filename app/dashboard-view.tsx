@@ -19,6 +19,7 @@ import {
   type DashboardPeriodKey,
   type DashboardReadModel,
   type DashboardSummary,
+  type DashboardTrendPoint,
 } from "@/lib/dashboard";
 import {
   formatOperationalOrderLabel,
@@ -222,14 +223,93 @@ function MetricCard(props: {
   );
 }
 
+function TrendTooltip(props: {
+  active?: boolean;
+  currencyCode: string | null;
+  payload?: Array<{ payload: DashboardTrendPoint }>;
+  variant: "orders" | "revenue";
+}) {
+  const point = props.payload?.[0]?.payload;
+
+  if (!props.active || !point) {
+    return null;
+  }
+
+  const rows =
+    props.variant === "orders"
+      ? [
+          { emphasis: true, label: "Заказы", value: formatNumberValue(point.ordersCount) },
+          {
+            emphasis: false,
+            label: "Выручка",
+            value: formatMoneyValue({
+              amount: point.revenueAmount,
+              currencyCode: props.currencyCode,
+            }),
+          },
+          {
+            emphasis: false,
+            label: "Средний чек",
+            value: formatMoneyValue({
+              amount: point.averageOrderValue,
+              currencyCode: props.currencyCode,
+            }),
+          },
+          {
+            emphasis: false,
+            label: "Крупные заказы",
+            value: formatNumberValue(point.largeOrdersCount),
+          },
+        ]
+      : [
+          {
+            emphasis: true,
+            label: "Выручка",
+            value: formatMoneyValue({
+              amount: point.revenueAmount,
+              currencyCode: props.currencyCode,
+            }),
+          },
+          { emphasis: false, label: "Заказы", value: formatNumberValue(point.ordersCount) },
+          {
+            emphasis: false,
+            label: "Средний чек",
+            value: formatMoneyValue({
+              amount: point.averageOrderValue,
+              currencyCode: props.currencyCode,
+            }),
+          },
+          {
+            emphasis: false,
+            label: "Крупные заказы",
+            value: formatNumberValue(point.largeOrdersCount),
+          },
+        ];
+
+  return (
+    <div className={styles.chartTooltip}>
+      <p className={styles.chartTooltipLabel}>{point.label}</p>
+      <div className={styles.chartTooltipRows}>
+        {rows.map((row) => (
+          <div className={styles.chartTooltipRow} key={row.label}>
+            <span className={styles.chartTooltipKey}>{row.label}</span>
+            <span
+              className={`${styles.chartTooltipValue} ${
+                row.emphasis ? styles.chartTooltipValueEmphasis : ""
+              }`}
+            >
+              {row.value}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function RevenueTrendChart(props: {
   currencyCode: string | null;
-  points: Array<{
-    key: string;
-    label: string;
-    ordersCount: number;
-    revenueAmount: number | null;
-  }>;
+  points: DashboardTrendPoint[];
 }) {
   if (props.points.length === 0) {
     return (
@@ -284,13 +364,7 @@ function RevenueTrendChart(props: {
               minTickGap={30} 
             />
             <Tooltip
-              contentStyle={{ borderRadius: '0.6rem', border: '1px solid var(--border)', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)' }}
-              itemStyle={{ color: 'var(--accent)', fontWeight: 500 }}
-              labelStyle={{ color: 'var(--text-muted)', marginBottom: 4 }}
-              formatter={(value) => [
-                formatMoneyValue({ amount: Number(value), currencyCode: props.currencyCode }),
-                "Выручка"
-              ]}
+              content={<TrendTooltip currencyCode={props.currencyCode} variant="revenue" />}
             />
             <Area 
               type="monotone" 
@@ -308,11 +382,8 @@ function RevenueTrendChart(props: {
 }
 
 function OrdersTrendChart(props: {
-  points: Array<{
-    key: string;
-    label: string;
-    ordersCount: number;
-  }>;
+  currencyCode: string | null;
+  points: DashboardTrendPoint[];
 }) {
   if (props.points.length === 0) {
     return (
@@ -356,10 +427,7 @@ function OrdersTrendChart(props: {
             />
             <Tooltip
               cursor={{ fill: 'var(--accent)', opacity: 0.1 }}
-              contentStyle={{ borderRadius: '0.6rem', border: '1px solid var(--border)', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)' }}
-              itemStyle={{ color: 'var(--accent)', fontWeight: 500 }}
-              labelStyle={{ color: 'var(--text-muted)', marginBottom: 4 }}
-              formatter={(value) => [formatNumberValue(Number(value)), "Заказы"]}
+              content={<TrendTooltip currencyCode={props.currencyCode} variant="orders" />}
             />
             <Bar 
               dataKey="ordersCount" 
@@ -925,12 +993,6 @@ export function DashboardView({ dashboard, renderedAt }: DashboardViewProps) {
           title="Доля крупных заказов в выручке"
           value={formatPercentValue(analytics.currentSummary.largeOrdersRevenueShare)}
         />
-        <MetricCard
-          delta={null}
-          subtitle="по времени последней синхронизации"
-          title="Актуальность данных"
-          value={`обновлено ${analytics.freshness.label}`}
-        />
       </section>
 
       <section className={styles.trendsGrid}>
@@ -938,7 +1000,10 @@ export function DashboardView({ dashboard, renderedAt }: DashboardViewProps) {
           currencyCode={analytics.currentSummary.revenue.currencyCode ?? dashboard.currencyCode}
           points={analytics.trendSeries}
         />
-        <OrdersTrendChart points={analytics.trendSeries} />
+        <OrdersTrendChart
+          currencyCode={analytics.currentSummary.revenue.currencyCode ?? dashboard.currencyCode}
+          points={analytics.trendSeries}
+        />
       </section>
 
       <section className={styles.slicesGrid}>

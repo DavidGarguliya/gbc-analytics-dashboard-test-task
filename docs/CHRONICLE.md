@@ -1,4 +1,53 @@
 # CHRONICLE
+## 2026-04-11 — KPI freshness-card cleanup
+- Branch: `task/kpi-layout-cleanup`
+- Scope: removed the duplicate freshness KPI because the same last-sync status is already shown in the dashboard header, and slightly increased KPI title size without changing any analytics semantics.
+- Implemented scope:
+  - removed the `Актуальность данных` KPI card from the overview row in [dashboard-view.tsx](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/app/dashboard-view.tsx)
+  - updated [page.module.css](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/app/page.module.css) so the KPI grid is now five columns on wide desktop and KPI titles are one visual step larger
+  - refreshed [README.md](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/README.md), [STATE.md](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/docs/STATE.md), and [CHRONICLE.md](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/docs/CHRONICLE.md) so the handoff matches the cleaned overview surface
+- Verification:
+  - `npm run docs:golden`
+  - `npm run lint`
+  - `npm run typecheck`
+  - `npm test`
+  - `npm run build`
+- Remaining risks / next:
+  - if a later slice restores a separate freshness card, it should carry a distinct operational purpose rather than repeat the header timestamp
+
+## 2026-04-11 — Chart UX refinement
+- Branch: `task/chart-ux-refinement`
+- Scope: improved the trend-chart interaction quality by removing the distracting focus ring and enriching the hover tooltips without changing the Supabase-only read path or inventing fake order-level drilldown.
+- Implemented scope:
+  - updated [dashboard.ts](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/lib/dashboard.ts) so each trend bucket now carries `averageOrderValue` and `largeOrdersCount` in addition to `ordersCount` and `revenueAmount`
+  - updated [dashboard-view.tsx](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/app/dashboard-view.tsx) so both trend charts use a richer custom tooltip that shows count, revenue, average order value, and high-value order count for the hovered period
+  - updated [page.module.css](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/app/page.module.css) to suppress the blue focus outline on focused Recharts surfaces
+  - refreshed [dashboard.test.ts](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/lib/dashboard.test.ts), [STATE.md](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/docs/STATE.md), and [CHRONICLE.md](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/docs/CHRONICLE.md) to match the richer bucket contract and UI behavior
+- Verification:
+  - `npm run docs:golden`
+  - `npm run lint`
+  - `npm run typecheck`
+  - `npm test`
+  - `npm run build`
+- Remaining risks / next:
+  - the charts are still aggregate by design, so they do not and should not pretend to reveal specific orders inside a bucket without a real drilldown interaction
+  - if later needed, the correct next step is click-to-filter from the chart into the orders table rather than stuffing order-level detail into the tooltip
+
+## 2026-04-11 — README governance-first context
+- Branch: `task/readme-governance-context`
+- Scope: refined the root README so it explicitly records that the repository governance package, invariants, ADR baseline, and full specification were created before implementation started.
+- Implemented scope:
+  - updated [README.md](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/README.md) with a dedicated governance-first section that explains the pre-development setup of `AGENTS.md`, governing docs, ADRs, and the spec package
+  - synchronized [STATE.md](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/docs/STATE.md) and [CHRONICLE.md](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/docs/CHRONICLE.md) with the documentation-only refinement
+- Verification:
+  - `npm run docs:golden`
+  - `npm run lint`
+  - `npm run typecheck`
+  - `npm test`
+- Remaining risks / next:
+  - the governance-first statement must remain aligned with the actual bootstrap chronology recorded in the repository history and milestone documents
+  - the accepted Telegram screenshot still remains an external artifact outside the repository
+
 ## 2026-04-11 — README closeout context refinement
 - Branch: `task/readme-context-closeout`
 - Scope: expanded the root README with a stricter chronological closeout that incorporates the verified redesign, alert-refinement, and source-model context from prior work without introducing stale or unreachable historical commit references.

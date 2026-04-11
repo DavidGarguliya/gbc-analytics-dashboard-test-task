@@ -376,19 +376,25 @@ describe("buildDashboardAnalytics", () => {
       ],
       trendSeries: [
         {
+          averageOrderValue: 58500,
           key: "2026-02-17",
+          largeOrdersCount: 1,
           label: "17 февр.",
           ordersCount: 2,
           revenueAmount: 117000,
         },
         {
+          averageOrderValue: 37000,
           key: "2026-02-18",
+          largeOrdersCount: 0,
           label: "18 февр.",
           ordersCount: 1,
           revenueAmount: 37000,
         },
         {
+          averageOrderValue: 81000,
           key: "2026-02-19",
+          largeOrdersCount: 1,
           label: "19 февр.",
           ordersCount: 1,
           revenueAmount: 81000,
