@@ -1,4 +1,20 @@
 # CHRONICLE
+## 2026-04-11 — Single-row overview breakdown layout
+- Branch: `task/slices-single-row`
+- Scope: adjusted the overview breakdown cards so all four cards render in a single desktop row while preserving the existing metrics, honest source semantics, and responsive fallback.
+- Implemented scope:
+  - updated [page.module.css](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/app/page.module.css) so `slicesGrid` uses four columns on wide screens and falls back to two columns below `1500px`, then to one column on the existing mobile breakpoint
+  - updated [README.md](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/README.md), [app/README.md](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/app/README.md), [STATE.md](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/docs/STATE.md), and [CHRONICLE.md](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/docs/CHRONICLE.md) so documentation matches the final overview layout
+- Verification:
+  - `npm run docs:golden`
+  - `npm run lint`
+  - `npm run typecheck`
+  - `npm test`
+  - `npm run build`
+- Remaining risks / next:
+  - the one-row desktop layout depends on wide viewport availability; narrower screens still intentionally collapse to multi-row layout
+  - if future content is added inside any breakdown card, the desktop row may need presentational rebalancing rather than further information-density growth
+
 ## 2026-04-11 — Russian README and handoff refresh
 - Branch: `task/readme-russian-handoff`
 - Scope: refreshed every repository README into Russian and expanded the root handoff document with a fuller inventory of real blockers, resolutions, and final reviewer context.

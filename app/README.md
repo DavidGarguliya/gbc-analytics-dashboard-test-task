@@ -8,7 +8,7 @@
 - `page.tsx` — server-side entrypoint dashboard, который читает данные только из Supabase
 - `dashboard-view.tsx` — основная React-вёрстка overview, фильтров, графиков, breakdown-карточек, таблицы и detail panel
 - `globals.css` — глобальные переменные, базовые стили и shared surface tokens
-- `page.module.css` — модульные стили dashboard, включая current `2x2` layout для breakdown-блоков
+- `page.module.css` — модульные стили dashboard, включая текущий single-row desktop layout для breakdown-блоков
 
 Инварианты:
 
