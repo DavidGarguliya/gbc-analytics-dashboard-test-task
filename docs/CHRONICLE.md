@@ -1,4 +1,26 @@
 # CHRONICLE
+## 2026-04-11 — Chart interaction follow-up fix
+- Branch: `task/chart-click-outline-fix`
+- Scope: corrected the real browser behavior of the trend charts after production reproduction showed that root-level chart clicks were not filtering the table and internal Recharts focus layers could still keep blue frames visible after interaction.
+- Implemented scope:
+  - updated [dashboard-view.tsx](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/app/dashboard-view.tsx) so chart drilldown is now wired to the actual line-chart points and bar-chart rectangles instead of the `AreaChart` / `BarChart` root, with post-click focus blur to keep chart interaction visually clean
+  - updated [page.module.css](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/app/page.module.css) to suppress focus outlines on internal Recharts SVG layers such as `g`, `path`, `rect`, `circle`, and generic `[tabindex]` nodes, not only on the wrapper/surface
+  - refreshed [README.md](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/README.md), [STATE.md](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/docs/STATE.md), and [CHRONICLE.md](/Users/vincentvega/Desktop/gbc-analytics-dashboard-test-task/docs/CHRONICLE.md) so the handoff reflects the actual fixed interaction model
+- Verification:
+  - production browser reproduction via Playwright confirmed the bug before the fix: clicking charts left `rows=25`, `chip=0`, and focused internal `g.recharts-zIndex-layer_*`
+  - local production build verification via Playwright after the fix confirmed:
+    - bar click changed table rows from `25` to `7`
+    - line-point click changed table rows from `25` to `7`
+    - `Период из графика` chip appears
+    - `document.activeElement` returns to `BODY` after interaction
+    - no residual blue frame is visible on the captured local chart screenshots
+  - `npm run lint`
+  - `npm run typecheck`
+  - `npm run build`
+- Remaining risks / next:
+  - production will still show the old behavior until this slice is merged and redeployed from `main`
+  - the charts remain intentionally aggregate and should continue to drill down by period bucket only, not pretend to expose individual orders inside a tooltip
+
 ## 2026-04-11 — Chart drilldown and focus-ring removal
 - Branch: `task/chart-drilldown-filter`
 - Scope: upgraded trend charts from passive hover surfaces into honest period drilldown controls, and removed the remaining blue Recharts accessibility frame that still appeared around the charts.

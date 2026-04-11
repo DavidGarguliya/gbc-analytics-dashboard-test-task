@@ -88,8 +88,9 @@ Overview-экран:
   - долю выручки
   - comparison-period context
 - trend tooltips по периоду показывают count/revenue вместе со `средним чеком` и числом `крупных заказов`
-- клик по точке или столбцу периода теперь фильтрует таблицу заказов ниже только до этого bucket
-- Recharts accessibility-layer focus ring и остаточные синие рамки вокруг charts отключены
+- клик по реальной точке line-chart или по реальному столбцу bar-chart теперь фильтрует таблицу заказов ниже только до этого bucket
+- chart drilldown больше не висит на корневом `AreaChart/BarChart`, а привязан к самим `point/bar` элементам, поэтому фильтр реально срабатывает в браузере
+- Recharts internal focus layers дополнительно гасятся и после chart-click принудительно blur'ятся, поэтому остаточные синие рамки вокруг charts больше не остаются
 
 Order details по умолчанию показывают:
 
@@ -133,6 +134,7 @@ Telegram alert дополнительно показывает:
 6. Затем были доведены presentation-layer и handoff docs: breakdown-карточки получили single-row desktop layout, subtitles у `Источник заказа` и `Способ оформления` были убраны, а README-пакет был полностью переведён на русский.
 7. Затем trend tooltips были уточнены до полноценного period summary, а лишний Recharts focus-ring был убран.
 8. После этого overview был дополнен честным chart drilldown: клик по point/bar фильтрует orders table по выбранному периоду, а дублирующая KPI-карточка актуальности данных была удалена, потому что время последней синхронизации уже показано в header.
+9. Последним follow-up slice было исправление реального browser-behavior: chart drilldown был переведён с ненадёжного root-level click на реальные point/bar элементы, а blur/focus suppression был расширен до внутренних SVG-layer Recharts, чтобы исчезли оставшиеся синие рамки.
 
 ## Технологии
 

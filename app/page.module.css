@@ -364,18 +364,42 @@
   cursor: pointer;
 }
 
+.chartPointDot {
+  cursor: pointer;
+}
+
 .lineChartWrap :global(.recharts-surface:focus),
 .lineChartWrap :global(.recharts-surface:focus-visible),
 .lineChartWrap :global(.recharts-wrapper:focus),
 .lineChartWrap :global(.recharts-wrapper:focus-visible),
+.lineChartWrap :global(.recharts-wrapper [tabindex]:focus),
+.lineChartWrap :global(.recharts-wrapper [tabindex]:focus-visible),
 .lineChartWrap :global(svg:focus),
 .lineChartWrap :global(svg:focus-visible),
+.lineChartWrap :global(g:focus),
+.lineChartWrap :global(g:focus-visible),
+.lineChartWrap :global(path:focus),
+.lineChartWrap :global(path:focus-visible),
+.lineChartWrap :global(rect:focus),
+.lineChartWrap :global(rect:focus-visible),
+.lineChartWrap :global(circle:focus),
+.lineChartWrap :global(circle:focus-visible),
 .barChartWrap :global(.recharts-surface:focus),
 .barChartWrap :global(.recharts-surface:focus-visible),
 .barChartWrap :global(.recharts-wrapper:focus),
 .barChartWrap :global(.recharts-wrapper:focus-visible),
+.barChartWrap :global(.recharts-wrapper [tabindex]:focus),
+.barChartWrap :global(.recharts-wrapper [tabindex]:focus-visible),
 .barChartWrap :global(svg:focus),
-.barChartWrap :global(svg:focus-visible) {
+.barChartWrap :global(svg:focus-visible),
+.barChartWrap :global(g:focus),
+.barChartWrap :global(g:focus-visible),
+.barChartWrap :global(path:focus),
+.barChartWrap :global(path:focus-visible),
+.barChartWrap :global(rect:focus),
+.barChartWrap :global(rect:focus-visible),
+.barChartWrap :global(circle:focus),
+.barChartWrap :global(circle:focus-visible) {
   outline: none !important;
   box-shadow: none !important;
 }
