@@ -1105,6 +1105,35 @@ export function buildDashboardAnalytics(input: {
   };
 }
 
+export type DashboardBreakdowns = {
+  amountBreakdown: DashboardBreakdownRow[];
+  marketingSourceBreakdown: DashboardBreakdownRow[];
+  orderMethodBreakdown: DashboardBreakdownRow[];
+  statusBreakdown: DashboardBreakdownRow[];
+};
+
+/**
+ * Recompute all four breakdown sections from an arbitrary order subset.
+ * Used when a chart trend-point selection narrows the visible orders.
+ */
+export function buildOrderBreakdowns(input: {
+  currencyHint: string | null;
+  orders: readonly DashboardOrder[];
+}): DashboardBreakdowns {
+  return {
+    amountBreakdown: buildAmountBreakdown(input.orders),
+    marketingSourceBreakdown: buildMarketingSourceBreakdown({
+      currencyHint: input.currencyHint,
+      orders: input.orders,
+    }),
+    orderMethodBreakdown: buildOrderMethodBreakdown({
+      currencyHint: input.currencyHint,
+      orders: input.orders,
+    }),
+    statusBreakdown: buildStatusBreakdown(input.orders),
+  };
+}
+
 export function isOrderWithinTrendPoint(input: {
   createdAt: string;
   point: DashboardTrendPoint;

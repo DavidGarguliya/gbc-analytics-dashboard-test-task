@@ -16,6 +16,7 @@ import {
 } from "recharts";
 import {
   buildDashboardAnalytics,
+  buildOrderBreakdowns,
   DASHBOARD_PERIOD_OPTIONS,
   isOrderWithinTrendPoint,
   type DashboardBreakdownRow,
@@ -916,6 +917,23 @@ export function DashboardView({ dashboard, renderedAt }: DashboardViewProps) {
       }),
     );
   }, [analytics.filteredOrders, selectedTrendPoint]);
+
+  const activeBreakdowns = useMemo(() => {
+    if (selectedTrendPoint === null) {
+      return {
+        amountBreakdown: analytics.amountBreakdown,
+        marketingSourceBreakdown: analytics.marketingSourceBreakdown,
+        orderMethodBreakdown: analytics.orderMethodBreakdown,
+        statusBreakdown: analytics.statusBreakdown,
+      };
+    }
+
+    return buildOrderBreakdowns({
+      currencyHint: analytics.currentSummary.revenue.currencyCode ?? dashboard.currencyCode,
+      orders: tableOrders,
+    });
+  }, [analytics, dashboard.currencyCode, selectedTrendPoint, tableOrders]);
+
   const selectedOrder = tableOrders.find((order) => order.retailcrmId === selectedOrderId) ?? null;
   const summaryDeltas = getSummaryDeltas({
     current: analytics.currentSummary,
@@ -1165,22 +1183,22 @@ export function DashboardView({ dashboard, renderedAt }: DashboardViewProps) {
       <section className={styles.slicesGrid}>
         <BreakdownRows
           revenueCurrencyCode={analytics.currentSummary.revenue.currencyCode ?? dashboard.currencyCode}
-          rows={analytics.marketingSourceBreakdown}
+          rows={activeBreakdowns.marketingSourceBreakdown}
           title="Источник заказа"
           variant="source"
         />
         <BreakdownRows
-          rows={analytics.amountBreakdown}
+          rows={activeBreakdowns.amountBreakdown}
           title="Распределение по сумме заказа"
           variant="amount"
         />
         <BreakdownRows
-          rows={analytics.statusBreakdown}
+          rows={activeBreakdowns.statusBreakdown}
           title="Заказы по статусам"
           variant="status"
         />
         <BreakdownRows
-          rows={analytics.orderMethodBreakdown}
+          rows={activeBreakdowns.orderMethodBreakdown}
           title="Способ оформления"
           variant="status"
         />
