@@ -5,8 +5,10 @@ import {
   Area,
   AreaChart,
   Bar,
+  type BarRectangleItem,
   BarChart,
   CartesianGrid,
+  type DotItemDotProps,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -36,9 +38,6 @@ type DashboardViewProps = {
 };
 
 type DeltaTone = "down" | "flat" | "muted" | "up";
-type TrendChartPayload = {
-  activePayload?: Array<{ payload: DashboardTrendPoint }>;
-};
 
 function formatNumberValue(value: number): string {
   return new Intl.NumberFormat("ru-RU", {
@@ -311,14 +310,73 @@ function TrendTooltip(props: {
   );
 }
 
-function readTrendPointFromChartState(state: unknown): DashboardTrendPoint | null {
-  if (!state || typeof state !== "object" || !("activePayload" in state)) {
+function blurChartFocus() {
+  if (typeof document === "undefined") {
+    return;
+  }
+
+  const activeElement = document.activeElement as { blur?: () => void } | null;
+
+  if (activeElement && typeof activeElement.blur === "function") {
+    activeElement.blur();
+  }
+}
+
+function commitTrendSelection(input: {
+  onSelectPoint: (point: DashboardTrendPoint | null) => void;
+  point: DashboardTrendPoint | null;
+}) {
+  if (input.point === null) {
+    return;
+  }
+
+  input.onSelectPoint(input.point);
+
+  if (typeof window !== "undefined") {
+    window.requestAnimationFrame(() => {
+      blurChartFocus();
+    });
+  }
+}
+
+function TrendPointDot(
+  props: DotItemDotProps & {
+    onSelectPoint: (point: DashboardTrendPoint | null) => void;
+    selectedPointKey: string | null;
+  },
+) {
+  const point = props.payload as DashboardTrendPoint | null | undefined;
+
+  if (typeof props.cx !== "number" || typeof props.cy !== "number" || point === null || point === undefined) {
     return null;
   }
 
-  const payloadState = state as TrendChartPayload;
+  const isSelected = point.key === props.selectedPointKey;
 
-  return payloadState.activePayload?.[0]?.payload ?? null;
+  return (
+    <g
+      className={styles.chartPointDot}
+      onClick={() =>
+        commitTrendSelection({
+          onSelectPoint: props.onSelectPoint,
+          point,
+        })
+      }
+      role="presentation"
+      tabIndex={-1}
+    >
+      <circle cx={props.cx} cy={props.cy} fill="transparent" r={12} stroke="transparent" />
+      <circle
+        cx={props.cx}
+        cy={props.cy}
+        fill="var(--accent)"
+        fillOpacity={isSelected ? 1 : 0.9}
+        r={isSelected ? 5.5 : 4}
+        stroke="white"
+        strokeWidth={isSelected ? 3 : 2.5}
+      />
+    </g>
+  );
 }
 
 function RevenueTrendChart(props: {
@@ -367,7 +425,6 @@ function RevenueTrendChart(props: {
             accessibilityLayer={false}
             data={props.points}
             margin={{ top: 10, right: 0, left: 0, bottom: 0 }}
-            onClick={(state) => props.onSelectPoint(readTrendPointFromChartState(state))}
           >
             <defs>
               <linearGradient id="revenueGradient" x1="0" y1="0" x2="0" y2="1">
@@ -389,7 +446,14 @@ function RevenueTrendChart(props: {
               content={<TrendTooltip currencyCode={props.currencyCode} variant="revenue" />}
             />
             <Area 
-              activeDot={{ r: 6, stroke: "white", strokeWidth: 3 }}
+              activeDot={false}
+              dot={(dotProps) => (
+                <TrendPointDot
+                  {...dotProps}
+                  onSelectPoint={props.onSelectPoint}
+                  selectedPointKey={props.selectedPointKey}
+                />
+              )}
               type="monotone" 
               dataKey="revenueAmount" 
               stroke="var(--accent)" 
@@ -402,8 +466,8 @@ function RevenueTrendChart(props: {
       </div>
       <p className={styles.chartFootnote}>
         {props.selectedPointKey
-          ? "Клик по выбранному периоду сбрасывает фильтр таблицы."
-          : "Клик по периоду фильтрует таблицу заказов ниже."}
+          ? "Клик по выбранной точке сбрасывает фильтр таблицы."
+          : "Клик по точке графика фильтрует таблицу заказов ниже."}
       </p>
     </div>
   );
@@ -449,7 +513,6 @@ function OrdersTrendChart(props: {
             accessibilityLayer={false}
             data={props.points}
             margin={{ top: 10, right: 0, left: 0, bottom: 0 }}
-            onClick={(state) => props.onSelectPoint(readTrendPointFromChartState(state))}
           >
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
             <XAxis 
@@ -470,6 +533,12 @@ function OrdersTrendChart(props: {
               fillOpacity={0.45}
               radius={[4, 4, 0, 0]} 
               maxBarSize={48} 
+              onClick={(data: BarRectangleItem) =>
+                commitTrendSelection({
+                  onSelectPoint: props.onSelectPoint,
+                  point: (data.payload as DashboardTrendPoint | null | undefined) ?? null,
+                })
+              }
               activeBar={{ fill: 'var(--accent)', fillOpacity: 0.7 }}
             />
           </BarChart>
@@ -477,8 +546,8 @@ function OrdersTrendChart(props: {
       </div>
       <p className={styles.chartFootnote}>
         {props.selectedPointKey
-          ? "Клик по выбранному периоду сбрасывает фильтр таблицы."
-          : "Клик по периоду фильтрует таблицу заказов ниже."}
+          ? "Клик по выбранному столбцу сбрасывает фильтр таблицы."
+          : "Клик по столбцу фильтрует таблицу заказов ниже."}
       </p>
     </div>
   );
