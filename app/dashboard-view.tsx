@@ -8,6 +8,7 @@ import {
   type BarRectangleItem,
   BarChart,
   CartesianGrid,
+  Cell,
   type DotItemDotProps,
   ResponsiveContainer,
   Tooltip,
@@ -540,7 +541,15 @@ function OrdersTrendChart(props: {
                 })
               }
               activeBar={{ fill: 'var(--accent)', fillOpacity: 0.7 }}
-            />
+            >
+              {props.points.map((point) => (
+                <Cell
+                  key={point.key}
+                  fill={point.key === props.selectedPointKey ? 'var(--accent-dark, color-mix(in srgb, var(--accent) 70%, black))' : 'var(--accent)'}
+                  fillOpacity={point.key === props.selectedPointKey ? 0.95 : 0.45}
+                />
+              ))}
+            </Bar>
           </BarChart>
         </ResponsiveContainer>
       </div>
@@ -733,6 +742,7 @@ function OrderDetailsPanel(props: {
       <div className={styles.orderDetailsGrid}>
         <DetailField label="Клиент" value={props.order.customerName ?? "Не указан"} />
         <DetailField label="Телефон" value={props.order.phone ?? "Не указан"} />
+        <DetailField label="Email" value={props.order.email ?? "Не указан"} />
         <DetailField label="Город" value={props.order.city ?? "Не указан"} />
         <DetailField label="Маркетинговый источник" value={props.order.marketingSource || "Не указан"} />
         <DetailField label="Способ оформления" value={props.order.orderMethod ? formatOrderMethod(props.order.orderMethod) : "Не указан"} />

@@ -69,6 +69,7 @@ export type DashboardOrder = {
   createdAt: string;
   currency: string;
   customerName: string | null;
+  email: string | null;
   externalId: string | null;
   isLargeOrder: boolean;
   itemCount: number;
@@ -957,6 +958,7 @@ export function buildDashboardReadModel(input: {
         createdAt: operationalSummary.createdAt,
         currency: operationalSummary.currency,
         customerName: operationalSummary.customerName,
+        email: operationalSummary.email,
         externalId: operationalSummary.externalId,
         isLargeOrder:
           operationalSummary.currency === "KZT" &&
