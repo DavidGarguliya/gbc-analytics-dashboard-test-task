@@ -113,3 +113,13 @@ npm run build
 ---
 
 Подробнее: [полная инженерная версия README](./README_full.md)
+
+
+## Скриншоты
+
+<img src="./screenshots/Dashboard.png" alt="Дашборд" width="600" />    <img src="./screenshots/Telegram_alerts.png" alt="Уведомление в телеграм" width="237" />
+
+
+
+
+
