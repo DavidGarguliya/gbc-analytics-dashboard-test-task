@@ -444,7 +444,7 @@ vercel deploy --prod
 
 В репозитории реализована полная рабочая цепочка:
 
-`mock_orders.json → RetailCRM → Supabase → Dashboard → Telegram alerts → Vercel`
+`mock_orders.json → RetailCRM → Supabase → Vercel Dashboard → Telegram alerts
 
 Система доведена до честного рабочего состояния с такими свойствами:
 
